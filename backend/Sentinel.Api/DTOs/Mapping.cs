@@ -1,0 +1,25 @@
+using Sentinel.Api.Configuration;
+using Sentinel.Api.Models;
+using Sentinel.Api.Services;
+
+namespace Sentinel.Api.DTOs;
+
+/// <summary>Entity → DTO conversions. Entities never leave the API directly.</summary>
+public static class Mapping
+{
+    public static CameraFeedDto ToDto(this CameraFeed c) =>
+        new(c.Id, c.Name, c.FeedType, c.StreamUrl, c.StreamFormat, c.Status, c.LocationZone, c.UpdatedAt);
+
+    public static SensorNodeDto ToDto(this SensorNode s, AlertOptions options, IReadOnlyList<double>? history = null) =>
+        new(s.Id, s.Type, s.CurrentValue, s.Threshold, Math.Round(SensorRules.CriticalThreshold(s, options), 2),
+            s.LocationZone, s.Unit, SensorRules.StateOf(s, options), s.LastReadingAt, history);
+
+    public static SmartSprinklerDto ToDto(this SmartSprinkler s) =>
+        new(s.Id, s.Zone, s.IsActive, s.Mode, s.LastTriggeredAt, s.UpdatedAt);
+
+    public static IncidentAlertDto ToDto(this IncidentAlert i) =>
+        new(i.Id, i.Timestamp, i.UpdatedAt, i.CameraId, i.Camera?.Name, i.SensorId, i.Source, i.Zone, i.Severity,
+            i.FireDetected, i.FireSeverity, i.HumanCount, i.DangerCount, i.Message, i.IsResolved, i.ResolvedAt);
+
+    public static UserDto ToDto(this AppUser u) => new(u.Id, u.Email, u.DisplayName, u.Role);
+}

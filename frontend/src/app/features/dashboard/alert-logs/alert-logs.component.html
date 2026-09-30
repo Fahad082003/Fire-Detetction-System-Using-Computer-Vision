@@ -1,0 +1,56 @@
+<section class="panel flex flex-col" aria-labelledby="alerts-title">
+  <header class="panel-head">
+    <h2 id="alerts-title" class="panel-title">Alert Logs</h2>
+    <div class="seg" role="tablist" aria-label="Incident filter">
+      <button type="button" role="tab" class="seg-btn" [class.seg-btn-active]="filter() === 'open'" [attr.aria-selected]="filter() === 'open'" (click)="filter.set('open')">
+        Open ({{ live.openIncidents().length }})
+      </button>
+      <button type="button" role="tab" class="seg-btn" [class.seg-btn-active]="filter() === 'all'" [attr.aria-selected]="filter() === 'all'" (click)="filter.set('all')">All</button>
+    </div>
+  </header>
+
+  <div class="max-h-[460px] overflow-auto">
+    <table class="w-full border-collapse text-[12.5px]">
+      <thead class="sticky top-0 bg-ink-850 text-left text-[11px] uppercase tracking-wider text-slate-500">
+        <tr>
+          <th class="px-3 py-2">#</th><th class="px-3 py-2">Time</th><th class="px-3 py-2">Severity</th>
+          <th class="px-3 py-2">Location</th><th class="px-3 py-2">Source</th><th class="px-3 py-2">Fire</th>
+          <th class="px-3 py-2 text-right">Humans</th><th class="px-3 py-2 text-right">In danger</th>
+          <th class="px-3 py-2">Status</th><th class="px-3 py-2"><span class="sr-only">Actions</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (!live.loaded()) {
+          <tr><td colspan="10" class="px-3 py-6 text-center text-slate-500">
+            {{ live.state() === 'disconnected' ? 'Cannot reach the realtime server — retrying…' : 'Loading incidents…' }}
+          </td></tr>
+        } @else {
+          @for (i of rows(); track i.id) {
+            <tr class="border-b border-ink-700 transition hover:bg-ink-850"
+                [class.bg-red-500/10]="i.severity === 'Critical' && !i.isResolved"
+                [class.opacity-50]="i.isResolved">
+              <td class="px-3 py-2 font-mono" [class.shadow-[inset_3px_0_0_#ef4444]]="i.severity === 'Critical' && !i.isResolved">{{ i.id }}</td>
+              <td class="whitespace-nowrap px-3 py-2" [title]="i.timestamp | date: 'medium'">{{ i.timestamp | date: 'HH:mm:ss' }}</td>
+              <td class="px-3 py-2"><span class="sev sev-{{ i.severity }}">{{ i.severity }}</span></td>
+              <td class="min-w-[180px] px-3 py-2 text-slate-300" [title]="i.message">{{ location(i) }}</td>
+              <td class="whitespace-nowrap px-3 py-2">{{ sourceLabel[i.source] }}</td>
+              <td class="px-3 py-2 font-mono">{{ i.fireDetected ? (i.fireSeverity ?? 'Yes') : '—' }}</td>
+              <td class="px-3 py-2 text-right font-mono">{{ i.humanCount }}</td>
+              <td class="px-3 py-2 text-right font-mono" [class.text-amber-400]="i.dangerCount > 0">{{ i.dangerCount }}</td>
+              <td class="px-3 py-2 text-[11px] font-semibold" [class]="i.isResolved ? 'text-emerald-400' : 'text-amber-400'">
+                {{ i.isResolved ? 'Resolved' : 'Open' }}
+              </td>
+              <td class="px-3 py-2">
+                @if (!i.isResolved) {
+                  <button type="button" class="btn btn-sm btn-success" [disabled]="resolving().has(i.id)" (click)="resolve(i)">Resolve</button>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="10" class="px-3 py-6 text-center text-slate-500">{{ filter() === 'open' ? 'No open incidents.' : 'No incidents recorded.' }}</td></tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+</section>

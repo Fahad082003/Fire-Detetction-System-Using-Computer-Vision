@@ -1,0 +1,78 @@
+/**
+ * TypeScript mirrors of the ASP.NET Core DTOs (backend/Sentinel.Api/DTOs).
+ * JSON is camelCase and enums are sent as strings.
+ */
+export type Severity = 'Low' | 'Medium' | 'High' | 'Critical';
+export type FeedType = 'CCTV' | 'Drone';
+export type StreamFormat = 'Simulated' | 'Mjpeg' | 'Hls' | 'Mp4';
+export type CameraStatus = 'Online' | 'Degraded' | 'Offline';
+export type SensorType = 'Smoke' | 'Temperature';
+export type SensorState = 'Normal' | 'Warning' | 'Alarm' | 'Critical';
+export type SprinklerMode = 'Auto' | 'Manual';
+export type IncidentSource = 'Vision' | 'Sensor' | 'Manual';
+export type DetectionCategory = 'Human' | 'Fire' | 'Smoke' | 'Danger' | 'Vehicle' | 'Other';
+export type ZoneLevel = 'Warning' | 'Danger' | 'Critical';
+export type SystemLevel = 'nominal' | 'elevated' | 'critical';
+
+export interface UserDto { id: number; email: string; displayName: string; role: 'Admin' | 'Operator'; }
+export interface LoginResponse { token: string; expiresAt: string; user: UserDto; }
+
+export interface CameraFeed {
+  id: string; name: string; feedType: FeedType; streamUrl: string; streamFormat: StreamFormat;
+  status: CameraStatus; locationZone: string; updatedAt: string;
+}
+
+export interface SensorNode {
+  id: string; type: SensorType; currentValue: number; threshold: number; criticalThreshold: number;
+  locationZone: string; unit: string; state: SensorState; lastReadingAt: string | null; history?: number[] | null;
+}
+
+export interface SmartSprinkler {
+  id: string; zone: string; isActive: boolean; mode: SprinklerMode; lastTriggeredAt: string | null; updatedAt: string;
+}
+
+export interface IncidentAlert {
+  id: number; timestamp: string; updatedAt: string; cameraId: string | null; cameraName: string | null;
+  sensorId: string | null; source: IncidentSource; zone: string; severity: Severity; fireDetected: boolean;
+  fireSeverity: Severity | null; humanCount: number; dangerCount: number; message: string;
+  isResolved: boolean; resolvedAt: string | null;
+}
+
+export type IncidentAction = 'created' | 'escalated' | 'updated' | 'resolved';
+export interface IncidentEvent { action: IncidentAction; incident: IncidentAlert; }
+
+export interface SystemStatus { level: SystemLevel; openIncidents: number; activeSprinklers: number; }
+
+export interface DashboardSnapshot {
+  cameras: CameraFeed[]; sensors: SensorNode[]; sprinklers: SmartSprinkler[];
+  incidents: IncidentAlert[]; system: SystemStatus; serverTime: string;
+}
+
+export interface Detection {
+  label: string | null; category: DetectionCategory; confidence: number;
+  bbox: [number, number, number, number]; trackId: string | null; atRisk: boolean;
+}
+export interface DangerZone { label: string | null; level: ZoneLevel; polygon: [number, number][]; }
+export interface Heatmap { rows: number; cols: number; values: number[]; }
+
+/** A validated AI frame as broadcast by the hub ("detection" event). */
+export interface DetectionFrame {
+  cameraId: string; timestamp: string; frameWidth: number; frameHeight: number; normalized: boolean;
+  detections: Detection[]; dangerZones: DangerZone[]; heatmap: Heatmap | null; humanCoordinates: [number, number][];
+  fireDetected: boolean; fireSeverity: Severity | null; humanCount: number; dangerCount: number;
+}
+
+export type ActivityLevel = 'info' | 'success' | 'warning' | 'critical' | 'notify';
+export interface ActivityEntry { level: ActivityLevel; message: string; zone: string | null; timestamp: string; }
+
+export interface NotificationResult {
+  incidentId: number; channel: string; ok: boolean; skipped: boolean;
+  delivered: number; failed: number; detail: string; timestamp: string;
+}
+
+export interface MasterSprinklerResult { changed: string[]; sprinklers: SmartSprinkler[]; }
+
+export interface ManualDispatchRequest { zone: string; message?: string; severity: Severity; activateSprinklers: boolean; }
+
+/** ASP.NET Core ProblemDetails / ValidationProblemDetails error body. */
+export interface ProblemDetails { title?: string; detail?: string; status?: number; errors?: Record<string, string[]>; }

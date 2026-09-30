@@ -1,0 +1,53 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Sentinel.Api.DTOs;
+using Sentinel.Api.Interfaces;
+using Sentinel.Api.Models;
+using Sentinel.Api.Security;
+
+namespace Sentinel.Api.Controllers;
+
+[Route("api/cameras")]
+public class CamerasController(ICameraService cameras, IHttpClientFactory httpClients, ILogger<CamerasController> logger) : ApiControllerBase
+{
+    [HttpGet]
+    [Authorize(Policy = AuthPolicies.OperatorOrDevice)]
+    public async Task<IReadOnlyList<CameraFeedDto>> GetAll(CancellationToken ct) => await cameras.GetAllAsync(ct);
+
+    [HttpGet("{id}")]
+    [Authorize(Policy = AuthPolicies.OperatorOrDevice)]
+    public async Task<CameraFeedDto> Get(string id, CancellationToken ct) => (await cameras.GetEntityAsync(id, ct)).ToDto();
+
+    /// <summary>
+    /// Same-origin MJPEG relay for CCTV/drone feeds (browsers show it in &lt;img&gt;). Because &lt;img&gt; cannot send
+    /// headers, the JWT may be passed as <c>?access_token=</c>.
+    /// </summary>
+    [HttpGet("{id}/stream")]
+    [Authorize(Policy = AuthPolicies.Operator)]
+    public async Task Stream(string id, CancellationToken ct)
+    {
+        var camera = await cameras.GetEntityAsync(id, ct);
+        if (camera.StreamFormat != StreamFormat.Mjpeg ||
+            !Uri.TryCreate(camera.StreamUrl, UriKind.Absolute, out var upstreamUri) ||
+            upstreamUri.Scheme is not ("http" or "https"))
+        {
+            Response.StatusCode = StatusCodes.Status400BadRequest;
+            await Response.WriteAsync("Proxy supports http(s) MJPEG feeds only; play HLS/MP4 directly.", ct);
+            return;
+        }
+
+        var client = httpClients.CreateClient("camera-stream");
+        using var upstream = await client.GetAsync(upstreamUri, HttpCompletionOption.ResponseHeadersRead, ct);
+        if (!upstream.IsSuccessStatusCode)
+        {
+            logger.LogWarning("MJPEG upstream for {Camera} returned {Status}", id, upstream.StatusCode);
+            Response.StatusCode = StatusCodes.Status502BadGateway;
+            return;
+        }
+
+        Response.ContentType = upstream.Content.Headers.ContentType?.ToString() ?? "multipart/x-mixed-replace";
+        Response.Headers.CacheControl = "no-cache, no-store, must-revalidate";
+        await using var body = await upstream.Content.ReadAsStreamAsync(ct);
+        await body.CopyToAsync(Response.Body, ct); // runs until the browser closes the <img>
+    }
+}

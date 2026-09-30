@@ -1,0 +1,57 @@
+<article class="tile relative overflow-hidden rounded-xl border bg-black transition"
+         [class.border-ink-600]="!alertLevel()"
+         [class.border-amber-500]="alertLevel() === 'elevated'"
+         [class.tile-critical]="alertLevel() === 'critical'"
+         [class.cursor-zoom-in]="!focused()" [class.cursor-zoom-out]="focused()"
+         tabindex="0" role="button"
+         [attr.aria-label]="camera().name + ', ' + camera().feedType + ' feed, ' + camera().locationZone"
+         (click)="toggleFocus.emit(camera().id)" (keydown.enter)="toggleFocus.emit(camera().id)">
+  <div #stage class="relative aspect-video">
+    @switch (format()) {
+      @case ('Mjpeg') {
+        <img #mediaEl [src]="mjpegUrl()" alt="" decoding="async" (load)="offline.set(false)" (error)="onMjpegError()"
+             class="absolute inset-0 h-full w-full bg-black object-contain" />
+      }
+      @case ('Hls') {
+        <video #mediaEl [muted]="true" muted autoplay playsinline class="absolute inset-0 h-full w-full bg-black object-contain"></video>
+      }
+      @case ('Mp4') {
+        <video #mediaEl [src]="camera().streamUrl" [muted]="true" muted autoplay loop playsinline
+               (playing)="offline.set(false)" (error)="offline.set(true)"
+               class="absolute inset-0 h-full w-full bg-black object-contain"></video>
+      }
+      @default {
+        <div class="sim-backdrop absolute inset-0">
+          <span class="absolute bottom-3 left-1/2 -translate-x-1/2 font-mono text-[10px] tracking-[0.3em] text-slate-500/50">
+            {{ camera().status === 'Offline' ? 'FEED OFFLINE' : 'SIMULATED FEED · AI OVERLAY' }}
+          </span>
+        </div>
+      }
+    }
+    @if (offline()) {
+      <div class="absolute inset-0 grid place-items-center bg-black/60 font-mono text-xs tracking-[0.2em] text-amber-400">NO SIGNAL — RECONNECTING</div>
+    }
+
+    <!-- AI overlay: bounding boxes, labels, danger zones, heatmap -->
+    <canvas #canvas class="pointer-events-none absolute inset-0 h-full w-full" aria-hidden="true"></canvas>
+
+    <div class="pointer-events-none absolute inset-x-0 top-0 flex items-center gap-2 bg-gradient-to-b from-black/75 to-transparent px-3 py-2 text-xs font-semibold">
+      <span class="rounded px-1.5 py-1 font-mono text-[10px] font-bold tracking-wider"
+            [class]="camera().feedType === 'Drone' ? 'bg-purple-500/20 text-purple-300' : 'bg-blue-500/20 text-blue-300'">
+        {{ camera().feedType.toUpperCase() }}
+      </span>
+      <span class="truncate">{{ camera().name }}</span>
+      <span class="ml-auto flex items-center gap-1.5 font-mono text-[10px] tracking-[0.14em]" [class]="stale() ? 'text-slate-500' : 'text-red-300'">
+        <span class="h-1.5 w-1.5 rounded-full" [class]="stale() ? 'bg-slate-500' : 'bg-red-500 animate-blink'"></span>
+        {{ stale() ? 'NO AI DATA' : 'LIVE' }}
+      </span>
+    </div>
+
+    <div class="pointer-events-none absolute bottom-2.5 left-2.5 flex gap-1.5 font-mono text-[10px]">
+      <span class="chip">HUM <b class="text-green-400">{{ stats()?.humanCount ?? 0 }}</b></span>
+      <span class="chip" [class.chip-danger]="(stats()?.dangerCount ?? 0) > 0">DANGER <b>{{ stats()?.dangerCount ?? 0 }}</b></span>
+      <span class="chip" [class.chip-fire]="stats()?.fireDetected">FIRE <b>{{ stats()?.fireDetected ? (stats()?.fireSeverity ?? 'YES') : '—' }}</b></span>
+    </div>
+    <div class="pointer-events-none absolute bottom-2.5 right-2.5 font-mono text-[10px] uppercase tracking-wider text-slate-400">{{ camera().locationZone }}</div>
+  </div>
+</article>

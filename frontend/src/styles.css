@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------ design tokens
+   Emergency colour scheme: emerald = safe, amber = warning, red = critical. */
+@theme {
+  --color-ink-950: #05080f;
+  --color-ink-900: #0a0f1a;
+  --color-ink-850: #0e1522;
+  --color-ink-800: #131c2c;
+  --color-ink-700: #1c2739;
+  --color-ink-600: #2a3850;
+  --font-sans: "Inter", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "Cascadia Code", Consolas, monospace;
+  --animate-alarm: alarm 1.4s ease-in-out infinite;
+  --animate-blink: blink 1.2s steps(2) infinite;
+
+  @keyframes alarm { 50% { opacity: .35; } }
+  @keyframes blink { 50% { opacity: .2; } }
+}
+
+@layer base {
+  html, body { height: 100%; }
+  body {
+    @apply bg-ink-950 text-slate-200 font-sans antialiased;
+    background-image:
+      radial-gradient(1200px 600px at 10% -10%, rgb(16 185 129 / .06), transparent 60%),
+      radial-gradient(900px 500px at 110% 0%, rgb(239 68 68 / .05), transparent 60%);
+  }
+  :focus-visible { @apply outline-2 outline-offset-2 outline-cyan-400; }
+  dialog::backdrop { background: rgb(2 4 8 / .7); backdrop-filter: blur(3px); }
+}
+
+/* Small reusable building blocks used across component templates. */
+@layer components {
+  .panel { @apply rounded-xl border border-ink-700 bg-ink-900/90 shadow-lg shadow-black/40; }
+  .panel-head { @apply flex items-center gap-3 border-b border-ink-700 px-4 py-3; }
+  .panel-title { @apply mr-auto text-xs font-bold uppercase tracking-[0.14em] text-slate-400; }
+  .btn { @apply inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-ink-600 bg-ink-800 px-3.5 text-sm font-semibold transition hover:bg-ink-700 disabled:cursor-not-allowed disabled:opacity-50; }
+  .btn-sm { @apply h-7 px-2.5 text-xs; }
+  .btn-ghost { @apply bg-transparent; }
+  .btn-danger { @apply border-red-500 bg-red-500 text-white shadow-lg shadow-red-500/30 hover:bg-red-600; }
+  .btn-success { @apply border-emerald-500/40 text-emerald-400; }
+  .field { @apply flex flex-col gap-1.5 text-xs font-semibold text-slate-400; }
+  .input { @apply rounded-lg border border-ink-600 bg-ink-950 px-3 py-2 text-sm font-normal text-slate-100 outline-none focus:border-cyan-400; }
+  .seg { @apply inline-flex gap-0.5 rounded-lg border border-ink-700 bg-ink-950 p-0.5; }
+  .seg-btn { @apply rounded-md px-2.5 py-1 text-xs font-semibold text-slate-500 hover:text-slate-200; }
+  .seg-btn-active { @apply bg-ink-700 text-slate-100; }
+  .sev { @apply inline-block rounded px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider; }
+  .sev-Low { @apply bg-emerald-500/15 text-emerald-400; }
+  .sev-Medium { @apply bg-amber-500/15 text-amber-400; }
+  .sev-High { @apply bg-orange-500/15 text-orange-400; }
+  .sev-Critical { @apply bg-red-500 text-white; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}

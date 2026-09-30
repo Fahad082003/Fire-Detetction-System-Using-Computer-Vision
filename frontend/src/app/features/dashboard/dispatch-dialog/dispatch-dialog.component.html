@@ -1,0 +1,39 @@
+<dialog #dialog class="m-auto w-[min(480px,calc(100vw-32px))] rounded-2xl border border-ink-600 bg-ink-900 p-0 text-slate-100 shadow-2xl">
+  <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4 p-5" novalidate>
+    <header>
+      <h2 class="text-lg font-bold text-red-400">Emergency Dispatch</h2>
+      <p class="mt-1 text-sm text-slate-400">Opens an incident and alerts all responders by SMS, email and push immediately.</p>
+    </header>
+
+    <label class="field">
+      <span>Zone</span>
+      <select class="input" formControlName="zone">
+        @for (z of live.zones(); track z) { <option [value]="z">{{ z }}</option> }
+      </select>
+      @if (form.controls.zone.invalid && form.controls.zone.touched) { <span class="text-red-400">Select a zone.</span> }
+    </label>
+
+    <label class="field">
+      <span>Severity</span>
+      <select class="input" formControlName="severity">
+        @for (s of severities; track s) { <option [value]="s">{{ s }}</option> }
+      </select>
+    </label>
+
+    <label class="field">
+      <span>Message ({{ form.controls.message.value.length }}/500)</span>
+      <textarea class="input resize-y" rows="3" formControlName="message" placeholder="e.g. Evacuate Zone B via the east stairwell."></textarea>
+      @if (form.controls.message.invalid) { <span class="text-red-400">Maximum 500 characters.</span> }
+    </label>
+
+    <label class="flex items-center gap-2 text-sm text-slate-300">
+      <input type="checkbox" formControlName="activateSprinklers" class="h-4 w-4 accent-red-500" />
+      Activate all sprinklers in this zone
+    </label>
+
+    <footer class="flex justify-end gap-2">
+      <button type="button" class="btn btn-ghost" (click)="close()">Cancel</button>
+      <button type="submit" class="btn btn-danger" [disabled]="sending()">{{ sending() ? 'Dispatching…' : 'Dispatch Now' }}</button>
+    </footer>
+  </form>
+</dialog>

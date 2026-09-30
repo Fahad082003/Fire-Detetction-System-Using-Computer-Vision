@@ -1,0 +1,41 @@
+/* Ring gauge: a 270° conic arc. --pct (0-100) is the fill, --tone the state colour. */
+.gauge { position: relative; width: 64px; height: 64px; flex: none; }
+.gauge-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(from 225deg, var(--tone) calc(var(--pct) * 0.75%), #1c2739 0 75%, transparent 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 6px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 6px));
+}
+.gauge-critical .gauge-ring { animation: ring-pulse .8s ease-in-out infinite; }
+@keyframes ring-pulse { 50% { filter: drop-shadow(0 0 6px #ef4444); } }
+
+/* Toggle switch (the real <input> is visually hidden; .peer-checked styles come from Tailwind). */
+.switch {
+  position: relative;
+  display: block;
+  width: 40px;
+  height: 22px;
+  border-radius: 999px;
+  background: #1c2739;
+  border: 1px solid #2a3850;
+  transition: background .2s, border-color .2s;
+}
+.switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #cbd5e1;
+  transition: transform .2s;
+}
+input:checked + .switch { background: #3b82f6; border-color: #3b82f6; }
+input:checked + .switch::after { transform: translateX(18px); background: #fff; }
+header input:checked + .switch { background: #ef4444; border-color: #ef4444; }
+
+.spraying { animation: spray 1s ease-in-out infinite; }
+@keyframes spray { 50% { box-shadow: 0 0 14px rgba(96, 165, 250, .6); } }
