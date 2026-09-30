@@ -1,0 +1,15 @@
+{% autoescape off %}{{ site_name }} — {{ severity|upper }} ALERT
+{{ headline }}
+
+Incident:        #{{ incident_id }}
+Severity:        {{ severity }}
+Location:        {{ location }}
+Detected:        {{ timestamp }}
+Humans in area:  {{ human_count }}
+Active threats:  {{ danger_count }}
+Fire detected:   {{ fire_detected|yesno:"YES,No" }}{% if fire_severity_pct is not None %} ({{ fire_severity_pct }}% severity){% endif %}
+
+{{ message }}
+
+Open the command center: {{ dashboard_url }}
+{% endautoescape %}
