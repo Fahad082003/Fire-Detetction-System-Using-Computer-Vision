@@ -1,0 +1,124 @@
+<main class="grid items-start gap-3.5 p-3 md:p-5 xl:grid-cols-[240px_minmax(0,1fr)_300px]">
+  <!-- ================= plan list ================= -->
+  <section class="panel" aria-labelledby="plans-title">
+    <header class="panel-head">
+      <h2 id="plans-title" class="panel-title">Floor Plans</h2>
+      <button type="button" class="btn btn-sm btn-success" [disabled]="busy()" (click)="create()">+ New</button>
+    </header>
+    @if (loading()) {
+      <p class="p-4 text-sm text-slate-500">Loading…</p>
+    } @else if (loadError(); as e) {
+      <p class="p-4 text-sm text-red-400" role="alert">{{ e }} <button type="button" class="btn btn-sm mt-2" (click)="load()">Retry</button></p>
+    } @else if (!plans().length) {
+      <p class="p-4 text-sm text-slate-500">No floor plans yet. Click <b>+ New</b> to start.</p>
+    } @else {
+      @for (g of groups(); track g.building) {
+        <div class="px-3 pt-3 text-[11px] font-bold uppercase tracking-wider text-slate-500">{{ g.building }}</div>
+        <ul class="p-1.5">
+          @for (p of g.plans; track p.id) {
+            <li>
+              <button type="button" class="w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-ink-800"
+                      [class.bg-ink-800]="p.id === current()?.id" (click)="select(p)">
+                <div class="font-semibold">{{ p.name }}</div>
+                <div class="text-[11px] text-slate-500">Floor {{ p.floorNumber }} · {{ p.widthMeters }}×{{ p.heightMeters }} m · {{ p.elements.length }} elements{{ p.hasImage ? ' · image' : '' }}</div>
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    }
+  </section>
+
+  <!-- ================= editor canvas ================= -->
+  <section class="panel min-w-0" aria-labelledby="editor-title">
+    <header class="panel-head flex-wrap">
+      <h2 id="editor-title" class="panel-title">{{ current()?.name ?? 'Editor' }} @if (dirty()) { <span class="text-amber-400 normal-case tracking-normal">· unsaved</span> }</h2>
+      @if (current()) {
+        <label class="btn btn-sm cursor-pointer">
+          Upload image (PNG/JPG)
+          <input type="file" accept="image/png,image/jpeg" class="sr-only" (change)="upload($event)" />
+        </label>
+        <button type="button" class="btn btn-sm btn-success" [disabled]="busy() || !dirty()" (click)="save()">{{ busy() ? 'Saving…' : 'Save' }}</button>
+        <button type="button" class="btn btn-sm btn-ghost" (click)="remove()">Delete plan</button>
+      }
+    </header>
+
+    @if (current()) {
+      <div class="flex flex-wrap gap-1 border-b border-ink-700 p-2" role="toolbar" aria-label="Drawing tools">
+        <button type="button" class="seg-btn" [class.seg-btn-active]="tool() === 'select'" (click)="tool.set('select')">Select / Move</button>
+        <button type="button" class="seg-btn" [class.seg-btn-active]="tool() === 'pan'" (click)="tool.set('pan')">Pan</button>
+        @for (t of types; track t.type) {
+          <button type="button" class="seg-btn" [class.seg-btn-active]="tool() === t.type" (click)="tool.set(t.type)">+ {{ t.label }}</button>
+        }
+      </div>
+      <div class="p-2">
+        <app-floor-plan-map [width]="planWidth()" [height]="planHeight()" [elements]="elements()" [imageUrl]="imageUrl()"
+                            [selected]="selected()" [preview]="preview()" [panEnabled]="tool() === 'pan'" (pointer)="onPointer($event)" />
+        <p class="mt-2 text-xs text-slate-500">
+          Drag on the plan to draw the selected element (1 grid square = 1 m). <b>Select / Move</b>: drag an element to move it, drag the cyan corner to resize,
+          <kbd>Delete</kbd> to remove. Mouse wheel zooms. An uploaded image is only a background to trace over — walls, rooms and exits are not detected from it.
+        </p>
+      </div>
+    } @else if (!loading()) {
+      <p class="p-6 text-center text-sm text-slate-500">Select or create a floor plan.</p>
+    }
+  </section>
+
+  <!-- ================= properties ================= -->
+  <aside class="flex min-w-0 flex-col gap-3.5">
+    @if (current()) {
+      <form class="panel flex flex-col gap-3 p-4" [formGroup]="form" (ngSubmit)="save()" novalidate>
+        <h3 class="panel-title">Plan settings</h3>
+        <label class="field"><span>Name</span><input class="input" formControlName="name" />
+          @if (form.controls.name.invalid && form.controls.name.touched) { <span class="text-red-400">Name is required.</span> }</label>
+        <label class="field"><span>Building</span><input class="input" formControlName="building" placeholder="e.g. Warehouse" /></label>
+        <div class="grid grid-cols-3 gap-2">
+          <label class="field"><span>Floor</span><input class="input" type="number" formControlName="floorNumber" /></label>
+          <label class="field"><span>Width (m)</span><input class="input" type="number" formControlName="widthMeters" /></label>
+          <label class="field"><span>Height (m)</span><input class="input" type="number" formControlName="heightMeters" /></label>
+        </div>
+        @if (form.controls.widthMeters.invalid || form.controls.heightMeters.invalid) { <span class="text-xs text-red-400">Width and height must be 1–1000 m.</span> }
+        <p class="text-[11px] text-slate-500">The background image is stretched to this size, so set it to the real building dimensions.</p>
+      </form>
+
+      <section class="panel flex flex-col gap-3 p-4" aria-label="Selected element">
+        <h3 class="panel-title">Selected element</h3>
+        @if (selectedElement(); as e) {
+          <div class="text-sm font-semibold">{{ typeLabel(e.type) }}</div>
+          <label class="field"><span>Name</span><input class="input" [value]="e.name" (change)="text('name', $event)" maxlength="80" /></label>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="field"><span>X (m)</span><input class="input" type="number" step="0.1" [value]="e.x" (change)="numberInput('x', $event)" /></label>
+            <label class="field"><span>Y (m)</span><input class="input" type="number" step="0.1" [value]="e.y" (change)="numberInput('y', $event)" /></label>
+            <label class="field"><span>Width (m)</span><input class="input" type="number" step="0.1" [value]="e.width" (change)="numberInput('width', $event)" /></label>
+            <label class="field"><span>Height (m)</span><input class="input" type="number" step="0.1" [value]="e.height" (change)="numberInput('height', $event)" /></label>
+          </div>
+          @if (e.type === 'Door' || e.type === 'Exit') {
+            <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="accent-red-500" [checked]="e.isBlocked" (change)="check('isBlocked', $event)" /> Blocked / closed</label>
+          }
+          @if (e.type === 'DangerZone') {
+            <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="accent-red-500" [checked]="e.isActive" (change)="check('isActive', $event)" /> Active now (manual)</label>
+            <label class="field"><span>Linked camera/sensor zone</span><input class="input" [value]="e.zone ?? ''" (change)="text('zone', $event)" placeholder="e.g. Zone B" maxlength="64" /></label>
+            <p class="text-[11px] text-slate-500">Becomes active automatically while that zone has an open incident.</p>
+          }
+          <button type="button" class="btn btn-sm btn-ghost text-red-400" (click)="deleteSelected()">Delete element</button>
+        } @else {
+          <p class="text-sm text-slate-500">Nothing selected. Use <b>Select / Move</b> and click an element.</p>
+        }
+      </section>
+
+      <section class="panel p-4 text-xs text-slate-400" aria-label="Legend">
+        <h3 class="panel-title mb-2">Legend</h3>
+        <ul class="grid grid-cols-2 gap-1.5">
+          <li><span class="mr-1 inline-block h-3 w-3 border border-slate-400 bg-slate-400/10"></span>Room</li>
+          <li><span class="mr-1 inline-block h-3 w-3 border border-dashed border-blue-400 bg-blue-400/10"></span>Corridor</li>
+          <li><span class="mr-1 inline-block h-3 w-3 bg-slate-300"></span>Wall</li>
+          <li><span class="mr-1 inline-block h-3 w-3 bg-amber-500"></span>Door</li>
+          <li><span class="mr-1 inline-block h-3 w-3 bg-green-500/60"></span>Exit</li>
+          <li><span class="mr-1 inline-block h-3 w-3 border border-green-500 bg-green-500/20"></span>Safe zone</li>
+          <li><span class="mr-1 inline-block h-3 w-3 border border-dashed border-red-500 bg-red-500/20"></span>Danger zone</li>
+          <li><span class="mr-1 inline-block h-3 w-3 bg-red-500/50"></span>Blocked</li>
+        </ul>
+      </section>
+    }
+  </aside>
+</main>

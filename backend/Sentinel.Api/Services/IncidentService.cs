@@ -43,7 +43,21 @@ public class IncidentService(
         var dto = incident.ToDto();
         await realtime.IncidentAsync(new IncidentEventDto("resolved", dto));
         await realtime.ActivityAsync("success", $"Incident #{incident.Id} resolved by {actor}", incident.Zone);
+        await alerts.AddLogAsync(new IncidentLog
+        {
+            IncidentId = incident.Id, Type = IncidentLogType.Resolved, Zone = incident.Zone, Details = $"Resolved by {actor}",
+        }, ct);
         return dto;
+    }
+
+    public async Task<IReadOnlyList<IncidentLogDto>> ListLogsAsync(int? incidentId, IncidentLogType? type, int limit, CancellationToken ct = default)
+    {
+        var query = db.IncidentLogs.AsNoTracking();
+        if (incidentId is { } id) query = query.Where(l => l.IncidentId == id);
+        if (type is { } t) query = query.Where(l => l.Type == t);
+        var items = await query.OrderByDescending(l => l.Timestamp).ThenByDescending(l => l.Id)
+            .Take(Math.Clamp(limit, 1, 1000)).ToListAsync(ct);
+        return items.Select(l => l.ToDto()).ToList();
     }
 
     public async Task<IncidentAlertDto> DispatchAsync(ManualDispatchRequest request, string actor, CancellationToken ct = default)

@@ -59,3 +59,11 @@ cd frontend; ng build                     # production build
 ## Documentation
 
 The full beginner guide in Roman Urdu covers architecture, every file, the API, the testing flow and troubleshooting: **[docs/PROJECT_GUIDE_ROMAN_URDU.md](docs/PROJECT_GUIDE_ROMAN_URDU.md)**
+
+**[docs/SENTINEL_GUIDE_ROMAN_URDU_v2.pdf](docs/SENTINEL_GUIDE_ROMAN_URDU_v2.pdf)** (source: [.md](docs/SENTINEL_GUIDE_ROMAN_URDU_v2.md)) is a Roman Urdu guide to the v2 features:
+- Safe zones and the backend danger-zone person check.
+- Fire-growth history and logs (`GET /api/incidents/logs`).
+- Floor-plan upload and editor (`/api/floorplans`).
+- Evacuation route and estimated time (`POST /api/floorplans/{id}/route`).
+
+Apply the new migration with `dotnet ef database update --project Sentinel.Api`.

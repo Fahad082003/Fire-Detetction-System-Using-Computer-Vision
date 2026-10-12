@@ -33,6 +33,7 @@ public interface IIncidentService
     Task<IncidentAlertDto> GetAsync(int id, CancellationToken ct = default);
     Task<IncidentAlertDto> ResolveAsync(int id, string actor, CancellationToken ct = default);
     Task<IncidentAlertDto> DispatchAsync(ManualDispatchRequest request, string actor, CancellationToken ct = default);
+    Task<IReadOnlyList<IncidentLogDto>> ListLogsAsync(int? incidentId, IncidentLogType? type, int limit, CancellationToken ct = default);
 }
 
 public interface IDetectionService
@@ -45,7 +46,10 @@ public interface IAlertEngine
 {
     Task<IncidentAlert?> EvaluateDetectionAsync(DetectionFrameDto frame, CancellationToken ct = default);
     Task EvaluateSensorAsync(SensorNode sensor, SensorState previousState, CancellationToken ct = default);
-    Task PublishIncidentAsync(IncidentAlert incident, string action, bool emergency, bool forceNotify = false, CancellationToken ct = default);
+    Task PublishIncidentAsync(IncidentAlert incident, string action, bool emergency, bool forceNotify = false,
+        CancellationToken ct = default, bool simulated = false);
+    /// <summary>Saves a history entry and broadcasts it (SignalR "incidentLog").</summary>
+    Task AddLogAsync(IncidentLog log, CancellationToken ct = default);
 }
 
 public interface IDashboardService
@@ -71,6 +75,18 @@ public interface IPushSubscriptionService
     Task UnsubscribeAsync(string endpoint, CancellationToken ct = default);
 }
 
+public interface IFloorPlanService
+{
+    Task<IReadOnlyList<FloorPlanDto>> ListAsync(CancellationToken ct = default);
+    Task<FloorPlanDto> GetAsync(int id, CancellationToken ct = default);
+    Task<FloorPlanDto> CreateAsync(SaveFloorPlanRequest request, CancellationToken ct = default);
+    Task<FloorPlanDto> UpdateAsync(int id, SaveFloorPlanRequest request, CancellationToken ct = default);
+    Task DeleteAsync(int id, CancellationToken ct = default);
+    Task<FloorPlanDto> SaveImageAsync(int id, IFormFile file, CancellationToken ct = default);
+    Task<(string Path, string ContentType)> GetImageAsync(int id, CancellationToken ct = default);
+    Task<RouteResultDto> RouteAsync(int id, RouteRequest request, CancellationToken ct = default);
+}
+
 /// <summary>Server → Angular real-time events (SignalR).</summary>
 public interface IRealtimeNotifier
 {
@@ -80,4 +96,5 @@ public interface IRealtimeNotifier
     Task IncidentAsync(IncidentEventDto evt);
     Task NotificationAsync(NotificationResultDto result);
     Task ActivityAsync(string level, string message, string? zone = null);
+    Task IncidentLogAsync(IncidentLogDto log);
 }

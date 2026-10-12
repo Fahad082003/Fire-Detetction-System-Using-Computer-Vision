@@ -1,0 +1,61 @@
+<section class="panel" aria-labelledby="history-title">
+  <header class="panel-head flex-wrap">
+    <h2 id="history-title" class="panel-title">Incident History &amp; Logs</h2>
+    <select class="input !py-1 text-xs" (change)="selectIncident($any($event.target).value)" aria-label="Incident">
+      <option value="">All incidents</option>
+      @for (i of live.incidents(); track i.id) { <option [value]="i.id">#{{ i.id }} · {{ i.severity }} · {{ i.zone }}</option> }
+    </select>
+    <select class="input !py-1 text-xs" (change)="type.set($any($event.target).value)" aria-label="Event type">
+      <option value="">All event types</option>
+      @for (t of types; track t) { <option [value]="t">{{ t }}</option> }
+    </select>
+  </header>
+
+  @if (incident(); as inc) {
+    <div class="border-b border-ink-700 p-3">
+      @if (series(); as s) {
+        <div class="mb-1 text-xs font-semibold text-slate-400">{{ s.label }}</div>
+        @if (s.chart; as c) {
+          <svg [attr.viewBox]="'0 0 ' + W + ' ' + H" preserveAspectRatio="none" class="h-32 w-full rounded bg-ink-950" role="img" [attr.aria-label]="s.label">
+            <polyline [attr.points]="c.line" fill="none" stroke="#ef4444" stroke-width="2" vector-effect="non-scaling-stroke" />
+          </svg>
+          <div class="mt-1 flex justify-between text-[11px] text-slate-500">
+            <span>{{ c.from | date: 'HH:mm:ss' }}</span><span>max scale {{ c.max.toFixed(1) }} {{ s.unit }}</span><span>{{ c.to | date: 'HH:mm:ss' }}</span>
+          </div>
+        } @else {
+          <p class="text-xs text-slate-500">No measurements recorded for incident #{{ inc.id }} ({{ inc.source }}). Manual dispatches have no measurements;
+            for camera incidents choose "All event types" or "FireMeasurement".</p>
+        }
+      }
+    </div>
+  }
+
+  <div class="max-h-[360px] overflow-auto">
+    @if (loading()) {
+      <p class="p-4 text-sm text-slate-500">Loading history…</p>
+    } @else if (error(); as e) {
+      <p class="p-4 text-sm text-red-400" role="alert">{{ e }}</p>
+    } @else {
+      <table class="w-full border-collapse text-[12px]">
+        <thead class="sticky top-0 bg-ink-850 text-left text-[11px] uppercase tracking-wider text-slate-500">
+          <tr><th class="px-3 py-2">Time</th><th class="px-3 py-2">Incident</th><th class="px-3 py-2">Event</th><th class="px-3 py-2">Details</th></tr>
+        </thead>
+        <tbody>
+          @for (l of logs(); track l.id) {
+            <tr class="border-b border-ink-700" [class.bg-red-500/10]="l.type === 'PersonInDanger'">
+              <td class="whitespace-nowrap px-3 py-1.5 font-mono">{{ l.timestamp | date: 'HH:mm:ss' }}</td>
+              <td class="px-3 py-1.5 font-mono">{{ l.incidentId ? '#' + l.incidentId : '—' }}</td>
+              <td class="whitespace-nowrap px-3 py-1.5">{{ l.type }}
+                @if (l.simulated) { <span class="ml-1 rounded bg-purple-500/20 px-1 text-[10px] text-purple-300">SIMULATED</span> }
+                @if (l.type === 'EvacuationRoute') { <span class="ml-1 rounded bg-blue-500/20 px-1 text-[10px] text-blue-300">ESTIMATE</span> }
+              </td>
+              <td class="px-3 py-1.5 text-slate-300">{{ l.details }}</td>
+            </tr>
+          } @empty {
+            <tr><td colspan="4" class="px-3 py-5 text-center text-slate-500">No history entries for this filter.</td></tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+</section>

@@ -3,7 +3,7 @@ import { HttpTransportType, HubConnection, HubConnectionBuilder, HubConnectionSt
 import { Subject } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
-  ActivityEntry, CameraFeed, DashboardSnapshot, DetectionFrame, IncidentAlert, IncidentEvent,
+  ActivityEntry, CameraFeed, DashboardSnapshot, DetectionFrame, IncidentAlert, IncidentEvent, IncidentLog,
   NotificationResult, SensorNode, SmartSprinkler,
 } from '../../shared/models/api.models';
 import { SEVERITY_RANK, systemLevel } from '../../shared/utils/format';
@@ -16,7 +16,7 @@ export type ConnectionState = 'disconnected' | 'connecting' | 'connected' | 'rec
 /** Lightweight per-camera summary used by tiles and KPIs (the full frame goes to the canvas via detection$). */
 export interface FrameStats {
   cameraId: string; humanCount: number; dangerCount: number;
-  fireDetected: boolean; fireSeverity: string | null; receivedAt: number;
+  fireDetected: boolean; fireSeverity: string | null; simulated: boolean; receivedAt: number;
 }
 
 const HISTORY_POINTS = 60;
@@ -55,6 +55,8 @@ export class SignalRService {
 
   /** Every validated AI frame, at stream rate. */
   readonly detection$ = new Subject<DetectionFrame>();
+  /** New history-log entries (incident lifecycle, fire measurements, person-in-danger, route estimates). */
+  readonly incidentLog$ = new Subject<IncidentLog>();
 
   readonly openIncidents = computed(() => this.incidents().filter((i) => !i.isResolved));
   readonly level = computed(() => systemLevel(this.openIncidents().map((i) => i.severity), this.sensors().map((s) => s.state)));
@@ -96,6 +98,7 @@ export class SignalRService {
     connection.on('incident', (e: IncidentEvent) => this.onIncident(e));
     connection.on('activity', (a: ActivityEntry) => this.addActivity(a));
     connection.on('notification', (n: NotificationResult) => this.onNotification(n));
+    connection.on('incidentLog', (l: IncidentLog) => this.incidentLog$.next(l));
 
     connection.onreconnecting(() => this.state.set('reconnecting'));
     connection.onreconnected(async () => {
@@ -192,7 +195,7 @@ export class SignalRService {
     this.detection$.next(frame);
     this.pendingStats.set(frame.cameraId, {
       cameraId: frame.cameraId, humanCount: frame.humanCount, dangerCount: frame.dangerCount,
-      fireDetected: frame.fireDetected, fireSeverity: frame.fireSeverity, receivedAt: Date.now(),
+      fireDetected: frame.fireDetected, fireSeverity: frame.fireSeverity, simulated: frame.simulated, receivedAt: Date.now(),
     });
   }
 

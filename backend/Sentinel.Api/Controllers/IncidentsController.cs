@@ -17,6 +17,12 @@ public class IncidentsController(IIncidentService incidents) : ApiControllerBase
         [FromQuery] bool? resolved, [FromQuery] Severity? minSeverity, [FromQuery] int limit = 50, CancellationToken ct = default) =>
         await incidents.ListAsync(resolved, minSeverity, limit, ct);
 
+    /// <summary>History log (requirement 5.3): ?incidentId=12 &amp;type=FireMeasurement &amp;limit=200, newest first.</summary>
+    [HttpGet("logs")]
+    public async Task<IReadOnlyList<IncidentLogDto>> Logs(
+        [FromQuery] int? incidentId, [FromQuery] IncidentLogType? type, [FromQuery] int limit = 200, CancellationToken ct = default) =>
+        await incidents.ListLogsAsync(incidentId, type, limit, ct);
+
     [HttpGet("{id:int}")]
     public async Task<IncidentAlertDto> Get(int id, CancellationToken ct) => await incidents.GetAsync(id, ct);
 

@@ -15,6 +15,11 @@
     </div>
   </div>
 
+  <nav class="flex gap-1" aria-label="Main">
+    <a routerLink="/" routerLinkActive="seg-btn-active" [routerLinkActiveOptions]="{ exact: true }" class="seg-btn">Dashboard</a>
+    <a routerLink="/floor-plans" routerLinkActive="seg-btn-active" class="seg-btn">Floor Plans</a>
+  </nav>
+
   <div role="status" aria-live="polite"
        class="order-3 flex w-full items-center justify-center gap-2 rounded-full border px-4 py-1.5 text-xs font-bold tracking-[0.12em] md:order-none md:ml-auto md:w-auto {{ levelClass() }}">
     <span class="h-2 w-2 rounded-full bg-current"></span>{{ levelLabel() }}

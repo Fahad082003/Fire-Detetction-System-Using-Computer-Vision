@@ -11,7 +11,7 @@ export type SensorState = 'Normal' | 'Warning' | 'Alarm' | 'Critical';
 export type SprinklerMode = 'Auto' | 'Manual';
 export type IncidentSource = 'Vision' | 'Sensor' | 'Manual';
 export type DetectionCategory = 'Human' | 'Fire' | 'Smoke' | 'Danger' | 'Vehicle' | 'Other';
-export type ZoneLevel = 'Warning' | 'Danger' | 'Critical';
+export type ZoneLevel = 'Warning' | 'Danger' | 'Critical' | 'Safe';
 export type SystemLevel = 'nominal' | 'elevated' | 'critical';
 
 export interface UserDto { id: number; email: string; displayName: string; role: 'Admin' | 'Operator'; }
@@ -51,6 +51,8 @@ export interface DashboardSnapshot {
 export interface Detection {
   label: string | null; category: DetectionCategory; confidence: number;
   bbox: [number, number, number, number]; trackId: string | null; atRisk: boolean;
+  /** Set by the backend: danger zone the person's feet are inside. */
+  dangerZone?: string | null;
 }
 export interface DangerZone { label: string | null; level: ZoneLevel; polygon: [number, number][]; }
 export interface Heatmap { rows: number; cols: number; values: number[]; }
@@ -60,6 +62,8 @@ export interface DetectionFrame {
   cameraId: string; timestamp: string; frameWidth: number; frameHeight: number; normalized: boolean;
   detections: Detection[]; dangerZones: DangerZone[]; heatmap: Heatmap | null; humanCoordinates: [number, number][];
   fireDetected: boolean; fireSeverity: Severity | null; humanCount: number; dangerCount: number;
+  /** Producer marked this frame as test data (e.g. the simulator). */
+  simulated: boolean;
 }
 
 export type ActivityLevel = 'info' | 'success' | 'warning' | 'critical' | 'notify';
@@ -76,3 +80,27 @@ export interface ManualDispatchRequest { zone: string; message?: string; severit
 
 /** ASP.NET Core ProblemDetails / ValidationProblemDetails error body. */
 export interface ProblemDetails { title?: string; detail?: string; status?: number; errors?: Record<string, string[]>; }
+
+export type IncidentLogType = 'Opened' | 'Escalated' | 'Resolved' | 'FireMeasurement' | 'PersonInDanger' | 'EvacuationRoute';
+export interface IncidentLog {
+  id: number; incidentId: number | null; type: IncidentLogType; timestamp: string; zone: string; details: string;
+  fireAreaPercent: number | null; fireSeverity: Severity | null; humanCount: number | null; dangerCount: number | null;
+  personTrackId: string | null; personX: number | null; personY: number | null; dangerZone: string | null; simulated: boolean;
+}
+
+export type FloorElementType = 'Room' | 'Corridor' | 'Wall' | 'Door' | 'Exit' | 'SafeZone' | 'DangerZone';
+/** Axis-aligned rectangle in plan meters (origin top-left). */
+export interface FloorPlanElement {
+  id?: number; type: FloorElementType; name: string; x: number; y: number; width: number; height: number;
+  isBlocked: boolean; isActive: boolean; zone: string | null;
+}
+export interface FloorPlan {
+  id: number; name: string; building: string; floorNumber: number; widthMeters: number; heightMeters: number;
+  hasImage: boolean; updatedAt: string; elements: FloorPlanElement[];
+}
+export type SaveFloorPlan = Omit<FloorPlan, 'id' | 'hasImage' | 'updatedAt'>;
+export interface RouteResult {
+  found: boolean; message: string; path: [number, number][]; distanceMeters: number; estimatedSeconds: number;
+  walkingSpeedMetersPerSecond: number; exitName: string | null; startInDangerZone: boolean; activeDangerZones: string[];
+}
+export interface SensorHistory { sensorId: string; unit: string; readings: { value: number; recordedAt: string }[]; }

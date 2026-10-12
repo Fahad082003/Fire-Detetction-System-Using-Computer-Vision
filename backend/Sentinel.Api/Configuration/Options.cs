@@ -80,6 +80,17 @@ public class WebPushOptions
     public string Subject { get; set; } = "mailto:ops@sentinel.local";
 }
 
+/// <summary>Floor plans and evacuation estimates. Section: "FloorPlans".</summary>
+public class FloorPlanOptions
+{
+    public const string Section = "FloorPlans";
+    /// <summary>Assumed average walking speed for evacuation estimates (1.2 m/s = normal adult walk).</summary>
+    public double WalkingSpeedMetersPerSecond { get; set; } = 1.2;
+    /// <summary>Uploaded floor-plan images, relative to the API content root (kept out of wwwroot).</summary>
+    public string ImageDirectory { get; set; } = "App_Data/floorplans";
+    public long MaxImageBytes { get; set; } = 5 * 1024 * 1024;
+}
+
 public static class OptionsExtensions
 {
     public static string[] SplitList(this string value) =>

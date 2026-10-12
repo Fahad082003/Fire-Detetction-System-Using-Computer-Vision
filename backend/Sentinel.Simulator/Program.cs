@@ -324,7 +324,6 @@ namespace Sentinel.Simulator
             var detections = new List<object>();
             var zones = new List<object>();
             var points = new List<double[]>();
-            var danger = 0;
 
             if (burning)
             {
@@ -354,17 +353,27 @@ namespace Sentinel.Simulator
                 });
             }
 
+            if (burning)
+            {
+                zones.Add(new
+                {
+                    label = "assembly point", level = "Safe",
+                    polygon = new[] { new[] { 0.80 * w, 0.40 * h }, new[] { 0.97 * w, 0.40 * h }, new[] { 0.97 * w, 0.90 * h }, new[] { 0.80 * w, 0.90 * h } },
+                });
+            }
+
             foreach (var walker in cam.Walkers)
             {
                 var dx = walker.X - center.X; var dy = walker.Y - center.Y;
-                var atRisk = burning && Math.Sqrt(dx * dx + dy * dy) < 0.12 + intensity * 0.3;
-                walker.Step(dt, atRisk ? center : null, _rng);
-                if (atRisk) danger++;
+                // Walkers flee when close to the fire. Whether they are "in danger" is decided by the backend
+                // (feet inside a danger-zone polygon), so the simulator no longer sends atRisk / dangerCount.
+                var nearFire = burning && Math.Sqrt(dx * dx + dy * dy) < 0.12 + intensity * 0.3;
+                walker.Step(dt, nearFire ? center : null, _rng);
                 double bw = 0.045 * w, bh = 0.2 * h;
                 detections.Add(new
                 {
                     label = "person", category = "Human", confidence = Math.Round(0.82 + _rng.NextDouble() * 0.16, 2),
-                    bbox = new[] { walker.X * w - bw / 2, walker.Y * h - bh, bw, bh }, trackId = walker.TrackId, atRisk,
+                    bbox = new[] { walker.X * w - bw / 2, walker.Y * h - bh, bw, bh }, trackId = walker.TrackId,
                 });
                 points.Add([walker.X * w, walker.Y * h]);
             }
@@ -389,7 +398,8 @@ namespace Sentinel.Simulator
                 cameraId = cam.Id, timestamp = DateTime.UtcNow, frameWidth = w, frameHeight = h, normalized = false,
                 detections, dangerZones = zones, heatmap, humanCoordinates = points,
                 fireDetected = burning, fireSeverity = burning ? level : null,
-                humanCount = cam.Walkers.Count, dangerCount = danger,
+                humanCount = cam.Walkers.Count,
+                simulated = true, // test data: marked as such in alerts and logs
             };
         }
 

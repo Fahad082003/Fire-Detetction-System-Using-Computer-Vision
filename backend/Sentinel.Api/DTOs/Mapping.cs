@@ -22,4 +22,16 @@ public static class Mapping
             i.FireDetected, i.FireSeverity, i.HumanCount, i.DangerCount, i.Message, i.IsResolved, i.ResolvedAt);
 
     public static UserDto ToDto(this AppUser u) => new(u.Id, u.Email, u.DisplayName, u.Role);
+
+    public static IncidentLogDto ToDto(this IncidentLog l) =>
+        new(l.Id, l.IncidentId, l.Type, l.Timestamp, l.Zone, l.Details, l.FireAreaPercent, l.FireSeverity, l.HumanCount,
+            l.DangerCount, l.PersonTrackId, l.PersonX, l.PersonY, l.DangerZone, l.Simulated);
+
+    public static FloorPlanDto ToDto(this FloorPlan p) =>
+        new(p.Id, p.Name, p.Building, p.FloorNumber, p.WidthMeters, p.HeightMeters, p.ImageFileName is not null, p.UpdatedAt,
+            p.Elements.OrderBy(e => e.Id).Select(e => new FloorPlanElementDto
+            {
+                Id = e.Id, Type = e.Type, Name = e.Name, X = e.X, Y = e.Y, Width = e.Width, Height = e.Height,
+                IsBlocked = e.IsBlocked, IsActive = e.IsActive, Zone = e.Zone,
+            }).ToList());
 }

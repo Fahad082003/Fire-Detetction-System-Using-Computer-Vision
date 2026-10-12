@@ -10,4 +10,5 @@ public static class HubEvents
     public const string Incident = "incident";
     public const string Notification = "notification";
     public const string Activity = "activity";
+    public const string IncidentLog = "incidentLog";
 }

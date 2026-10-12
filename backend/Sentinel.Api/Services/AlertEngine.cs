@@ -76,16 +76,73 @@ public class AlertEngine(
         var zone = camera?.LocationZone ?? "Unassigned";
         var parts = new List<string>();
         if (frame.FireDetected) parts.Add(frame.FireSeverity is { } fs ? $"Fire detected ({fs})" : "Fire detected");
-        if (frame.DangerCount > 0) parts.Add($"{frame.DangerCount} human(s) in danger zone");
+        var dangerZones = frame.Detections.Where(d => d.DangerZone is not null).Select(d => d.DangerZone).Distinct().ToList();
+        if (frame.DangerCount > 0)
+            parts.Add($"{frame.DangerCount} human(s) in danger zone{(dangerZones.Count > 0 ? $" '{string.Join("', '", dangerZones)}'" : "")}");
         if (frame.HumanCount > 0) parts.Add($"{frame.HumanCount} human(s) in view");
+        var cameraName = camera?.Name ?? frame.CameraId;
+        var simulated = frame.Simulated ? " [SIMULATED DATA]" : "";
 
         var (incident, action) = await UpsertIncidentAsync(new IncidentDraft(
             IncidentSource.Vision, zone, severity.Value, camera?.Id, null, frame.FireDetected, frame.FireSeverity,
-            frame.HumanCount, frame.DangerCount, $"{string.Join(", ", parts)} on {camera?.Name ?? frame.CameraId}"), ct);
+            frame.HumanCount, frame.DangerCount, $"{string.Join(", ", parts)} on {cameraName}{simulated}"), ct);
 
         var emergency = IsEmergency(frame) || severity == Severity.Critical;
-        await PublishIncidentAsync(incident, action, emergency, ct: ct);
+        await PublishIncidentAsync(incident, action, emergency, ct: ct, simulated: frame.Simulated);
+        await LogFrameAsync(incident, frame, cameraName, ct);
         return incident;
+    }
+
+    /// <summary>Requirement 3.2 / 2.3: fire-measurement history and one alert per person per danger zone per incident.</summary>
+    private async Task LogFrameAsync(IncidentAlert incident, DetectionFrameDto f, string cameraName, CancellationToken ct)
+    {
+        var sim = f.Simulated ? " [SIMULATED DATA]" : "";
+        if (f.FireDetected)
+        {
+            // Measured value = AI fire bounding boxes as % of the frame. It is not a physical fire size.
+            var frameArea = f.Normalized ? 1.0 : (double)f.FrameWidth * f.FrameHeight;
+            var area = Math.Round(Math.Min(100, f.Detections.Where(d => d.Category == DetectionCategory.Fire)
+                .Sum(d => d.Bbox[2] * d.Bbox[3]) / frameArea * 100), 2);
+            var last = await db.IncidentLogs.Where(l => l.IncidentId == incident.Id && l.Type == IncidentLogType.FireMeasurement)
+                .OrderByDescending(l => l.Id).FirstOrDefaultAsync(ct);
+            if (last is null || last.FireAreaPercent != area || last.FireSeverity != f.FireSeverity
+                || last.HumanCount != f.HumanCount || last.DangerCount != f.DangerCount)
+            {
+                await AddLogAsync(new IncidentLog
+                {
+                    IncidentId = incident.Id, Type = IncidentLogType.FireMeasurement, Zone = incident.Zone,
+                    FireAreaPercent = area, FireSeverity = f.FireSeverity, HumanCount = f.HumanCount, DangerCount = f.DangerCount,
+                    Simulated = f.Simulated,
+                    Details = $"Fire boxes cover {area}% of the frame on {cameraName}, AI fire severity {f.FireSeverity?.ToString() ?? "n/a"}{sim}",
+                }, ct);
+            }
+        }
+
+        foreach (var d in f.Detections.Where(d => d.Category == DetectionCategory.Human && d.AtRisk))
+        {
+            var exists = await db.IncidentLogs.AnyAsync(l => l.IncidentId == incident.Id && l.Type == IncidentLogType.PersonInDanger
+                && l.PersonTrackId == d.TrackId && l.DangerZone == d.DangerZone, ct);
+            if (exists) continue; // same person + same zone + same incident = one alert
+
+            double fx = Math.Round(d.Bbox[0] + d.Bbox[2] / 2, 1), fy = Math.Round(d.Bbox[1] + d.Bbox[3], 1);
+            var who = d.TrackId is null ? "Untracked person" : $"Person #{d.TrackId}";
+            var where = d.DangerZone is null ? "a danger zone (flagged by AI)" : $"danger zone '{d.DangerZone}'";
+            var details = $"{who} in {where} at ({fx}, {fy}) on {cameraName}{sim}";
+            await AddLogAsync(new IncidentLog
+            {
+                IncidentId = incident.Id, Type = IncidentLogType.PersonInDanger, Zone = incident.Zone, Details = details,
+                PersonTrackId = d.TrackId, PersonX = fx, PersonY = fy, DangerZone = d.DangerZone, Simulated = f.Simulated,
+            }, ct);
+            await realtime.ActivityAsync("critical", $"Incident #{incident.Id}: {details}", incident.Zone);
+        }
+    }
+
+    public async Task AddLogAsync(IncidentLog log, CancellationToken ct = default)
+    {
+        if (log.Details.Length > 500) log.Details = log.Details[..500];
+        db.IncidentLogs.Add(log);
+        await db.SaveChangesAsync(ct);
+        await realtime.IncidentLogAsync(log.ToDto());
     }
 
     // ------------------------------------------------------------------ sensors
@@ -164,10 +221,18 @@ public class AlertEngine(
         }
     }
 
-    public async Task PublishIncidentAsync(IncidentAlert incident, string action, bool emergency, bool forceNotify = false, CancellationToken ct = default)
+    public async Task PublishIncidentAsync(IncidentAlert incident, string action, bool emergency, bool forceNotify = false,
+        CancellationToken ct = default, bool simulated = false)
     {
         await realtime.IncidentAsync(new IncidentEventDto(action, incident.ToDto()));
         if (action is not ("created" or "escalated")) return;
+
+        await AddLogAsync(new IncidentLog
+        {
+            IncidentId = incident.Id, Type = action == "created" ? IncidentLogType.Opened : IncidentLogType.Escalated,
+            Zone = incident.Zone, Details = $"{incident.Severity}: {incident.Message}", FireSeverity = incident.FireSeverity,
+            HumanCount = incident.HumanCount, DangerCount = incident.DangerCount, Simulated = simulated,
+        }, ct);
 
         var level = incident.Severity >= Severity.High ? "critical" : "warning";
         await realtime.ActivityAsync(level,

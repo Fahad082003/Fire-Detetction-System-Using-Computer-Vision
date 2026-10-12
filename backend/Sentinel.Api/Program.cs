@@ -39,6 +39,7 @@ builder.Services.Configure<AlertOptions>(config.GetSection(AlertOptions.Section)
 builder.Services.Configure<DeviceOptions>(config.GetSection(DeviceOptions.Section));
 builder.Services.Configure<SeedOptions>(config.GetSection(SeedOptions.Section));
 builder.Services.Configure<NotificationOptions>(config.GetSection(NotificationOptions.Section));
+builder.Services.Configure<FloorPlanOptions>(config.GetSection(FloorPlanOptions.Section));
 
 var jwt = config.GetSection(JwtOptions.Section).Get<JwtOptions>() ?? new JwtOptions();
 if (string.IsNullOrWhiteSpace(jwt.SigningKey) || jwt.SigningKey.Length < 32)
@@ -84,6 +85,7 @@ builder.Services.AddScoped<IDetectionService, DetectionService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IPushSubscriptionService, PushSubscriptionService>();
+builder.Services.AddScoped<IFloorPlanService, FloorPlanService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IPasswordHasher<AppUser>, PasswordHasher<AppUser>>();
 builder.Services.AddScoped<DbSeeder>();

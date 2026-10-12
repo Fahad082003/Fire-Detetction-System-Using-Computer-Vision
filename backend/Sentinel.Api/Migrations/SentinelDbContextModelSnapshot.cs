@@ -116,6 +116,98 @@ namespace Sentinel.Api.Migrations
                     b.ToTable("CameraFeeds");
                 });
 
+            modelBuilder.Entity("Sentinel.Api.Models.FloorPlan", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Building")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("FloorNumber")
+                        .HasColumnType("int");
+
+                    b.Property<double>("HeightMeters")
+                        .HasColumnType("float");
+
+                    b.Property<string>("ImageFileName")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<double>("WidthMeters")
+                        .HasColumnType("float");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("FloorPlans");
+                });
+
+            modelBuilder.Entity("Sentinel.Api.Models.FloorPlanElement", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("FloorPlanId")
+                        .HasColumnType("int");
+
+                    b.Property<double>("Height")
+                        .HasColumnType("float");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsBlocked")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<double>("Width")
+                        .HasColumnType("float");
+
+                    b.Property<double>("X")
+                        .HasColumnType("float");
+
+                    b.Property<double>("Y")
+                        .HasColumnType("float");
+
+                    b.Property<string>("Zone")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FloorPlanId");
+
+                    b.ToTable("FloorPlanElements");
+                });
+
             modelBuilder.Entity("Sentinel.Api.Models.IncidentAlert", b =>
                 {
                     b.Property<int>("Id")
@@ -188,6 +280,74 @@ namespace Sentinel.Api.Migrations
                     b.HasIndex("IsResolved", "Timestamp");
 
                     b.ToTable("IncidentAlerts");
+                });
+
+            modelBuilder.Entity("Sentinel.Api.Models.IncidentLog", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int?>("DangerCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DangerZone")
+                        .HasMaxLength(48)
+                        .HasColumnType("nvarchar(48)");
+
+                    b.Property<string>("Details")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<double?>("FireAreaPercent")
+                        .HasColumnType("float");
+
+                    b.Property<string>("FireSeverity")
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<int?>("HumanCount")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("IncidentId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PersonTrackId")
+                        .HasMaxLength(48)
+                        .HasColumnType("nvarchar(48)");
+
+                    b.Property<double?>("PersonX")
+                        .HasColumnType("float");
+
+                    b.Property<double?>("PersonY")
+                        .HasColumnType("float");
+
+                    b.Property<bool>("Simulated")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<string>("Zone")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IncidentId", "Timestamp");
+
+                    b.HasIndex("Type", "Timestamp");
+
+                    b.ToTable("IncidentLogs");
                 });
 
             modelBuilder.Entity("Sentinel.Api.Models.SensorNode", b =>
@@ -335,6 +495,17 @@ namespace Sentinel.Api.Migrations
                     b.ToTable("PushSubscriptions");
                 });
 
+            modelBuilder.Entity("Sentinel.Api.Models.FloorPlanElement", b =>
+                {
+                    b.HasOne("Sentinel.Api.Models.FloorPlan", "FloorPlan")
+                        .WithMany("Elements")
+                        .HasForeignKey("FloorPlanId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("FloorPlan");
+                });
+
             modelBuilder.Entity("Sentinel.Api.Models.IncidentAlert", b =>
                 {
                     b.HasOne("Sentinel.Api.Models.CameraFeed", "Camera")
@@ -350,6 +521,16 @@ namespace Sentinel.Api.Migrations
                     b.Navigation("Camera");
 
                     b.Navigation("Sensor");
+                });
+
+            modelBuilder.Entity("Sentinel.Api.Models.IncidentLog", b =>
+                {
+                    b.HasOne("Sentinel.Api.Models.IncidentAlert", "Incident")
+                        .WithMany()
+                        .HasForeignKey("IncidentId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("Incident");
                 });
 
             modelBuilder.Entity("Sentinel.Api.Models.SensorReading", b =>
@@ -376,6 +557,11 @@ namespace Sentinel.Api.Migrations
             modelBuilder.Entity("Sentinel.Api.Models.CameraFeed", b =>
                 {
                     b.Navigation("Incidents");
+                });
+
+            modelBuilder.Entity("Sentinel.Api.Models.FloorPlan", b =>
+                {
+                    b.Navigation("Elements");
                 });
 
             modelBuilder.Entity("Sentinel.Api.Models.SensorNode", b =>

@@ -1,0 +1,59 @@
+<section class="panel" aria-labelledby="evac-title">
+  <header class="panel-head flex-wrap">
+    <h2 id="evac-title" class="panel-title">Evacuation Route (estimate)</h2>
+    @if (plans().length) {
+      <select class="input !py-1 text-xs" [value]="planId()" (change)="choose(+$any($event.target).value)" aria-label="Floor plan">
+        @for (p of plans(); track p.id) { <option [value]="p.id">{{ p.building ? p.building + ' · ' : '' }}{{ p.name }} (floor {{ p.floorNumber }})</option> }
+      </select>
+    }
+    <a routerLink="/floor-plans" class="btn btn-sm btn-ghost">Edit plans</a>
+  </header>
+
+  @if (loading()) {
+    <p class="p-5 text-center text-sm text-slate-500">Loading floor plans…</p>
+  } @else if (!plans().length) {
+    <p class="p-5 text-center text-sm text-slate-500">No floor plan yet. Draw or upload one under <a routerLink="/floor-plans" class="text-cyan-400 underline">Floor Plans</a> to calculate evacuation routes.</p>
+  } @else if (plan(); as p) {
+    <div class="p-3">
+      <app-floor-plan-map [width]="p.widthMeters" [height]="p.heightMeters" [elements]="p.elements" [imageUrl]="imageUrl()"
+                          [route]="result()?.path ?? null" [start]="start()" [activeDanger]="result()?.activeDangerZones ?? []"
+                          (pointer)="onPointer($event)" />
+
+      <div class="mt-3 text-sm" aria-live="polite">
+        @if (!start()) {
+          <p class="text-slate-500">Click the person's <b>known</b> position on the plan. Positions are entered manually — there is no indoor tracking.</p>
+        } @else if (routing()) {
+          <p class="text-slate-500">Calculating…</p>
+        } @else if (error(); as e) {
+          <p class="text-red-400" role="alert">{{ e }}</p>
+        } @else if (result(); as r) {
+          @if (r.found) {
+            <p class="font-semibold text-green-400">{{ r.message }}</p>
+            <p class="mt-1 text-slate-300">
+              Distance <b>{{ r.distanceMeters | number: '1.0-1' }} m</b> · Estimated walking time <b>~{{ r.estimatedSeconds | number: '1.0-0' }} s</b>
+              <span class="text-slate-500">(= distance ÷ {{ r.walkingSpeedMetersPerSecond }} m/s; an estimate, not a guaranteed time)</span>
+            </p>
+          } @else {
+            <p class="font-semibold text-red-400">{{ r.message }}</p>
+          }
+          @if (r.activeDangerZones.length) {
+            <p class="mt-1 text-xs text-red-300">Avoided active danger zones: {{ r.activeDangerZones.join(', ') }}</p>
+          }
+          <p class="mt-1 text-xs text-slate-500">Start ({{ start()![0] }}, {{ start()![1] }}) m · recalculated automatically when incidents open or close.</p>
+        }
+      </div>
+
+      <h3 class="panel-title mt-4">Safe zones on this floor</h3>
+      @if (safeZones().length) {
+        <ul class="mt-1 text-xs text-slate-300">
+          @for (z of safeZones(); track $index) {
+            <li class="flex gap-2 py-0.5"><span class="inline-block h-3 w-3 shrink-0 border border-green-500 bg-green-500/25"></span>
+              <b>{{ z.name || 'Safe zone' }}</b> — x {{ z.x }} m, y {{ z.y }} m, {{ z.width }} × {{ z.height }} m</li>
+          }
+        </ul>
+      } @else {
+        <p class="mt-1 text-xs text-slate-500">No safe zone marked on this floor plan.</p>
+      }
+    </div>
+  }
+</section>

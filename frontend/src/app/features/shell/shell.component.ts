@@ -1,6 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { Component, OnDestroy, OnInit, computed, inject, viewChild } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { PushNotificationService } from '../../core/services/push-notification.service';
 import { SignalRService } from '../../core/services/signalr.service';
@@ -16,7 +16,7 @@ const LEVEL_STYLE = {
 /** Authenticated layout: top command bar + routed page. Owns the SignalR connection lifetime. */
 @Component({
   selector: 'app-shell',
-  imports: [RouterOutlet, DatePipe, DispatchDialogComponent],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, DatePipe, DispatchDialogComponent],
   templateUrl: './shell.component.html',
 })
 export class ShellComponent implements OnInit, OnDestroy {

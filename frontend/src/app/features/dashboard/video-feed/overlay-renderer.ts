@@ -11,7 +11,7 @@ export const OVERLAY_COLORS = {
   vehicle: '#a78bfa',
   other: '#e2e8f0',
 } as const;
-const ZONE_RGB: Record<DangerZone['level'], string> = { Warning: '245,158,11', Danger: '239,68,68', Critical: '220,38,38' };
+const ZONE_RGB: Record<DangerZone['level'], string> = { Warning: '245,158,11', Danger: '239,68,68', Critical: '220,38,38', Safe: '34,197,94' };
 const LABEL_FONT = '600 11px "JetBrains Mono", Consolas, monospace';
 export const STALE_MS = 1500;
 const EXPIRE_MS = 4500;
@@ -182,9 +182,11 @@ export class OverlayRenderer {
     ctx.beginPath();
     pts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
     ctx.closePath();
-    ctx.fillStyle = `rgba(${rgb},${(0.1 + pulse * 0.1).toFixed(3)})`;
+    // Safe zones: steady green fill + solid border, so they never read as a (pulsing, dashed) danger zone.
+    const safe = zone.level === 'Safe';
+    ctx.fillStyle = `rgba(${rgb},${safe ? '0.12' : (0.1 + pulse * 0.1).toFixed(3)})`;
     ctx.fill();
-    ctx.setLineDash([8, 6]);
+    ctx.setLineDash(safe ? [] : [8, 6]);
     ctx.lineDashOffset = -now / 40;
     ctx.lineWidth = 1.5;
     ctx.strokeStyle = `rgba(${rgb},0.9)`;

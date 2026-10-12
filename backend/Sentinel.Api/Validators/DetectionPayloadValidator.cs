@@ -84,16 +84,40 @@ public static partial class DetectionPayloadValidator
         if (errors.Count > 0)
             throw new AppValidationException(errors.ToDictionary(e => e.Key, e => e.Value.ToArray()));
 
+        // ---- requirement 2.3: the backend itself decides who is in danger. A person whose feet
+        // (bottom-centre of the box) stand inside a Danger/Critical zone is at risk, even if the AI did not say so.
+        foreach (var d in detections.Where(d => d.Category == DetectionCategory.Human))
+        {
+            double fx = d.Bbox[0] + d.Bbox[2] / 2, fy = d.Bbox[1] + d.Bbox[3];
+            var zone = zones.FirstOrDefault(z => z.Level is ZoneLevel.Danger or ZoneLevel.Critical && Contains(z.Polygon, fx, fy));
+            if (zone is null) continue;
+            d.AtRisk = true;
+            d.DangerZone = string.IsNullOrWhiteSpace(zone.Label) ? $"{zone.Level} zone" : zone.Label;
+        }
+
         // ---- derive values the producer omitted
         var fire = payload.FireDetected ?? detections.Any(d => d.Category == DetectionCategory.Fire);
         var humans = payload.HumanCount
                      ?? (detections.Count(d => d.Category == DetectionCategory.Human) is var n and > 0 ? n : points.Count);
-        var danger = payload.DangerCount
-                     ?? detections.Count(d => d.Category == DetectionCategory.Danger || d.AtRisk);
+        // Never report fewer people in danger than the backend's own zone check found.
+        var danger = Math.Max(payload.DangerCount ?? 0,
+                              detections.Count(d => d.Category == DetectionCategory.Danger || d.AtRisk));
         var timestamp = payload.Timestamp is { } ts ? DateTime.SpecifyKind(ts.ToUniversalTime(), DateTimeKind.Utc) : DateTime.UtcNow;
 
         return new DetectionFrameDto(
             payload.CameraId, timestamp, payload.FrameWidth, payload.FrameHeight, payload.Normalized,
-            detections, zones, payload.Heatmap, points, fire, fire ? payload.FireSeverity : null, humans, danger);
+            detections, zones, payload.Heatmap, points, fire, fire ? payload.FireSeverity : null, humans, danger, payload.Simulated);
+    }
+
+    /// <summary>Ray-casting point-in-polygon test (polygon given as [x, y] points).</summary>
+    public static bool Contains(IReadOnlyList<double[]> polygon, double x, double y)
+    {
+        var inside = false;
+        for (int i = 0, j = polygon.Count - 1; i < polygon.Count; j = i++)
+        {
+            double xi = polygon[i][0], yi = polygon[i][1], xj = polygon[j][0], yj = polygon[j][1];
+            if ((yi > y) != (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) inside = !inside;
+        }
+        return inside;
     }
 }

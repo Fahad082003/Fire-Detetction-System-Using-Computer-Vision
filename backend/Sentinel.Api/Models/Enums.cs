@@ -21,4 +21,8 @@ public enum UserRole { Admin, Operator }
 
 public enum DetectionCategory { Human, Fire, Smoke, Danger, Vehicle, Other }
 
-public enum ZoneLevel { Warning, Danger, Critical }
+public enum ZoneLevel { Warning, Danger, Critical, Safe }
+
+public enum FloorElementType { Room, Corridor, Wall, Door, Exit, SafeZone, DangerZone }
+
+public enum IncidentLogType { Opened, Escalated, Resolved, FireMeasurement, PersonInDanger, EvacuationRoute }

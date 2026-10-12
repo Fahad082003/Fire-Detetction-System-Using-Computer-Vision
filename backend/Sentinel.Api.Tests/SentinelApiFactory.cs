@@ -28,6 +28,7 @@ public class SentinelApiFactory : WebApplicationFactory<Program>
         builder.UseSetting("Seed:DemoData", "true");
         builder.UseSetting("Seed:AdminEmail", AdminEmail);
         builder.UseSetting("Seed:AdminPassword", AdminPassword);
+        builder.UseSetting("FloorPlans:ImageDirectory", Path.Combine(Path.GetTempPath(), "sentinel-tests", Guid.NewGuid().ToString("N")));
 
         builder.ConfigureServices(services =>
         {

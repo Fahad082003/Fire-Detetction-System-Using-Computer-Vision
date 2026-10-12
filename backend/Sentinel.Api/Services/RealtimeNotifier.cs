@@ -14,6 +14,8 @@ public class RealtimeNotifier(IHubContext<EmergencyMonitoringHub> hub, ILogger<R
     public Task IncidentAsync(IncidentEventDto evt) => Send(HubEvents.Incident, evt);
     public Task NotificationAsync(NotificationResultDto result) => Send(HubEvents.Notification, result);
 
+    public Task IncidentLogAsync(IncidentLogDto log) => Send(HubEvents.IncidentLog, log);
+
     public Task ActivityAsync(string level, string message, string? zone = null) =>
         Send(HubEvents.Activity, new ActivityDto(level, message, zone, DateTime.UtcNow));
 

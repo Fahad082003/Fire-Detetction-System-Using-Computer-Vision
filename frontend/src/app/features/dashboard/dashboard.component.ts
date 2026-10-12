@@ -1,6 +1,8 @@
 import { Component } from '@angular/core';
 import { ActivityFeedComponent } from './activity-feed/activity-feed.component';
 import { AlertLogsComponent } from './alert-logs/alert-logs.component';
+import { EvacuationPanelComponent } from './evacuation-panel/evacuation-panel.component';
+import { IncidentHistoryComponent } from './incident-history/incident-history.component';
 import { KpiStripComponent } from './kpi-strip/kpi-strip.component';
 import { SensorPanelComponent } from './sensor-panel/sensor-panel.component';
 import { VideoWallComponent } from './video-wall/video-wall.component';
@@ -12,12 +14,17 @@ import { VideoWallComponent } from './video-wall/video-wall.component';
  */
 @Component({
   selector: 'app-dashboard',
-  imports: [VideoWallComponent, KpiStripComponent, SensorPanelComponent, AlertLogsComponent, ActivityFeedComponent],
+  imports: [
+    VideoWallComponent, KpiStripComponent, SensorPanelComponent, AlertLogsComponent, ActivityFeedComponent,
+    EvacuationPanelComponent, IncidentHistoryComponent,
+  ],
   template: `
     <main class="grid items-start gap-3.5 p-3 md:p-5 2xl:grid-cols-[minmax(0,1fr)_440px]">
       <div class="flex min-w-0 flex-col gap-3.5">
         <app-video-wall />
         <app-alert-logs />
+        <app-incident-history />
+        <app-evacuation-panel />
       </div>
       <div class="flex min-w-0 flex-col gap-3.5">
         <app-kpi-strip />

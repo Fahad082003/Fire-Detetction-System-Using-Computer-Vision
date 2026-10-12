@@ -22,6 +22,8 @@ public class DetectionPayloadDto
     public Severity? FireSeverity { get; set; }
     public int? HumanCount { get; set; }
     public int? DangerCount { get; set; }
+    /// <summary>Producer says this frame is test data (e.g. Sentinel.Simulator). Carried into alerts and logs.</summary>
+    public bool Simulated { get; set; }
 }
 
 public class DetectionDto
@@ -34,6 +36,8 @@ public class DetectionDto
     public string? TrackId { get; set; }
     /// <summary>Human standing inside a danger zone.</summary>
     public bool AtRisk { get; set; }
+    /// <summary>Set by the backend: label of the danger zone this person's feet are inside.</summary>
+    public string? DangerZone { get; set; }
 }
 
 public class DangerZoneDto
@@ -56,7 +60,8 @@ public class HeatmapDto
 public record DetectionFrameDto(
     string CameraId, DateTime Timestamp, int FrameWidth, int FrameHeight, bool Normalized,
     IReadOnlyList<DetectionDto> Detections, IReadOnlyList<DangerZoneDto> DangerZones, HeatmapDto? Heatmap,
-    IReadOnlyList<double[]> HumanCoordinates, bool FireDetected, Severity? FireSeverity, int HumanCount, int DangerCount);
+    IReadOnlyList<double[]> HumanCoordinates, bool FireDetected, Severity? FireSeverity, int HumanCount, int DangerCount,
+    bool Simulated = false);
 
 public class TelemetryMessageDto
 {
