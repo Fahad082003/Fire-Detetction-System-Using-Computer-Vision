@@ -41,6 +41,9 @@ public class BulkTelemetryRequest
 {
     [Required, MinLength(1), MaxLength(500)]
     public List<BulkTelemetryItem> Readings { get; set; } = [];
+
+    /// <summary>Test data (e.g. the simulator): labelled SIMULATED and never opens sprinklers by itself.</summary>
+    public bool Simulated { get; set; }
 }
 
 public record TelemetryError(string SensorId, string Error);

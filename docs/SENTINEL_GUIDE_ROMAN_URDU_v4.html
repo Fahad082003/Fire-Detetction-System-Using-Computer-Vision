@@ -406,6 +406,40 @@ li.task:has(input:checked) { color: var(--muted); text-decoration: line-through;
 </tr>
 </tbody>
 </table></div>
+<h3 id="ch4-camera-lost-camera-chup-ho-jaye">Camera lost (camera chup ho jaye)</h3>
+<p>Aag mein bijli jaye ya cable kate to camera frames bhejna band kar deta hai. <code>CameraWatchdog</code> har 5 second mein dekhta hai:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Halat</th>
+<th>Kya hota hai</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Jo camera frames bhej raha tha, <strong>30 second</strong> se chup</td>
+<td>"Camera lost" incident (source <strong>Camera lost</strong>): <strong>Medium</strong></td>
+</tr>
+<tr>
+<td>Usi waqt us zone mein aag ka incident khula</td>
+<td><strong>High</strong>, message mein "while a fire incident is open in this zone"</td>
+</tr>
+<tr>
+<td>Camera dobara frames bhejne lage</td>
+<td>Live Event Log: "Camera … is sending frames again"</td>
+</tr>
+<tr>
+<td>Camera kabhi juda hi nahi (API chalne ke baad)</td>
+<td>Koi alarm nahi</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>Har chup rehne par <strong>ek</strong> alert, aur dobara chup ho to wohi khula incident update hota hai.</li>
+<li>Setting: <code>Alerts:CameraLostSeconds = 30</code>. Code: <code>Services/CameraWatchdog.cs</code>, <code>AlertEngine.CameraLostAsync</code>.</li>
+<li>Ye <strong>High</strong> hai, emergency nahi, is liye SMS khud nahi jata. Operator dashboard par dekhta hai.</li>
+<li>Had: last-frame ka waqt API ki memory mein rehta hai. API restart ke baad camera ka pehla frame aane tak use watch nahi kiya jata.</li>
+</ul>
 <hr /></section><section class="chapter" data-ch="5"><h1 id="ch5">5. Sensors Aur Smart Sprinklers</h1>
 <h3 id="ch5-sensors-dhuwan-ppm-garmi-c">Sensors (dhuwan ppm, garmi °C)</h3>
 <p><strong>File:</strong> <code>Services/SensorRules.cs</code></p>
@@ -442,6 +476,7 @@ li.task:has(input:checked) { color: var(--muted); text-decoration: line-through;
 </table></div>
 <ul>
 <li>Readings <code>SensorReadings</code> table mein, <strong>48 ghante</strong> se purani khud delete.</li>
+<li><strong>Test data:</strong> telemetry batch mein <code>"simulated": true</code> ho (simulator yehi bhejta hai) to incident par <strong>[SIMULATED DATA]</strong> likha aata hai aur sprinklers <strong>khud nahi</strong> chalte (<code>Alerts:AutoSprinklerOnSimulatedData = false</code>).</li>
 <li>Dashboard par gauge aur chhota graph (sparkline), aakhri 60 readings.</li>
 </ul>
 <h3 id="ch5-smart-sprinklers">Smart sprinklers</h3>
@@ -1661,8 +1696,8 @@ dotnet run --project Sentinel.Simulator -- --device-key &lt;Device__ApiKey&gt; -
 <tbody>
 <tr>
 <td>Backend (xUnit)</td>
-<td><strong>56</strong></td>
-<td>Alert rules, API + SignalR integration, evacuation router, floor plans + logs, camera calibration, AI client</td>
+<td><strong>58</strong></td>
+<td>Alert rules, API + SignalR integration, evacuation router, floor plans + logs, camera calibration, camera lost, simulated sensors, AI client</td>
 </tr>
 <tr>
 <td>Frontend (Vitest)</td>
@@ -1770,7 +1805,7 @@ cd ai-service; .\.venv\Scripts\python tools\evaluate.py --data &lt;D-Fire\test&g
 </tr>
 <tr>
 <td>POST</td>
-<td><code>/api/iot/sensors/{id}/readings</code>, <code>/api/iot/telemetry</code></td>
+<td><code>/api/iot/sensors/{id}/readings</code>, <code>/api/iot/telemetry</code> (<code>simulated: true</code> = test data)</td>
 <td>Operator/Device</td>
 <td>Readings</td>
 </tr>
@@ -2106,8 +2141,8 @@ cd ai-service; .\.venv\Scripts\python tools\evaluate.py --data &lt;D-Fire\test&g
 <tr>
 <td>1</td>
 <td><strong>Camera lost alert</strong></td>
-<td>Camera band ho (bijli jaye) to system chup</td>
-<td>30 sec frame na aaye to alert; zone mein aag ho to High</td>
+<td>✅ Ban gaya: 30 sec chup = alert, zone mein aag ho to High</td>
+<td>Asli camera ki bijli kaat kar test</td>
 </tr>
 <tr>
 <td>2</td>
@@ -2136,8 +2171,8 @@ cd ai-service; .\.venv\Scripts\python tools\evaluate.py --data &lt;D-Fire\test&g
 <tr>
 <td>15</td>
 <td><strong>Simulated sensor data</strong></td>
-<td>Simulator ke sensors par SIMULATED ka nishaan nahi, Alarm par Auto sprinklers chal jaate hain</td>
-<td>Telemetry mein <code>simulated</code> flag</td>
+<td>✅ Ban gaya: simulator ki readings SIMULATED, sprinklers khud nahi chalte</td>
+<td>—</td>
 </tr>
 <tr>
 <td>6</td>

@@ -41,7 +41,7 @@ public class SensorService(
         return new SensorHistoryDto(sensor.Id, sensor.Unit, readings);
     }
 
-    public async Task<SensorNodeDto> IngestReadingAsync(string id, double value, DateTime? recordedAt, CancellationToken ct = default)
+    public async Task<SensorNodeDto> IngestReadingAsync(string id, double value, DateTime? recordedAt, CancellationToken ct = default, bool simulated = false)
     {
         if (!double.IsFinite(value) || value is < MinValue or > MaxValue)
             throw new AppValidationException("value", $"Value must be between {MinValue} and {MaxValue}.");
@@ -59,11 +59,11 @@ public class SensorService(
 
         var dto = sensor.ToDto(_opt);
         await realtime.TelemetryAsync(dto);
-        await alerts.EvaluateSensorAsync(sensor, previous, ct);
+        await alerts.EvaluateSensorAsync(sensor, previous, simulated, ct);
         return dto;
     }
 
-    public async Task<BulkTelemetryResult> IngestBulkAsync(IEnumerable<BulkTelemetryItem> readings, CancellationToken ct = default)
+    public async Task<BulkTelemetryResult> IngestBulkAsync(IEnumerable<BulkTelemetryItem> readings, bool simulated = false, CancellationToken ct = default)
     {
         var updated = new List<string>();
         var errors = new List<TelemetryError>();
@@ -71,7 +71,7 @@ public class SensorService(
         {
             try
             {
-                await IngestReadingAsync(r.SensorId, r.Value, null, ct);
+                await IngestReadingAsync(r.SensorId, r.Value, null, ct, simulated);
                 updated.Add(r.SensorId);
             }
             catch (Exception ex) when (ex is NotFoundException or AppValidationException)

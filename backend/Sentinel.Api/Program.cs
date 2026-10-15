@@ -74,6 +74,8 @@ builder.Services.AddSingleton<IRealtimeNotifier, RealtimeNotifier>();
 builder.Services.AddSingleton<NotificationDispatcher>();
 builder.Services.AddSingleton<INotificationDispatcher>(sp => sp.GetRequiredService<NotificationDispatcher>());
 builder.Services.AddHostedService<NotificationWorker>();
+builder.Services.AddSingleton<CameraWatchdog>();
+builder.Services.AddHostedService(sp => sp.GetRequiredService<CameraWatchdog>());
 builder.Services.AddScoped<INotificationChannel, TwilioSmsChannel>();
 builder.Services.AddScoped<INotificationChannel, EmailChannel>();
 builder.Services.AddScoped<INotificationChannel, WebPushChannel>();

@@ -5,11 +5,12 @@ using Sentinel.Api.Validators;
 namespace Sentinel.Api.Services;
 
 /// <summary>Entry point for AI inference frames (REST and SignalR share this).</summary>
-public class DetectionService(IAlertEngine alerts, IRealtimeNotifier realtime) : IDetectionService
+public class DetectionService(IAlertEngine alerts, IRealtimeNotifier realtime, CameraWatchdog watchdog) : IDetectionService
 {
     public async Task<(DetectionFrameDto Frame, int? IncidentId)> ProcessAsync(DetectionPayloadDto payload, CancellationToken ct = default)
     {
         var frame = DetectionPayloadValidator.Validate(payload);
+        watchdog.FrameReceived(frame.CameraId);
 
         // 1) Overlay first: dashboards draw boxes at stream rate, before any database work.
         await realtime.DetectionAsync(frame);

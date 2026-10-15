@@ -15,7 +15,7 @@ public enum SprinklerMode { Auto, Manual }
 /// <summary>Ordered: comparisons such as <c>severity &gt;= Severity.High</c> are meaningful.</summary>
 public enum Severity { Low = 0, Medium = 1, High = 2, Critical = 3 }
 
-public enum IncidentSource { Vision, Sensor, Manual }
+public enum IncidentSource { Vision, Sensor, Manual, CameraLost }
 
 public enum UserRole { Admin, Operator }
 

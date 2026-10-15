@@ -16,8 +16,8 @@ public interface ISensorService
     Task<IReadOnlyList<SensorNodeDto>> GetAllAsync(CancellationToken ct = default);
     Task<SensorNodeDto> GetAsync(string id, CancellationToken ct = default);
     Task<SensorHistoryDto> GetHistoryAsync(string id, int limit, DateTime? since, CancellationToken ct = default);
-    Task<SensorNodeDto> IngestReadingAsync(string id, double value, DateTime? recordedAt, CancellationToken ct = default);
-    Task<BulkTelemetryResult> IngestBulkAsync(IEnumerable<BulkTelemetryItem> readings, CancellationToken ct = default);
+    Task<SensorNodeDto> IngestReadingAsync(string id, double value, DateTime? recordedAt, CancellationToken ct = default, bool simulated = false);
+    Task<BulkTelemetryResult> IngestBulkAsync(IEnumerable<BulkTelemetryItem> readings, bool simulated = false, CancellationToken ct = default);
 }
 
 public interface ISprinklerService
@@ -47,7 +47,9 @@ public interface IDetectionService
 public interface IAlertEngine
 {
     Task<IncidentAlert?> EvaluateDetectionAsync(DetectionFrameDto frame, CancellationToken ct = default);
-    Task EvaluateSensorAsync(SensorNode sensor, SensorState previousState, CancellationToken ct = default);
+    Task EvaluateSensorAsync(SensorNode sensor, SensorState previousState, bool simulated = false, CancellationToken ct = default);
+    /// <summary>A camera that was sending frames went silent (see CameraWatchdog).</summary>
+    Task CameraLostAsync(string cameraId, int silentSeconds, CancellationToken ct = default);
     Task PublishIncidentAsync(IncidentAlert incident, string action, bool emergency, bool forceNotify = false,
         CancellationToken ct = default, bool simulated = false);
     /// <summary>Saves a history entry and broadcasts it (SignalR "incidentLog").</summary>

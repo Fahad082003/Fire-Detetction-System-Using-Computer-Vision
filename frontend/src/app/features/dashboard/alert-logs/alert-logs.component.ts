@@ -6,7 +6,7 @@ import { ToastService } from '../../../core/services/ui.service';
 import { IncidentAlert } from '../../../shared/models/api.models';
 import { errorMessage } from '../../../shared/utils/format';
 
-const SOURCE_LABEL = { Vision: 'AI Vision', Sensor: 'Sensor', Manual: 'Manual' } as const;
+const SOURCE_LABEL = { Vision: 'AI Vision', Sensor: 'Sensor', Manual: 'Manual', CameraLost: 'Camera lost' } as const;
 
 /** Real-time incident register. Rows arrive over SignalR; "Resolve" calls POST /api/incidents/{id}/resolve. */
 @Component({

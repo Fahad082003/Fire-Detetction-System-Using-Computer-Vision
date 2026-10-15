@@ -147,7 +147,7 @@ public class AlertEngine(
     }
 
     // ------------------------------------------------------------------ sensors
-    public async Task EvaluateSensorAsync(SensorNode sensor, SensorState previousState, CancellationToken ct = default)
+    public async Task EvaluateSensorAsync(SensorNode sensor, SensorState previousState, bool simulated = false, CancellationToken ct = default)
     {
         var state = SensorRules.StateOf(sensor, _opt);
         if (state != previousState)
@@ -162,11 +162,29 @@ public class AlertEngine(
         var severity = state == SensorState.Critical ? Severity.Critical : Severity.High;
         var (incident, action) = await UpsertIncidentAsync(new IncidentDraft(
             IncidentSource.Sensor, sensor.LocationZone, severity, null, sensor.Id, false, null, 0, 0,
-            $"{sensor.Type} {sensor.CurrentValue}{sensor.Unit} exceeds safety limit {sensor.Threshold}{sensor.Unit} ({sensor.Id})"), ct);
+            $"{sensor.Type} {sensor.CurrentValue}{sensor.Unit} exceeds safety limit {sensor.Threshold}{sensor.Unit} ({sensor.Id})"
+            + (simulated ? " [SIMULATED DATA]" : "")), ct);
 
-        await PublishIncidentAsync(incident, action, emergency: state == SensorState.Critical, ct: ct);
-        // A reading over the safety limit opens the zone's Auto relays even before it becomes Critical.
-        await sprinklers.AutoActivateZoneAsync(sensor.LocationZone, $"{sensor.Id} {state}", ct);
+        await PublishIncidentAsync(incident, action, emergency: state == SensorState.Critical, ct: ct, simulated: simulated);
+        // A reading over the safety limit opens the zone's Auto relays even before it becomes Critical, but test data never does.
+        if (!simulated || _opt.AutoSprinklerOnSimulatedData)
+            await sprinklers.AutoActivateZoneAsync(sensor.LocationZone, $"{sensor.Id} {state}", ct);
+        else if (action is "created" or "escalated" && state != SensorState.Critical) // Critical: PublishIncidentAsync already said so
+            await realtime.ActivityAsync("warning",
+                $"Incident #{incident.Id}: sprinkler auto-activation skipped, the triggering data is SIMULATED (Alerts:AutoSprinklerOnSimulatedData=false)", incident.Zone);
+    }
+
+    // ------------------------------------------------------------------ camera health
+    public async Task CameraLostAsync(string cameraId, int silentSeconds, CancellationToken ct = default)
+    {
+        var camera = await db.CameraFeeds.FindAsync([cameraId], ct);
+        if (camera is null) return;
+        // Losing a camera matters most while there is a fire in its zone: that is when power cuts happen.
+        var fireOpen = await db.IncidentAlerts.AnyAsync(i => !i.IsResolved && i.Zone == camera.LocationZone && i.FireDetected, ct);
+        var (incident, action) = await UpsertIncidentAsync(new IncidentDraft(
+            IncidentSource.CameraLost, camera.LocationZone, fireOpen ? Severity.High : Severity.Medium, camera.Id, null, false, null, 0, 0,
+            $"Camera lost: no frames from {camera.Name} for {silentSeconds} s" + (fireOpen ? " while a fire incident is open in this zone" : "")), ct);
+        await PublishIncidentAsync(incident, action, emergency: false, ct: ct);
     }
 
     // ------------------------------------------------------------------ incidents

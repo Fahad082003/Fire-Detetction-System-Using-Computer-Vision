@@ -34,7 +34,7 @@ public class IoTController(ISensorService sensors, ISprinklerService sprinklers)
     [HttpPost("telemetry")]
     public async Task<ActionResult<BulkTelemetryResult>> PostTelemetry(BulkTelemetryRequest request, CancellationToken ct)
     {
-        var result = await sensors.IngestBulkAsync(request.Readings, ct);
+        var result = await sensors.IngestBulkAsync(request.Readings, request.Simulated, ct);
         return result.Errors.Count > 0 && result.Updated.Count == 0 ? BadRequest(result) : Ok(result);
     }
 

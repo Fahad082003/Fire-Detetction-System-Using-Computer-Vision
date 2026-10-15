@@ -483,10 +483,15 @@ dotnet run --project Sentinel.Simulator -- --device-key &lt;yahan Device__ApiKey
 <li class="task"><input type="checkbox" data-task="4" aria-label="Ho gaya"> <strong>Alert Logs</strong> mein naya incident, Location "Zone B", Severity High/Critical.</li>
 <li class="task"><input type="checkbox" data-task="5" aria-label="Ho gaya"> <strong>Live Event Log</strong> mein lines: incident khula, SMS "skipped", email (API window mein print).</li>
 <li class="task"><input type="checkbox" data-task="6" aria-label="Ho gaya"> Zone B ke garmi/dhuwan gauges barhte hue.</li>
-<li class="task"><input type="checkbox" data-task="7" aria-label="Ho gaya"> Camera (AI Vision) wale incident par sprinklers <strong>khud nahi</strong> chalte: Live Event Log mein "sprinkler auto-activation skipped… SIMULATED".</li>
-<li class="task"><input type="checkbox" data-task="8" aria-label="Ho gaya"> ⚠️ Lekin simulator nakli <strong>sensors</strong> ki readings bhi bhejta hai, aur un par SIMULATED ka nishaan <strong>nahi</strong> hota. Zone B ke sensors Alarm par pahunchein to Zone B ke <strong>Auto sprinklers chal jaate hain</strong> (sirf database mein, koi asli hardware nahi). Test ke baad unhein OFF karein (Chapter 11).</li>
+<li class="task"><input type="checkbox" data-task="7" aria-label="Ho gaya"> Simulated data ki wajah se sprinklers <strong>khud nahi</strong> chalte (camera aur simulator ke sensors dono): Live Event Log mein "sprinkler auto-activation skipped… SIMULATED", aur sensor incidents par <strong>[SIMULATED DATA]</strong>.</li>
 </ul>
 <p><strong>Band karna:</strong> Window 4 mein <strong>Ctrl + C</strong>.</p>
+<p><strong>Camera lost check (simulator band karne ke baad):</strong></p>
+<ul>
+<li class="task"><input type="checkbox" data-task="8" aria-label="Ho gaya"> ~30 second baad <strong>Alert Logs</strong> mein har camera ke liye ek incident, Source <strong>Camera lost</strong>: "Camera lost: no frames from … for 31 s".</li>
+<li class="task"><input type="checkbox" data-task="9" aria-label="Ho gaya"> Zone B ke cameras (jahan aag thi) <strong>High</strong>, baqi <strong>Medium</strong>.</li>
+<li class="task"><input type="checkbox" data-task="10" aria-label="Ho gaya"> Simulator dobara chalayein: Live Event Log mein "Camera … is sending frames again". Phir purane "Camera lost" incidents <strong>Resolve</strong> kar dein.</li>
+</ul>
 <p><strong>Simulator ke options:</strong></p>
 <div class="table-wrap"><table>
 <thead>
@@ -533,10 +538,10 @@ dotnet run --project Sentinel.Simulator -- --device-key &lt;yahan Device__ApiKey
 <p><img alt="AI page" src="images/ai-tab-fire.png" /></p>
 <p><strong>✅ Kya dikhna chahiye:</strong></p>
 <ul>
-<li class="task"><input type="checkbox" data-task="9" aria-label="Ho gaya"> Photo par dabbe: aag <strong>laal</strong>, dhuwan <strong>gray</strong>, insaan <strong>hara</strong>.</li>
-<li class="task"><input type="checkbox" data-task="10" aria-label="Ho gaya"> Neeche line: model ke naam, kitne ms lage, "fire Medium", "smoke yes", "people 0".</li>
-<li class="task"><input type="checkbox" data-task="11" aria-label="Ho gaya"> Table: Class, Confidence (jaise 83%), Box, aur <strong>Why (evidence)</strong> yaani AI ne kyun kaha.</li>
-<li class="task"><input type="checkbox" data-task="12" aria-label="Ho gaya"> Bina aag wali photo par aag ka dabba <strong>na</strong> aaye.</li>
+<li class="task"><input type="checkbox" data-task="11" aria-label="Ho gaya"> Photo par dabbe: aag <strong>laal</strong>, dhuwan <strong>gray</strong>, insaan <strong>hara</strong>.</li>
+<li class="task"><input type="checkbox" data-task="12" aria-label="Ho gaya"> Neeche line: model ke naam, kitne ms lage, "fire Medium", "smoke yes", "people 0".</li>
+<li class="task"><input type="checkbox" data-task="13" aria-label="Ho gaya"> Table: Class, Confidence (jaise 83%), Box, aur <strong>Why (evidence)</strong> yaani AI ne kyun kaha.</li>
+<li class="task"><input type="checkbox" data-task="14" aria-label="Ho gaya"> Bina aag wali photo par aag ka dabba <strong>na</strong> aaye.</li>
 </ul>
 <p><strong>Yaad rakhein:</strong></p>
 <ul>
@@ -711,8 +716,8 @@ dotnet run --project Sentinel.Simulator -- --device-key &lt;yahan Device__ApiKey
 <p><img alt="Emergency Dispatch" src="images/dispatch-dialog.png" /></p>
 <p><strong>✅ Kya dikhna chahiye:</strong></p>
 <ul>
-<li class="task"><input type="checkbox" data-task="13" aria-label="Ho gaya"> Alert Logs mein naya incident (Source: Manual).</li>
-<li class="task"><input type="checkbox" data-task="14" aria-label="Ho gaya"> Live Event Log: SMS skipped, email API window mein.</li>
+<li class="task"><input type="checkbox" data-task="15" aria-label="Ho gaya"> Alert Logs mein naya incident (Source: Manual).</li>
+<li class="task"><input type="checkbox" data-task="16" aria-label="Ho gaya"> Live Event Log: SMS skipped, email API window mein.</li>
 </ul>
 <p><strong>Resolve (band karna):</strong></p>
 <ol>
@@ -865,9 +870,9 @@ dotnet run --project Sentinel.Simulator -- --device-key &lt;yahan Device__ApiKey
 <li>Dashboard → <strong>Incident History &amp; Logs</strong>.</li>
 <li>Upar se ek <strong>incident</strong> chunein (ya "All incidents"), aur event type ("All event types").</li>
 <li>✅ Dikhe:<ul>
-<li class="task"><input type="checkbox" data-task="15" aria-label="Ho gaya"> Camera wale incident par <strong>aag ka graph</strong> (frame ka %), sensor wale par <strong>sensor ka graph</strong>.</li>
-<li class="task"><input type="checkbox" data-task="16" aria-label="Ho gaya"> Logs: <code>Opened</code>, <code>Escalated</code>, <code>FireMeasurement</code>, <code>PersonInDanger</code>, <code>EvacuationRoute</code>, <code>Resolved</code>.</li>
-<li class="task"><input type="checkbox" data-task="17" aria-label="Ho gaya"> Test data par jamni <strong>SIMULATED</strong>, raaste par neela <strong>ESTIMATE</strong>.</li>
+<li class="task"><input type="checkbox" data-task="17" aria-label="Ho gaya"> Camera wale incident par <strong>aag ka graph</strong> (frame ka %), sensor wale par <strong>sensor ka graph</strong>.</li>
+<li class="task"><input type="checkbox" data-task="18" aria-label="Ho gaya"> Logs: <code>Opened</code>, <code>Escalated</code>, <code>FireMeasurement</code>, <code>PersonInDanger</code>, <code>EvacuationRoute</code>, <code>Resolved</code>.</li>
+<li class="task"><input type="checkbox" data-task="19" aria-label="Ho gaya"> Test data par jamni <strong>SIMULATED</strong>, raaste par neela <strong>ESTIMATE</strong>.</li>
 </ul>
 </li>
 </ol>
@@ -897,10 +902,10 @@ $env:SENTINEL_DEVICE_KEY = &quot;&lt;yahan Device__ApiKey&gt;&quot;
 </code></pre>
 <p><strong>✅ Kya dikhna chahiye:</strong></p>
 <ul>
-<li class="task"><input type="checkbox" data-task="18" aria-label="Ho gaya"> AI page → Camera sources: <code>cam-warehouse · file · SIMULATED / TEST INPUT · running · sent …</code></li>
-<li class="task"><input type="checkbox" data-task="19" aria-label="Ho gaya"> Dashboard ke Warehouse camera par AI ke boxes.</li>
-<li class="task"><input type="checkbox" data-task="20" aria-label="Ho gaya"> Aag <strong>3 frames</strong> tak lagatar dikhe to incident, <strong>SIMULATED DATA</strong> label ke saath.</li>
-<li class="task"><input type="checkbox" data-task="21" aria-label="Ho gaya"> Sprinklers <strong>khud nahi</strong> chalte (simulated).</li>
+<li class="task"><input type="checkbox" data-task="20" aria-label="Ho gaya"> AI page → Camera sources: <code>cam-warehouse · file · SIMULATED / TEST INPUT · running · sent …</code></li>
+<li class="task"><input type="checkbox" data-task="21" aria-label="Ho gaya"> Dashboard ke Warehouse camera par AI ke boxes.</li>
+<li class="task"><input type="checkbox" data-task="22" aria-label="Ho gaya"> Aag <strong>3 frames</strong> tak lagatar dikhe to incident, <strong>SIMULATED DATA</strong> label ke saath.</li>
+<li class="task"><input type="checkbox" data-task="23" aria-label="Ho gaya"> Sprinklers <strong>khud nahi</strong> chalte (simulated).</li>
 </ul>
 <p><strong>Yaad rakhein:</strong></p>
 <ul>
@@ -922,7 +927,7 @@ dotnet run --project Sentinel.Api -- generate-vapid-keys
 <hr /></section><p class="part-label">D · Masle, hifazat aur checklist</p><section class="chapter" data-ch="17"><h1 id="ch17">17. Automatic Tests (Ek Click Mein Sab Check)</h1>
 <p>Ye tests code khud check karte hain. Har command ke aakhir mein <strong>failed: 0</strong> hona chahiye.</p>
 <pre><code class="language-powershell">cd C:\Users\m_fahad\Desktop\Project\backend
-dotnet test                                   # ✅ Passed: 56
+dotnet test                                   # ✅ Passed: 58
 
 cd C:\Users\m_fahad\Desktop\Project\frontend
 ng test --watch=false                         # ✅ Tests 25 passed
@@ -1116,7 +1121,14 @@ cd C:\Users\m_fahad\Desktop\Project\ai-service
 </tr>
 <tr>
 <td>6</td>
-<td>Simulator: Zone B mein aag, CRITICAL, incident</td>
+<td>Simulator: Zone B mein aag, CRITICAL, incident, sprinklers khud nahi chale</td>
+<td>8</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>6b</td>
+<td>Simulator band: 30 sec baad "Camera lost" (Zone B High)</td>
 <td>8</td>
 <td></td>
 <td></td>
@@ -1207,7 +1219,7 @@ cd C:\Users\m_fahad\Desktop\Project\ai-service
 </tr>
 <tr>
 <td>18</td>
-<td>Automatic tests: 56 + 25 + 15 pass</td>
+<td>Automatic tests: 58 + 25 + 15 pass</td>
 <td>17</td>
 <td></td>
 <td></td>

@@ -255,7 +255,7 @@ namespace Sentinel.Simulator
                 {
                     try
                     {
-                        using var resp = await _http.PostAsJsonAsync("api/iot/telemetry", new { readings }, Json, ct);
+                        using var resp = await _http.PostAsJsonAsync("api/iot/telemetry", new { readings, simulated = true }, Json, ct);
                         if (!resp.IsSuccessStatusCode) Log.Warn($"Telemetry rejected ({(int)resp.StatusCode}): {await resp.Content.ReadAsStringAsync(ct)}");
                     }
                     catch (HttpRequestException ex) { Log.Warn($"Telemetry post failed: {ex.Message}"); }
