@@ -4,7 +4,8 @@ Real-time fire/threat monitoring. Its own AI service (or any producer that posts
 - opens and escalates incidents, and sends SMS, email and web-push alerts;
 - switches on smart sprinklers automatically;
 - raises a **camera lost** alert when a camera goes silent;
-- places people seen by calibrated cameras on the floor plan, and computes an evacuation route from where they stand.
+- places people seen by calibrated cameras on the floor plan, and computes an evacuation route from where they stand;
+- predicts which rooms a fire may reach next (rule-based, through doors) and shows a risk heatmap on the floor plan.
 
 > AI inference runs in a separate Python service, [ai-service/](ai-service/README.md), using ONNX Runtime on CPU.
 > - **Person detection** (YOLOX-Tiny, Apache-2.0) is installed and was evaluated on 2026-10-13: see [ai-service/reports](ai-service/reports/README.md).
@@ -91,7 +92,7 @@ cd ai-service; .\.venv\Scripts\python -m unittest discover -s tests   # AI servi
 
 ## Documentation
 
-**[docs/SENTINEL_GUIDE_ROMAN_URDU_v4.pdf](docs/SENTINEL_GUIDE_ROMAN_URDU_v4.pdf)** is the full project guide in Roman Urdu. The same guide is also a browsable page, **[docs/SENTINEL_GUIDE_ROMAN_URDU_v4.html](docs/SENTINEL_GUIDE_ROMAN_URDU_v4.html)**, with a chapter sidebar, search and dark mode. Open it from the `docs` folder so the screenshots load. It covers:
+**[docs/SENTINEL_GUIDE_ROMAN_URDU_v5.pdf](docs/SENTINEL_GUIDE_ROMAN_URDU_v5.pdf)** is the full project guide in Roman Urdu. The same guide is also a browsable page, **[docs/SENTINEL_GUIDE_ROMAN_URDU_v5.html](docs/SENTINEL_GUIDE_ROMAN_URDU_v5.html)**, with a chapter sidebar, search and dark mode. Open it from the `docs` folder so the screenshots load. It covers:
 - The whole flow from camera to dashboard, alerts, sensors, sprinklers, floor plans and evacuation.
 - The database, security, the API and SignalR.
 - The AI models: where each model came from, the D-Fire dataset and its image counts, the 80-epoch Kaggle training, and the measured accuracy.

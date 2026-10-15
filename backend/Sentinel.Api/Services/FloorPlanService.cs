@@ -92,12 +92,7 @@ public class FloorPlanService(
             || request.X > plan.WidthMeters || request.Y > plan.HeightMeters)
             throw new AppValidationException("start", "Start point must be inside the floor plan.");
 
-        // A danger zone is active when marked so, or when its linked camera/sensor zone has an open incident.
-        var openZones = (await db.IncidentAlerts.Where(i => !i.IsResolved).Select(i => i.Zone).Distinct().ToListAsync(ct))
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var active = plan.Elements.Where(e => e.Type == FloorElementType.DangerZone
-            && (e.IsActive || (!string.IsNullOrWhiteSpace(e.Zone) && openZones.Contains(e.Zone)))).ToList();
-
+        var active = await ActiveDangerAsync(plan, ct);
         var r = EvacuationRouter.FindRoute(plan.WidthMeters, plan.HeightMeters, plan.Elements.ToList(), active, request.X, request.Y, _opt.DangerClearanceMeters);
         var speed = _opt.WalkingSpeedMetersPerSecond;
         var seconds = r.Found ? Math.Round(r.DistanceMeters / speed, 1) : 0;
@@ -116,6 +111,21 @@ public class FloorPlanService(
         return new RouteResultDto(r.Found, r.Message, r.Path, r.DistanceMeters, seconds, speed, r.ExitName, r.StartInDangerZone,
             active.Select(e => string.IsNullOrWhiteSpace(e.Name) ? "Danger zone" : e.Name).ToList(),
             r.ClearanceViolated, r.MinDangerGapMeters, _opt.DangerClearanceMeters);
+    }
+
+    public async Task<FireRiskDto> RiskAsync(int id, CancellationToken ct = default)
+    {
+        var plan = await FindAsync(id, ct);
+        return FireRiskEstimator.Estimate(plan.WidthMeters, plan.HeightMeters, plan.Elements.ToList(), await ActiveDangerAsync(plan, ct));
+    }
+
+    /// <summary>A danger zone is active when marked so, or when its linked camera/sensor zone has an open incident.</summary>
+    private async Task<List<FloorPlanElement>> ActiveDangerAsync(FloorPlan plan, CancellationToken ct)
+    {
+        var openZones = (await db.IncidentAlerts.Where(i => !i.IsResolved).Select(i => i.Zone).Distinct().ToListAsync(ct))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        return plan.Elements.Where(e => e.Type == FloorElementType.DangerZone
+            && (e.IsActive || (!string.IsNullOrWhiteSpace(e.Zone) && openZones.Contains(e.Zone)))).ToList();
     }
 
     /// <summary>".png" / ".jpg" from the file's magic bytes, or null for anything else.</summary>

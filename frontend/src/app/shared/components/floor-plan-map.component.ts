@@ -57,6 +57,10 @@ let nextUid = 0;
           </g>
         }
 
+        @if (riskLayer(); as rl) {
+          <image [attr.href]="rl.url" x="0" y="0" [attr.width]="rl.width" [attr.height]="rl.height" preserveAspectRatio="none"
+                 class="pointer-events-none" />
+        }
         @if (selectedElement(); as s) {
           <rect [attr.x]="s.x" [attr.y]="s.y" [attr.width]="s.width" [attr.height]="s.height" fill="none"
                 stroke="#22d3ee" stroke-width="2" vector-effect="non-scaling-stroke" class="pointer-events-none" />
@@ -93,6 +97,8 @@ export class FloorPlanMapComponent {
   readonly height = input.required<number>();
   readonly elements = input.required<FloorPlanElement[]>();
   readonly imageUrl = input<string | null>(null);
+  /** Fire-risk heatmap image laid over the plan (meters). */
+  readonly riskLayer = input<{ url: string; width: number; height: number } | null>(null);
   readonly route = input<[number, number][] | null>(null);
   readonly start = input<[number, number] | null>(null);
   /** Live people placed on the plan from calibrated cameras (meters). */

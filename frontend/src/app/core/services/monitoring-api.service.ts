@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
-  AiAnalysis, AiStatus, CameraCalibration, CameraFeed, FloorPlan, IncidentAlert, IncidentLog, IncidentLogType, ManualDispatchRequest, MasterSprinklerResult, RouteResult,
+  AiAnalysis, AiStatus, CameraCalibration, CameraFeed, FireRisk, FloorPlan, IncidentAlert, IncidentLog, IncidentLogType, ManualDispatchRequest, MasterSprinklerResult, RouteResult,
   SaveFloorPlan, SensorHistory, SmartSprinkler, SprinklerMode,
 } from '../../shared/models/api.models';
 
@@ -88,6 +88,10 @@ export class MonitoringApiService {
 
   clearCalibration(cameraId: string): Observable<CameraFeed> {
     return this.http.delete<CameraFeed>(`${this.base}/cameras/${encodeURIComponent(cameraId)}/calibration`);
+  }
+
+  floorPlanRisk(id: number): Observable<FireRisk> {
+    return this.http.get<FireRisk>(`${this.base}/floorplans/${id}/risk`);
   }
 
   route(id: number, x: number, y: number): Observable<RouteResult> {

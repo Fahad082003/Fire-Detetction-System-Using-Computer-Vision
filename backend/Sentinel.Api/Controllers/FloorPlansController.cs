@@ -57,4 +57,8 @@ public class FloorPlansController(IFloorPlanService plans) : ApiControllerBase
     [HttpPost("{id:int}/route")]
     public async Task<RouteResultDto> Route(int id, RouteRequest request, CancellationToken ct) =>
         await plans.RouteAsync(id, request, ct);
+
+    /// <summary>Rule-based estimate of the rooms the fire may reach next, plus a risk heatmap grid.</summary>
+    [HttpGet("{id:int}/risk")]
+    public async Task<FireRiskDto> Risk(int id, CancellationToken ct) => await plans.RiskAsync(id, ct);
 }

@@ -5,13 +5,16 @@ import { RouterLink } from '@angular/router';
 import { MonitoringApiService } from '../../../core/services/monitoring-api.service';
 import { SignalRService } from '../../../core/services/signalr.service';
 import { FloorPlanMapComponent, PlanPointer } from '../../../shared/components/floor-plan-map.component';
-import { DetectionFrame, FloorPlan, RouteResult } from '../../../shared/models/api.models';
+import { DetectionFrame, FireRisk, FloorPlan, RouteResult } from '../../../shared/models/api.models';
 import { errorMessage } from '../../../shared/utils/format';
 import { homography, project } from '../../../shared/utils/homography';
 
 /** Same as the camera tile: a camera that sent nothing for this long no longer places people. */
 const PEOPLE_EXPIRE_MS = 4500;
 const round1 = (v: number) => Math.round(v * 10) / 10;
+/** Heatmap colours by risk level: 1 low (yellow), 2 medium (orange), 3 high (red), 4 burning (dark red). */
+const RISK_RGBA = ['', 'rgba(250,204,21,0.35)', 'rgba(249,115,22,0.5)', 'rgba(239,68,68,0.6)', 'rgba(185,28,28,0.85)'];
+export const RISK_CLASS: Record<string, string> = { Burning: 'bg-red-700', High: 'bg-red-500', Medium: 'bg-orange-500', Low: 'bg-yellow-400' };
 
 /**
  * Dashboard evacuation view (requirements 2.4, 6.4, 5.2): pick a floor plan, click the person's KNOWN position
@@ -35,6 +38,22 @@ export class EvacuationPanelComponent implements OnDestroy {
   protected readonly start = signal<[number, number] | null>(null);
   protected readonly result = signal<RouteResult | null>(null);
   protected readonly routing = signal(false);
+  protected readonly riskClass = RISK_CLASS;
+  /** Rule-based estimate of the rooms the fire may reach next (GET /api/floorplans/{id}/risk). */
+  protected readonly risk = signal<FireRisk | null>(null);
+  protected readonly riskAreas = computed(() => this.risk()?.areas.filter((a) => a.level !== 'None') ?? []);
+  /** The risk grid painted as a small image (one pixel per cell); the SVG stretches it over the plan. */
+  protected readonly riskLayer = computed(() => {
+    const r = this.risk();
+    if (!r?.active) return null;
+    const canvas = document.createElement('canvas');
+    canvas.width = r.cols;
+    canvas.height = r.rows;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null; // no canvas support (e.g. unit tests): the room list below still shows the risk
+    r.cells.forEach((v, i) => { if (v > 0) { ctx.fillStyle = RISK_RGBA[v]; ctx.fillRect(i % r.cols, Math.floor(i / r.cols), 1, 1); } });
+    return { url: canvas.toDataURL(), width: r.cols * r.cellMeters, height: r.rows * r.cellMeters };
+  });
   /** People seen by calibrated cameras, mapped from their feet (box bottom-centre) onto this plan. */
   protected readonly people = signal<{ x: number; y: number }[]>([]);
   private readonly seen = new Map<string, { at: number; points: { x: number; y: number }[] }>();
@@ -59,7 +78,8 @@ export class EvacuationPanelComponent implements OnDestroy {
       next: (plans) => { this.plans.set(plans); this.loading.set(false); if (plans[0]) this.choose(plans[0].id); },
       error: (err) => { this.loading.set(false); this.error.set(errorMessage(err)); },
     });
-    effect(() => { this.openZonesKey(); untracked(() => { if (this.start()) this.calculate(); }); });
+    // Incidents opening or closing change the active danger zones: refresh the risk estimate and the route.
+    effect(() => { this.openZonesKey(); untracked(() => { this.loadRisk(); if (this.start()) this.calculate(); }); });
     this.live.detection$.pipe(takeUntilDestroyed()).subscribe((f) => this.placePeople(f));
     const timer = setInterval(() => this.refreshPeople(), 1000);
     inject(DestroyRef).onDestroy(() => clearInterval(timer));
@@ -74,6 +94,8 @@ export class EvacuationPanelComponent implements OnDestroy {
     this.start.set(null);
     this.result.set(null);
     this.routing.set(false);
+    this.risk.set(null);
+    this.loadRisk();
     this.seen.clear();
     this.people.set([]);
     this.setImage(null);
@@ -96,6 +118,12 @@ export class EvacuationPanelComponent implements OnDestroy {
       next: (r) => { if (this.planId() !== id) return; this.result.set(r); this.routing.set(false); this.error.set(null); },
       error: (err) => { if (this.planId() !== id) return; this.result.set(null); this.routing.set(false); this.error.set(errorMessage(err)); },
     });
+  }
+
+  private loadRisk(): void {
+    const id = this.planId();
+    if (!id) return;
+    this.api.floorPlanRisk(id).subscribe({ next: (r) => { if (this.planId() === id) this.risk.set(r); }, error: () => undefined });
   }
 
   private placePeople(f: DetectionFrame): void {

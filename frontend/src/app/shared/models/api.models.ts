@@ -133,4 +133,10 @@ export interface RouteResult {
   /** true = no route keeps the required clearance from active danger zones; the route shown is NOT safe. */
   clearanceViolated: boolean; minDangerGapMeters: number | null; requiredClearanceMeters: number;
 }
+/** Rule-based fire-risk estimate for a floor. cells: -1 outside, 0 none, 1 low, 2 medium, 3 high, 4 burning (row-major). */
+export interface FireRisk {
+  active: boolean; message: string; cols: number; rows: number; cellMeters: number; cells: number[];
+  areas: AreaRisk[]; activeDangerZones: string[];
+}
+export interface AreaRisk { name: string; type: FloorElementType; level: 'Burning' | 'High' | 'Medium' | 'Low' | 'None'; distanceMeters: number | null; }
 export interface SensorHistory { sensorId: string; unit: string; readings: { value: number; recordedAt: string }[]; }

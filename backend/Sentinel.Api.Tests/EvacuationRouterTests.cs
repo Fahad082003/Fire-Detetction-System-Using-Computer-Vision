@@ -18,6 +18,42 @@ public class EvacuationRouterTests
         E(FloorElementType.Exit, 0, 4, 1, 2, "West"),
     ];
 
+    // 30 x 10 m: Hall A | wall with a door | Hall B | solid wall | Store (no door: fire cannot reach it this way).
+    private static List<FloorPlanElement> ThreeRooms() =>
+    [
+        E(FloorElementType.Room, 0, 0, 10, 10, "Hall A"),
+        E(FloorElementType.Room, 10, 0, 10, 10, "Hall B"),
+        E(FloorElementType.Room, 20, 0, 10, 10, "Store"),
+        E(FloorElementType.Wall, 9.9, 0, 0.2, 10),
+        E(FloorElementType.Door, 9.8, 4, 0.4, 2, "Door AB"),
+        E(FloorElementType.Wall, 19.9, 0, 0.2, 10),
+    ];
+
+    [Fact]
+    public void Fire_risk_ranks_rooms_by_distance_through_doors_and_walls_block_it()
+    {
+        var fire = E(FloorElementType.DangerZone, 1, 1, 2, 2, "Fire");
+        var risk = FireRiskEstimator.Estimate(30, 10, [.. ThreeRooms(), fire], [fire]);
+        Assert.True(risk.Active);
+        Assert.Equal("Burning", risk.Areas.Single(a => a.Name == "Hall A").Level);
+        var hallB = risk.Areas.Single(a => a.Name == "Hall B");
+        Assert.InRange(hallB.DistanceMeters!.Value, 6, 10);          // (3, 3) → door at x≈10, y 4–6
+        Assert.Equal("Medium", hallB.Level);
+        Assert.Equal("None", risk.Areas.Single(a => a.Name == "Store").Level); // behind a solid wall
+        Assert.Null(risk.Areas.Single(a => a.Name == "Store").DistanceMeters);
+        Assert.Contains("Hall B", risk.Message);
+        Assert.Equal(risk.Cols * risk.Rows, risk.Cells.Length);
+        Assert.Contains(4, risk.Cells);                                // burning cells exist for the heatmap
+    }
+
+    [Fact]
+    public void Fire_risk_is_inactive_without_an_active_danger_zone()
+    {
+        var risk = FireRiskEstimator.Estimate(30, 10, ThreeRooms(), []);
+        Assert.False(risk.Active);
+        Assert.Empty(risk.Areas);
+    }
+
     [Fact]
     public void Finds_nearest_exit_with_plausible_distance()
     {

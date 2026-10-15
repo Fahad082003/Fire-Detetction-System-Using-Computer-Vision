@@ -40,6 +40,13 @@ public class RouteRequest
 }
 
 /// <summary>Estimated route to the nearest reachable exit. EstimatedSeconds = DistanceMeters / WalkingSpeedMetersPerSecond.</summary>
+/// <summary>Rule-based fire-risk estimate for one floor (see FireRiskEstimator). Cells: -1 outside, 0 none, 1 low, 2 medium, 3 high, 4 burning.</summary>
+public record FireRiskDto(bool Active, string Message, int Cols, int Rows, double CellMeters, int[] Cells,
+    IReadOnlyList<AreaRiskDto> Areas, IReadOnlyList<string> ActiveDangerZones);
+
+/// <summary>Risk of one room or corridor: Burning, High, Medium, Low or None, and its distance from the fire through doors.</summary>
+public record AreaRiskDto(string Name, FloorElementType Type, string Level, double? DistanceMeters);
+
 public record RouteResultDto(
     bool Found, string Message, IReadOnlyList<double[]> Path, double DistanceMeters, double EstimatedSeconds,
     double WalkingSpeedMetersPerSecond, string? ExitName, bool StartInDangerZone, IReadOnlyList<string> ActiveDangerZones,

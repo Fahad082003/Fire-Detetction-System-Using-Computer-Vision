@@ -425,7 +425,7 @@ git push
 </tr>
 <tr>
 <td><strong>Evacuation Route (estimate)</strong></td>
-<td>Naqsha aur mehfooz raasta</td>
+<td>Naqsha, mehfooz raasta, aur aag lagne par <strong>risk heatmap</strong></td>
 <td>Naqshe par click = raasta</td>
 </tr>
 </tbody>
@@ -822,7 +822,23 @@ dotnet run --project Sentinel.Simulator -- --device-key &lt;yahan Device__ApiKey
 </tbody>
 </table></div>
 <p><strong>Yaad rakhein:</strong> waqt sirf andaza hai (faasla ÷ 1.2 m/s). Dhuwan, bheer, seedhiyan shamil nahi.</p>
-<h3 id="ch13-d-camera-ko-naqshe-se-jorna-camera-ka-insaan-khud-naqshe-par">D. Camera ko naqshe se jorna (camera ka insaan khud naqshe par)</h3>
+<h3 id="ch13-d-aag-kahan-phailegi-risk-heatmap">D. Aag kahan phailegi (risk heatmap)</h3>
+<p><strong>Maqsad:</strong> aag lagne par dekhna ki system bataye <strong>agle kaun se kamre khatre mein hain</strong>.</p>
+<ol>
+<li>Naqshe mein kam az kam 2 kamre, unke beech deewar aur ek <strong>darwaza</strong> hon. Danger zone ka <strong>Linked zone</strong> = <code>Zone B</code> (A hisse wala naqsha).</li>
+<li>Zone B mein incident kholein: <strong>Emergency Dispatch</strong> (Zone B), ya simulator <code>--ignite "Zone B"</code>.</li>
+<li>Dashboard → <strong>Evacuation Route</strong> → wohi naqsha.</li>
+</ol>
+<p><strong>✅ Kya dikhna chahiye:</strong></p>
+<ul>
+<li class="task"><input type="checkbox" data-task="17" aria-label="Ho gaya"> Naqshe par rang: aag wala kamra <strong>gehra laal</strong>, paas wale <strong>laal/narangi</strong>, door wale <strong>peele</strong>.</li>
+<li class="task"><input type="checkbox" data-task="18" aria-label="Ho gaya"> Jis kamre ke aur aag ke beech <strong>poori deewar</strong> hai (darwaza nahi), wo <strong>bina rang</strong> ke (mehfooz).</li>
+<li class="task"><input type="checkbox" data-task="19" aria-label="Ho gaya"> Naqshe ke neeche: "⚠ Fire risk: Next at risk: … (x m from the fire, Medium)" aur har kamre ka darja.</li>
+<li class="task"><input type="checkbox" data-task="20" aria-label="Ho gaya"> Incident <strong>Resolve</strong> karein: heatmap aur list khud gayab.</li>
+</ul>
+<p><img alt="Risk heatmap" src="images/fire-risk-heatmap.png" /></p>
+<p><strong>Yaad rakhein:</strong> ye <strong>andaza</strong> hai (darwazon ke raaste faasla). Asal aag hawa, saman aur dhuwen se alag tarah bhi phail sakti hai.</p>
+<h3 id="ch13-e-camera-ko-naqshe-se-jorna-camera-ka-insaan-khud-naqshe-par">E. Camera ko naqshe se jorna (camera ka insaan khud naqshe par)</h3>
 <p><strong>Maqsad:</strong> camera mein dikha insaan naqshe par khud <strong>amber nuqta</strong> ban kar aaye, aur us par click se raasta nikle.</p>
 <p><strong>Ek dafa ki tayyari:</strong> camera ki ek <strong>snapshot</strong> (photo) jis mein farsh ke 4 kone saaf dikhein, misaal kamre ke 4 kone.</p>
 <ol>
@@ -887,9 +903,9 @@ dotnet run --project Sentinel.Simulator -- --device-key &lt;yahan Device__ApiKey
 <li>Dashboard → <strong>Incident History &amp; Logs</strong>.</li>
 <li>Upar se ek <strong>incident</strong> chunein (ya "All incidents"), aur event type ("All event types").</li>
 <li>✅ Dikhe:<ul>
-<li class="task"><input type="checkbox" data-task="17" aria-label="Ho gaya"> Camera wale incident par <strong>aag ka graph</strong> (frame ka %), sensor wale par <strong>sensor ka graph</strong>.</li>
-<li class="task"><input type="checkbox" data-task="18" aria-label="Ho gaya"> Logs: <code>Opened</code>, <code>Escalated</code>, <code>FireMeasurement</code>, <code>PersonInDanger</code>, <code>EvacuationRoute</code>, <code>Resolved</code>.</li>
-<li class="task"><input type="checkbox" data-task="19" aria-label="Ho gaya"> Test data par jamni <strong>SIMULATED</strong>, raaste par neela <strong>ESTIMATE</strong>.</li>
+<li class="task"><input type="checkbox" data-task="21" aria-label="Ho gaya"> Camera wale incident par <strong>aag ka graph</strong> (frame ka %), sensor wale par <strong>sensor ka graph</strong>.</li>
+<li class="task"><input type="checkbox" data-task="22" aria-label="Ho gaya"> Logs: <code>Opened</code>, <code>Escalated</code>, <code>FireMeasurement</code>, <code>PersonInDanger</code>, <code>EvacuationRoute</code>, <code>Resolved</code>.</li>
+<li class="task"><input type="checkbox" data-task="23" aria-label="Ho gaya"> Test data par jamni <strong>SIMULATED</strong>, raaste par neela <strong>ESTIMATE</strong>.</li>
 </ul>
 </li>
 </ol>
@@ -919,10 +935,10 @@ $env:SENTINEL_DEVICE_KEY = &quot;&lt;yahan Device__ApiKey&gt;&quot;
 </code></pre>
 <p><strong>✅ Kya dikhna chahiye:</strong></p>
 <ul>
-<li class="task"><input type="checkbox" data-task="20" aria-label="Ho gaya"> AI page → Camera sources: <code>cam-warehouse · file · SIMULATED / TEST INPUT · running · sent …</code></li>
-<li class="task"><input type="checkbox" data-task="21" aria-label="Ho gaya"> Dashboard ke Warehouse camera par AI ke boxes.</li>
-<li class="task"><input type="checkbox" data-task="22" aria-label="Ho gaya"> Aag <strong>3 frames</strong> tak lagatar dikhe to incident, <strong>SIMULATED DATA</strong> label ke saath.</li>
-<li class="task"><input type="checkbox" data-task="23" aria-label="Ho gaya"> Sprinklers <strong>khud nahi</strong> chalte (simulated).</li>
+<li class="task"><input type="checkbox" data-task="24" aria-label="Ho gaya"> AI page → Camera sources: <code>cam-warehouse · file · SIMULATED / TEST INPUT · running · sent …</code></li>
+<li class="task"><input type="checkbox" data-task="25" aria-label="Ho gaya"> Dashboard ke Warehouse camera par AI ke boxes.</li>
+<li class="task"><input type="checkbox" data-task="26" aria-label="Ho gaya"> Aag <strong>3 frames</strong> tak lagatar dikhe to incident, <strong>SIMULATED DATA</strong> label ke saath.</li>
+<li class="task"><input type="checkbox" data-task="27" aria-label="Ho gaya"> Sprinklers <strong>khud nahi</strong> chalte (simulated).</li>
 </ul>
 <p><strong>Yaad rakhein:</strong></p>
 <ul>
@@ -944,10 +960,10 @@ dotnet run --project Sentinel.Api -- generate-vapid-keys
 <hr /></section><p class="part-label">D · Masle, hifazat aur checklist</p><section class="chapter" data-ch="17"><h1 id="ch17">17. Automatic Tests (Ek Click Mein Sab Check)</h1>
 <p>Ye tests code khud check karte hain. Har command ke aakhir mein <strong>failed: 0</strong> hona chahiye.</p>
 <pre><code class="language-powershell">cd C:\Users\m_fahad\Desktop\Project\backend
-dotnet test                                   # ✅ Passed: 58
+dotnet test                                   # ✅ Passed: 60
 
 cd C:\Users\m_fahad\Desktop\Project\frontend
-ng test --watch=false                         # ✅ Tests 25 passed
+ng test --watch=false                         # ✅ Tests 26 passed
 ng build                                      # ✅ &quot;Application bundle generation complete&quot;
 
 cd C:\Users\m_fahad\Desktop\Project\ai-service
@@ -1223,6 +1239,13 @@ cd C:\Users\m_fahad\Desktop\Project\ai-service
 </tr>
 <tr>
 <td>14b</td>
+<td>Aag par risk heatmap aur "Next at risk", deewar ke peeche wala kamra mehfooz</td>
+<td>13</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>14c</td>
 <td>Camera calibrate hua, naqshe par amber nuqte, nuqte se raasta</td>
 <td>13</td>
 <td></td>
@@ -1251,7 +1274,7 @@ cd C:\Users\m_fahad\Desktop\Project\ai-service
 </tr>
 <tr>
 <td>18</td>
-<td>Automatic tests: 58 + 25 + 15 pass</td>
+<td>Automatic tests: 60 + 26 + 15 pass</td>
 <td>17</td>
 <td></td>
 <td></td>

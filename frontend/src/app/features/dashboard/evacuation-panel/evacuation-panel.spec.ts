@@ -4,9 +4,10 @@ import { provideRouter } from '@angular/router';
 import { Subject, of } from 'rxjs';
 import { MonitoringApiService } from '../../../core/services/monitoring-api.service';
 import { SignalRService } from '../../../core/services/signalr.service';
-import { FloorPlan, RouteResult } from '../../../shared/models/api.models';
+import { FireRisk, FloorPlan, RouteResult } from '../../../shared/models/api.models';
 import { EvacuationPanelComponent } from './evacuation-panel.component';
 
+const noRisk = { active: false, message: '', cols: 0, rows: 0, cellMeters: 1, cells: [], areas: [], activeDangerZones: [] } as FireRisk;
 const plan = (id: number, hasImage: boolean) => ({ id, name: `P${id}`, building: '', floorNumber: 0, widthMeters: 30, heightMeters: 20, hasImage, elements: [] }) as unknown as FloorPlan;
 
 describe('EvacuationPanelComponent (plan switch)', () => {
@@ -17,7 +18,7 @@ describe('EvacuationPanelComponent (plan switch)', () => {
       imports: [EvacuationPanelComponent],
       providers: [
         provideRouter([]),
-        { provide: MonitoringApiService, useValue: { floorPlans: () => of([plan(1, true), plan(2, false)]), floorPlanImage: () => image, route: () => route } },
+        { provide: MonitoringApiService, useValue: { floorPlans: () => of([plan(1, true), plan(2, false)]), floorPlanImage: () => image, route: () => route, floorPlanRisk: () => of(noRisk) } },
         { provide: SignalRService, useValue: { openIncidents: signal([]), cameras: signal([]), detection$: new Subject() } },
       ],
     });
@@ -42,7 +43,7 @@ describe('EvacuationPanelComponent (calibrated camera)', () => {
       imports: [EvacuationPanelComponent],
       providers: [
         provideRouter([]),
-        { provide: MonitoringApiService, useValue: { floorPlans: () => of([plan(1, false)]), route } },
+        { provide: MonitoringApiService, useValue: { floorPlans: () => of([plan(1, false)]), route, floorPlanRisk: () => of(noRisk) } },
         { provide: SignalRService, useValue: { openIncidents: signal([]), cameras: signal([{ id: 'cam-1', calibration }]), detection$ } },
       ],
     });
@@ -58,5 +59,33 @@ describe('EvacuationPanelComponent (calibrated camera)', () => {
     c.onPointer({ kind: 'down', x: 15.4, y: 10.3 }); // click near the dot
     expect(c.start()).toEqual([15, 10]);
     expect(route).toHaveBeenCalledWith(1, 15, 10);
+  });
+});
+
+describe('EvacuationPanelComponent (fire risk)', () => {
+  it('lists the rooms the fire may reach next, nearest first, without the safe ones', () => {
+    const risk: FireRisk = {
+      active: true, message: 'Next at risk: Hall B (7.5 m from the fire, Medium).', cols: 2, rows: 1, cellMeters: 1, cells: [4, 2],
+      activeDangerZones: ['Fire'],
+      areas: [
+        { name: 'Hall A', type: 'Room', level: 'Burning', distanceMeters: 0 },
+        { name: 'Hall B', type: 'Room', level: 'Medium', distanceMeters: 7.5 },
+        { name: 'Store', type: 'Room', level: 'None', distanceMeters: null },
+      ],
+    };
+    TestBed.configureTestingModule({
+      imports: [EvacuationPanelComponent],
+      providers: [
+        provideRouter([]),
+        { provide: MonitoringApiService, useValue: { floorPlans: () => of([plan(1, false)]), floorPlanRisk: () => of(risk) } },
+        { provide: SignalRService, useValue: { openIncidents: signal([]), cameras: signal([]), detection$: new Subject() } },
+      ],
+    });
+    const fixture = TestBed.createComponent(EvacuationPanelComponent);
+    fixture.detectChanges();
+    const text = (fixture.nativeElement as HTMLElement).textContent!;
+    expect(text).toContain('Next at risk: Hall B');
+    expect(text).toContain('Hall A Burning');
+    expect(text).not.toContain('Store None');
   });
 });

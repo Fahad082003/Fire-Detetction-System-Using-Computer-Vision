@@ -89,6 +89,8 @@ public interface IFloorPlanService
     Task<FloorPlanDto> SaveImageAsync(int id, IFormFile file, CancellationToken ct = default);
     Task<(string Path, string ContentType)> GetImageAsync(int id, CancellationToken ct = default);
     Task<RouteResultDto> RouteAsync(int id, RouteRequest request, CancellationToken ct = default);
+    /// <summary>Which rooms the fire may reach next and a risk heatmap (rule-based estimate).</summary>
+    Task<FireRiskDto> RiskAsync(int id, CancellationToken ct = default);
 }
 
 /// <summary>Server → Angular real-time events (SignalR).</summary>

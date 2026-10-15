@@ -140,6 +140,6 @@ public static class EvacuationRouter
     public static bool Inside(FloorPlanElement e, double x, double y) =>
         x >= e.X && x <= e.X + e.Width && y >= e.Y && y <= e.Y + e.Height;
 
-    private static bool Overlaps(FloorPlanElement e, double x0, double y0, double size) =>
+    public static bool Overlaps(FloorPlanElement e, double x0, double y0, double size) =>
         e.X < x0 + size && e.X + e.Width > x0 && e.Y < y0 + size && e.Y + e.Height > y0;
 }

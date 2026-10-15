@@ -61,6 +61,11 @@ public class FloorPlanAndLogTests(SentinelApiFactory factory) : IClassFixture<Se
         Assert.Equal("West", r2.ExitName);
         Assert.Contains("Boiler room", r2.ActiveDangerZones);
 
+        // Same active zone drives the fire-risk estimate: the corridor holding the boiler room is burning.
+        var risk = await op.GetFromJsonAsync<FireRiskDto>($"/api/floorplans/{plan.Id}/risk", Json);
+        Assert.True(risk!.Active);
+        Assert.Equal("Burning", risk.Areas.Single(a => a.Name == "Main corridor").Level);
+
         // Start outside the plan is a 400; both estimates were logged once each.
         Assert.Equal(HttpStatusCode.BadRequest, (await op.PostAsJsonAsync($"/api/floorplans/{plan.Id}/route", new { x = 50, y = 5 })).StatusCode);
         await Route(op, plan.Id, 16, 5); // identical repeat → not logged again
