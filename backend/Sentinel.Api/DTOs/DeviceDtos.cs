@@ -5,7 +5,13 @@ namespace Sentinel.Api.DTOs;
 
 public record CameraFeedDto(
     string Id, string Name, FeedType FeedType, string StreamUrl, StreamFormat StreamFormat,
-    CameraStatus Status, string LocationZone, DateTime UpdatedAt);
+    CameraStatus Status, string LocationZone, DateTime UpdatedAt, CameraCalibrationDto? Calibration = null);
+
+/// <summary>
+/// Camera ↔ floor-plan link (homography): the same 4 floor points seen in the camera frame (same units as the
+/// detection boxes, i.e. frame pixels) and on the plan (meters). The dashboard uses it to place detected people on the plan.
+/// </summary>
+public record CameraCalibrationDto(int FloorPlanId, double[][] ImagePoints, double[][] PlanPoints);
 
 public record SensorNodeDto(
     string Id, SensorType Type, double CurrentValue, double Threshold, double CriticalThreshold,
@@ -18,7 +24,6 @@ public record SensorHistoryDto(string SensorId, string Unit, IReadOnlyList<Senso
 
 public class SensorReadingRequest
 {
-    [Range(-100, 100_000)]
     public double Value { get; set; }
 
     public DateTime? RecordedAt { get; set; }
@@ -29,7 +34,6 @@ public class BulkTelemetryItem
     [Required, MaxLength(64)]
     public string SensorId { get; set; } = string.Empty;
 
-    [Range(-100, 100_000)]
     public double Value { get; set; }
 }
 

@@ -68,12 +68,18 @@ export class IncidentHistoryComponent {
   private load(id: number | null, type: IncidentLogType | ''): void {
     this.loading.set(true);
     this.api.incidentLogs(id ?? undefined, type || undefined).subscribe({
-      next: (logs) => { this.logs.set(logs); this.loading.set(false); this.error.set(null); },
-      error: (err) => { this.loading.set(false); this.error.set(errorMessage(err)); },
+      next: (logs) => {
+        if (this.incidentId() !== id || this.type() !== type) return; // a newer filter is already loading
+        this.logs.set(logs); this.loading.set(false); this.error.set(null);
+      },
+      error: (err) => {
+        if (this.incidentId() !== id || this.type() !== type) return;
+        this.loading.set(false); this.error.set(errorMessage(err));
+      },
     });
     this.sensor.set(null);
     const inc = untracked(() => this.incident());
-    if (inc?.sensorId) this.api.sensorHistory(inc.sensorId, inc.timestamp).subscribe({ next: (s) => this.sensor.set(s), error: () => undefined });
+    if (inc?.sensorId) this.api.sensorHistory(inc.sensorId, inc.timestamp).subscribe({ next: (s) => { if (this.incidentId() === id) this.sensor.set(s); }, error: () => undefined });
   }
 
   protected selectIncident(value: string): void {

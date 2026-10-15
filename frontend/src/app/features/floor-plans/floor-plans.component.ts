@@ -2,9 +2,10 @@ import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MonitoringApiService } from '../../core/services/monitoring-api.service';
+import { SignalRService } from '../../core/services/signalr.service';
 import { ConfirmService, ToastService } from '../../core/services/ui.service';
 import { FloorPlanMapComponent, PlanPointer, PlanRect } from '../../shared/components/floor-plan-map.component';
-import { FloorElementType, FloorPlan, FloorPlanElement } from '../../shared/models/api.models';
+import { CameraFeed, FloorElementType, FloorPlan, FloorPlanElement } from '../../shared/models/api.models';
 import { errorMessage } from '../../shared/utils/format';
 
 type Tool = 'select' | 'pan' | FloorElementType;
@@ -51,6 +52,7 @@ export class FloorPlansComponent implements OnInit, OnDestroy {
   private readonly api = inject(MonitoringApiService);
   private readonly toast = inject(ToastService);
   private readonly confirm = inject(ConfirmService);
+  protected readonly live = inject(SignalRService);
 
   protected readonly types = ELEMENT_TYPES;
   protected readonly plans = signal<FloorPlan[]>([]);
@@ -81,6 +83,13 @@ export class FloorPlansComponent implements OnInit, OnDestroy {
     for (const p of this.plans()) map.set(p.building || 'No building', [...(map.get(p.building || 'No building') ?? []), p]);
     return [...map.entries()].map(([building, plans]) => ({ building, plans: plans.sort((a, b) => a.floorNumber - b.floorNumber) }));
   });
+
+  // ---- camera calibration: 4 floor points in the camera frame (px) and on this plan (m)
+  protected readonly calibCamera = signal<CameraFeed | null>(null);
+  protected readonly calibImage = signal<[number, number][]>([]);
+  protected readonly calibPlan = signal<[number, number][]>([]);
+  /** Row whose plan point the next click on the plan fills in. */
+  protected readonly calibPick = signal<number | null>(null);
 
   private drag: { mode: 'draw' | 'move' | 'resize'; start: { x: number; y: number }; offset: { x: number; y: number } } | null = null;
 
@@ -121,7 +130,8 @@ export class FloorPlansComponent implements OnInit, OnDestroy {
     this.dirty.set(false);
     if (!reloadImage) return;
     this.setImage(null);
-    if (plan.hasImage) this.api.floorPlanImage(plan.id).subscribe({ next: (blob) => this.setImage(URL.createObjectURL(blob)), error: () => this.setImage(null) });
+    // Drop a late image of a plan the user already left.
+    if (plan.hasImage) this.api.floorPlanImage(plan.id).subscribe({ next: (blob) => { if (this.current()?.id === plan.id) this.setImage(URL.createObjectURL(blob)); }, error: () => undefined });
   }
 
   private setImage(url: string | null): void {
@@ -130,7 +140,8 @@ export class FloorPlansComponent implements OnInit, OnDestroy {
     this.imageUrl.set(url);
   }
 
-  protected create(): void {
+  protected async create(): Promise<void> {
+    if (this.dirty() && !(await this.confirm.ask('Discard unsaved changes?', `Changes to "${this.current()?.name}" are not saved.`, 'Discard'))) return;
     this.busy.set(true);
     this.api.createFloorPlan({ name: 'New floor plan', building: '', floorNumber: 0, widthMeters: 30, heightMeters: 20, elements: [] }).subscribe({
       next: (p) => { this.busy.set(false); this.toast.show('Floor plan created', p.name, 'success', 3000); this.load(p.id); },
@@ -186,6 +197,11 @@ export class FloorPlansComponent implements OnInit, OnDestroy {
 
   // ---------------------------------------------------------------- drawing / editing
   protected onPointer(p: PlanPointer): void {
+    const pick = this.calibPick();
+    if (pick !== null) {
+      if (p.kind === 'down') { this.setCalib('plan', pick, [round(p.x), round(p.y)]); this.calibPick.set(null); }
+      return;
+    }
     const tool = this.tool();
     if (tool === 'select') return this.onSelectPointer(p);
     if (tool === 'pan') return;
@@ -262,6 +278,50 @@ export class FloorPlansComponent implements OnInit, OnDestroy {
     const typing = ev.target instanceof HTMLInputElement || ev.target instanceof HTMLTextAreaElement || ev.target instanceof HTMLSelectElement;
     if (!typing && (ev.key === 'Delete' || ev.key === 'Backspace')) this.deleteSelected();
     if (!typing && ev.key === 'Escape') { this.selected.set(null); this.tool.set('select'); }
+  }
+
+  // ---------------------------------------------------------------- camera calibration
+  protected chooseCamera(id: string): void {
+    const cam = this.live.cameras().find((c) => c.id === id) ?? null;
+    const cal = cam?.calibration?.floorPlanId === this.current()?.id ? cam?.calibration : null;
+    this.calibCamera.set(cam);
+    this.calibImage.set(cal ? cal.imagePoints.map((p) => [...p] as [number, number]) : [[0, 0], [0, 0], [0, 0], [0, 0]]);
+    this.calibPlan.set(cal ? cal.planPoints.map((p) => [...p] as [number, number]) : [[0, 0], [0, 0], [0, 0], [0, 0]]);
+    this.calibPick.set(null);
+  }
+
+  protected setCalib(kind: 'image' | 'plan', row: number, point: [number, number]): void {
+    (kind === 'image' ? this.calibImage : this.calibPlan).update((pts) => pts.map((p, i) => (i === row ? point : p)));
+  }
+
+  protected calibInput(kind: 'image' | 'plan', row: number, axis: 0 | 1, event: Event): void {
+    const p = [...(kind === 'image' ? this.calibImage() : this.calibPlan())[row]] as [number, number];
+    p[axis] = Number((event.target as HTMLInputElement).value);
+    this.setCalib(kind, row, p);
+  }
+
+  protected saveCalibration(): void {
+    const cam = this.calibCamera(), plan = this.current();
+    if (!cam || !plan) return;
+    this.api.saveCalibration(cam.id, { floorPlanId: plan.id, imagePoints: this.calibImage(), planPoints: this.calibPlan() }).subscribe({
+      next: (saved) => { this.updateCamera(saved); this.toast.show('Camera calibrated', `${saved.name} now places people on "${plan.name}".`, 'success', 3000); },
+      error: (err) => this.toast.show('Calibration not saved', errorMessage(err), 'error'),
+    });
+  }
+
+  protected clearCalibration(): void {
+    const cam = this.calibCamera();
+    if (!cam) return;
+    this.api.clearCalibration(cam.id).subscribe({
+      next: (saved) => { this.updateCamera(saved); this.toast.show('Calibration removed', saved.name, 'success', 3000); },
+      error: (err) => this.toast.show('Calibration not removed', errorMessage(err), 'error'),
+    });
+  }
+
+  // shortcut: only this browser's camera list is updated; other open dashboards see the change after a reconnect or reload.
+  private updateCamera(saved: CameraFeed): void {
+    this.live.cameras.update((list) => list.map((c) => (c.id === saved.id ? saved : c)));
+    this.calibCamera.set(saved);
   }
 
   protected typeLabel(type: FloorElementType): string {

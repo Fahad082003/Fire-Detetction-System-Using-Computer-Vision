@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Sentinel.Api.Data;
 using Sentinel.Api.DTOs;
@@ -19,6 +20,7 @@ public class SentinelApiFactory : WebApplicationFactory<Program>
     public const string AdminPassword = "Test@12345";
 
     private readonly SqliteConnection _connection = new("DataSource=:memory:");
+    private string? _token;
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -63,7 +65,8 @@ public class SentinelApiFactory : WebApplicationFactory<Program>
     public async Task<HttpClient> OperatorClientAsync()
     {
         var client = CreateClient();
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await LoginAsync());
+        // One login per factory: the login endpoint is rate limited.
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _token ??= await LoginAsync());
         return client;
     }
 
@@ -71,14 +74,6 @@ public class SentinelApiFactory : WebApplicationFactory<Program>
     {
         base.Dispose(disposing);
         if (disposing) _connection.Dispose();
-    }
-}
-
-internal static class ServiceCollectionExtensions
-{
-    public static void RemoveAll<T>(this IServiceCollection services)
-    {
-        foreach (var d in services.Where(d => d.ServiceType == typeof(T)).ToList()) services.Remove(d);
     }
 }
 

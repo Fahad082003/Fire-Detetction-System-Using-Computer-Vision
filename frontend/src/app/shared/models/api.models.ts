@@ -20,7 +20,10 @@ export interface LoginResponse { token: string; expiresAt: string; user: UserDto
 export interface CameraFeed {
   id: string; name: string; feedType: FeedType; streamUrl: string; streamFormat: StreamFormat;
   status: CameraStatus; locationZone: string; updatedAt: string;
+  calibration?: CameraCalibration | null;
 }
+/** The same 4 floor points in the camera frame (pixels, like detection boxes) and on the floor plan (meters). */
+export interface CameraCalibration { floorPlanId: number; imagePoints: [number, number][]; planPoints: [number, number][]; }
 
 export interface SensorNode {
   id: string; type: SensorType; currentValue: number; threshold: number; criticalThreshold: number;
@@ -53,6 +56,8 @@ export interface Detection {
   bbox: [number, number, number, number]; trackId: string | null; atRisk: boolean;
   /** Set by the backend: danger zone the person's feet are inside. */
   dangerZone?: string | null;
+  /** AI producer's evidence: confidence vs threshold, frames seen, box size. */
+  explanation?: string | null;
 }
 export interface DangerZone { label: string | null; level: ZoneLevel; polygon: [number, number][]; }
 export interface Heatmap { rows: number; cols: number; values: number[]; }
@@ -64,7 +69,30 @@ export interface DetectionFrame {
   fireDetected: boolean; fireSeverity: Severity | null; humanCount: number; dangerCount: number;
   /** Producer marked this frame as test data (e.g. the simulator). */
   simulated: boolean;
+  smokeDetected: boolean;
+  /** Model(s) that produced the frame, e.g. "person:yolox_tiny fire_smoke:missing"; null = producer did not say. */
+  model: string | null;
 }
+
+export interface AiModelStatus {
+  name: string; file: string; license: string | null; categories: string[]; threshold: number; loaded: boolean; error: string | null;
+  /** Manifest note, e.g. that a model is a CPU pilot that has not met the acceptance criteria. */
+  note?: string | null;
+}
+export interface AiCameraStatus {
+  cameraId: string; kind: 'stream' | 'webcam' | 'file'; source: string; simulated: boolean; state: string;
+  error: string | null; framesSent: number; postFailures: number;
+}
+/** GET /api/ai/status. `service` is the sentinel-ai /health body (null when offline). */
+export interface AiStatus {
+  configured: boolean; online: boolean; error: string | null;
+  service: {
+    status: 'ok' | 'degraded' | 'no-model'; version: string; models: AiModelStatus[]; capabilities: string[];
+    inference: { count: number; avgMs: number | null; lastMs: number | null }; cameras: AiCameraStatus[];
+  } | null;
+}
+/** POST /api/ai/analyze: real model output for one uploaded test image (never opens an incident). */
+export interface AiAnalysis { frame: DetectionFrame; inferenceMs: number; }
 
 export type ActivityLevel = 'info' | 'success' | 'warning' | 'critical' | 'notify';
 export interface ActivityEntry { level: ActivityLevel; message: string; zone: string | null; timestamp: string; }
@@ -102,5 +130,7 @@ export type SaveFloorPlan = Omit<FloorPlan, 'id' | 'hasImage' | 'updatedAt'>;
 export interface RouteResult {
   found: boolean; message: string; path: [number, number][]; distanceMeters: number; estimatedSeconds: number;
   walkingSpeedMetersPerSecond: number; exitName: string | null; startInDangerZone: boolean; activeDangerZones: string[];
+  /** true = no route keeps the required clearance from active danger zones; the route shown is NOT safe. */
+  clearanceViolated: boolean; minDangerGapMeters: number | null; requiredClearanceMeters: number;
 }
 export interface SensorHistory { sensorId: string; unit: string; readings: { value: number; recordedAt: string }[]; }

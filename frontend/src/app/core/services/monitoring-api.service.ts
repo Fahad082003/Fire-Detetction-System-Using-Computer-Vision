@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
-  FloorPlan, IncidentAlert, IncidentLog, IncidentLogType, ManualDispatchRequest, MasterSprinklerResult, RouteResult,
+  AiAnalysis, AiStatus, CameraCalibration, CameraFeed, FloorPlan, IncidentAlert, IncidentLog, IncidentLogType, ManualDispatchRequest, MasterSprinklerResult, RouteResult,
   SaveFloorPlan, SensorHistory, SmartSprinkler, SprinklerMode,
 } from '../../shared/models/api.models';
 
@@ -14,12 +14,12 @@ export class MonitoringApiService {
   private readonly base = `${environment.apiBaseUrl}/api`;
 
   // ---- sprinklers
-  toggleSprinkler(id: string, body: { isActive?: boolean; mode?: SprinklerMode } = {}): Observable<SmartSprinkler> {
+  toggleSprinkler(id: string, body: { isActive?: boolean; mode?: SprinklerMode }): Observable<SmartSprinkler> {
     return this.http.post<SmartSprinkler>(`${this.base}/iot/sprinklers/${encodeURIComponent(id)}/toggle`, body);
   }
 
-  masterSprinklers(isActive: boolean, zone?: string): Observable<MasterSprinklerResult> {
-    return this.http.post<MasterSprinklerResult>(`${this.base}/iot/sprinklers/master`, zone ? { isActive, zone } : { isActive });
+  masterSprinklers(isActive: boolean): Observable<MasterSprinklerResult> {
+    return this.http.post<MasterSprinklerResult>(`${this.base}/iot/sprinklers/master`, { isActive });
   }
 
   // ---- incidents (the list itself arrives over SignalR)
@@ -66,9 +66,28 @@ export class MonitoringApiService {
     return this.http.put<FloorPlan>(`${this.base}/floorplans/${id}/image`, form);
   }
 
+  aiStatus(): Observable<AiStatus> {
+    return this.http.get<AiStatus>(`${this.base}/ai/status`);
+  }
+
+  /** Runs the real AI models on one test image (preview only, no incident). */
+  analyzeImage(file: File): Observable<AiAnalysis> {
+    const form = new FormData();
+    form.append('file', file);
+    return this.http.post<AiAnalysis>(`${this.base}/ai/analyze`, form);
+  }
+
   /** Fetched as a blob so the JWT interceptor applies (an <img src> could not send it). */
   floorPlanImage(id: number): Observable<Blob> {
     return this.http.get(`${this.base}/floorplans/${id}/image`, { responseType: 'blob' });
+  }
+
+  saveCalibration(cameraId: string, calibration: CameraCalibration): Observable<CameraFeed> {
+    return this.http.put<CameraFeed>(`${this.base}/cameras/${encodeURIComponent(cameraId)}/calibration`, calibration);
+  }
+
+  clearCalibration(cameraId: string): Observable<CameraFeed> {
+    return this.http.delete<CameraFeed>(`${this.base}/cameras/${encodeURIComponent(cameraId)}/calibration`);
   }
 
   route(id: number, x: number, y: number): Observable<RouteResult> {

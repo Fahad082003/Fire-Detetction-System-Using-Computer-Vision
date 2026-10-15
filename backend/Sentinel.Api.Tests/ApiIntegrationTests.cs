@@ -119,6 +119,8 @@ public class ApiIntegrationTests(SentinelApiFactory factory) : IClassFixture<Sen
         var resolved = await (await op.PostAsync($"/api/incidents/{incident.Id}/resolve", null)).Content.ReadFromJsonAsync<IncidentAlertDto>(Json);
         Assert.True(resolved!.IsResolved);
         Assert.Equal(HttpStatusCode.BadRequest, (await op.PostAsJsonAsync("/api/incidents/dispatch", new { zone = "" })).StatusCode);
+        // A number is not a severity: 9 would rank above Critical yet skip the Critical emergency check.
+        Assert.Equal(HttpStatusCode.BadRequest, (await op.PostAsJsonAsync("/api/incidents/dispatch", new { zone = "Zone A", severity = 9 })).StatusCode);
     }
 
     [Fact]

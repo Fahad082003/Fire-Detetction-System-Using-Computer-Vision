@@ -51,6 +51,7 @@ public static partial class DetectionPayloadValidator
             if (d.Confidence is < 0 or > 1) Add($"detections[{i}].confidence", "Must be between 0 and 1.");
             if (d.Label?.Length > 48) Add($"detections[{i}].label", "Max 48 characters.");
             if (d.TrackId?.Length > 48) Add($"detections[{i}].trackId", "Max 48 characters.");
+            if (d.Explanation?.Length > 240) Add($"detections[{i}].explanation", "Max 240 characters.");
         }
 
         if (zones.Count > MaxZones) Add("dangerZones", $"At most {MaxZones} zones per frame.");
@@ -78,6 +79,7 @@ public static partial class DetectionPayloadValidator
         else if (points.Any(p => p is null || p.Length != 2 || !p.All(double.IsFinite)))
             Add("humanCoordinates", "Every point must be [x, y].");
 
+        if (payload.Model?.Length > 64) Add("model", "Max 64 characters.");
         if (payload.HumanCount < 0) Add("humanCount", "Must be zero or more.");
         if (payload.DangerCount < 0) Add("dangerCount", "Must be zero or more.");
 
@@ -106,7 +108,8 @@ public static partial class DetectionPayloadValidator
 
         return new DetectionFrameDto(
             payload.CameraId, timestamp, payload.FrameWidth, payload.FrameHeight, payload.Normalized,
-            detections, zones, payload.Heatmap, points, fire, fire ? payload.FireSeverity : null, humans, danger, payload.Simulated);
+            detections, zones, payload.Heatmap, points, fire, fire ? payload.FireSeverity : null, humans, danger, payload.Simulated,
+            detections.Any(d => d.Category == DetectionCategory.Smoke), payload.Model);
     }
 
     /// <summary>Ray-casting point-in-polygon test (polygon given as [x, y] points).</summary>

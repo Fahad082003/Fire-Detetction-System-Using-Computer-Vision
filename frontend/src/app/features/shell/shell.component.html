@@ -18,6 +18,9 @@
   <nav class="flex gap-1" aria-label="Main">
     <a routerLink="/" routerLinkActive="seg-btn-active" [routerLinkActiveOptions]="{ exact: true }" class="seg-btn">Dashboard</a>
     <a routerLink="/floor-plans" routerLinkActive="seg-btn-active" class="seg-btn">Floor Plans</a>
+    <a routerLink="/ai" routerLinkActive="seg-btn-active" class="seg-btn" [title]="aiTitle()">
+      AI <span class="ml-1 inline-block h-2 w-2 rounded-full {{ aiDot() }}"></span>
+    </a>
   </nav>
 
   <div role="status" aria-live="polite"

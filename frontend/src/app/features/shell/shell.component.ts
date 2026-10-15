@@ -1,10 +1,12 @@
 import { DatePipe } from '@angular/common';
-import { Component, OnDestroy, OnInit, computed, inject, viewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal, viewChild } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { MonitoringApiService } from '../../core/services/monitoring-api.service';
 import { PushNotificationService } from '../../core/services/push-notification.service';
 import { SignalRService } from '../../core/services/signalr.service';
 import { AlarmService } from '../../core/services/ui.service';
+import { AiStatus } from '../../shared/models/api.models';
 import { DispatchDialogComponent } from '../dashboard/dispatch-dialog/dispatch-dialog.component';
 
 const LEVEL_STYLE = {
@@ -25,6 +27,22 @@ export class ShellComponent implements OnInit, OnDestroy {
   protected readonly alarm = inject(AlarmService);
   protected readonly push = inject(PushNotificationService);
   protected readonly dispatchDialog = viewChild.required(DispatchDialogComponent);
+  private readonly api = inject(MonitoringApiService);
+  private aiTimer?: ReturnType<typeof setInterval>;
+
+  /** AI inference service health (null = status could not be read). Red = offline, amber = a model is missing. */
+  protected readonly ai = signal<AiStatus | null>(null);
+  protected readonly aiDot = computed(() => {
+    const s = this.ai();
+    return !s?.online ? 'bg-red-500' : s.service?.status === 'ok' ? 'bg-emerald-500' : 'bg-amber-500';
+  });
+  protected readonly aiTitle = computed(() => {
+    const s = this.ai();
+    if (!s) return 'AI service status unknown';
+    if (!s.online) return `AI service offline: ${s.error ?? ''}`;
+    const missing = s.service?.models.filter((m) => !m.loaded).map((m) => m.name) ?? [];
+    return missing.length ? `AI online, missing model(s): ${missing.join(', ')}` : 'AI online, all models loaded';
+  });
 
   protected readonly levelClass = computed(() => LEVEL_STYLE[this.live.level()]);
   protected readonly levelLabel = computed(() => {
@@ -41,10 +59,17 @@ export class ShellComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.live.start();
     this.push.init();
+    this.pollAi();
+    this.aiTimer = setInterval(() => this.pollAi(), 30_000);
   }
 
   ngOnDestroy(): void {
+    clearInterval(this.aiTimer);
     this.live.stop();
+  }
+
+  private pollAi(): void {
+    this.api.aiStatus().subscribe({ next: (s) => this.ai.set(s), error: () => this.ai.set(null) });
   }
 
   protected async logout(): Promise<void> {

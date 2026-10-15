@@ -24,6 +24,8 @@ public class DetectionPayloadDto
     public int? DangerCount { get; set; }
     /// <summary>Producer says this frame is test data (e.g. Sentinel.Simulator). Carried into alerts and logs.</summary>
     public bool Simulated { get; set; }
+    /// <summary>Model(s) that produced this frame, e.g. "person:yolox_tiny fire:none". Null = producer did not say.</summary>
+    public string? Model { get; set; }
 }
 
 public class DetectionDto
@@ -38,6 +40,8 @@ public class DetectionDto
     public bool AtRisk { get; set; }
     /// <summary>Set by the backend: label of the danger zone this person's feet are inside.</summary>
     public string? DangerZone { get; set; }
+    /// <summary>Producer's evidence for this detection (confidence vs threshold, frames seen, area), shown to operators.</summary>
+    public string? Explanation { get; set; }
 }
 
 public class DangerZoneDto
@@ -61,11 +65,24 @@ public record DetectionFrameDto(
     string CameraId, DateTime Timestamp, int FrameWidth, int FrameHeight, bool Normalized,
     IReadOnlyList<DetectionDto> Detections, IReadOnlyList<DangerZoneDto> DangerZones, HeatmapDto? Heatmap,
     IReadOnlyList<double[]> HumanCoordinates, bool FireDetected, Severity? FireSeverity, int HumanCount, int DangerCount,
-    bool Simulated = false);
+    bool Simulated = false, bool SmokeDetected = false, string? Model = null);
 
 public class TelemetryMessageDto
 {
     public string SensorId { get; set; } = string.Empty;
     public double Value { get; set; }
     public DateTime? RecordedAt { get; set; }
+}
+
+/// <summary>Health of the external AI inference service (sentinel-ai). <c>Service</c> is its /health JSON as received.</summary>
+public record AiStatusDto(bool Configured, bool Online, string? Error, System.Text.Json.JsonElement? Service);
+
+/// <summary>Result of analysing one operator-uploaded test image. Preview only: it never opens incidents.</summary>
+public record AiAnalysisDto(DetectionFrameDto Frame, double InferenceMs);
+
+/// <summary>Response body of sentinel-ai POST /infer.</summary>
+public class AiInferResponse
+{
+    public DetectionPayloadDto? Payload { get; set; }
+    public double InferenceMs { get; set; }
 }

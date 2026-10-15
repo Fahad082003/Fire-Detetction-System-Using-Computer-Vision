@@ -18,6 +18,16 @@ public class CamerasController(ICameraService cameras, IHttpClientFactory httpCl
     [Authorize(Policy = AuthPolicies.OperatorOrDevice)]
     public async Task<CameraFeedDto> Get(string id, CancellationToken ct) => (await cameras.GetEntityAsync(id, ct)).ToDto();
 
+    /// <summary>Links the camera to a floor plan with 4 point pairs, so the dashboard can place detected people on the plan.</summary>
+    [HttpPut("{id}/calibration")]
+    [Authorize(Policy = AuthPolicies.Operator)]
+    public async Task<CameraFeedDto> SaveCalibration(string id, CameraCalibrationDto calibration, CancellationToken ct) =>
+        await cameras.SaveCalibrationAsync(id, calibration, ct);
+
+    [HttpDelete("{id}/calibration")]
+    [Authorize(Policy = AuthPolicies.Operator)]
+    public async Task<CameraFeedDto> ClearCalibration(string id, CancellationToken ct) => await cameras.SaveCalibrationAsync(id, null, ct);
+
     /// <summary>
     /// Same-origin MJPEG relay for CCTV/drone feeds (browsers show it in &lt;img&gt;). Because &lt;img&gt; cannot send
     /// headers, the JWT may be passed as <c>?access_token=</c>.

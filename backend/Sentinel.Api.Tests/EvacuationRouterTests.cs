@@ -70,6 +70,69 @@ public class EvacuationRouterTests
     }
 
     [Fact]
+    public void Clearance_keeps_route_away_from_danger_zone_when_room_allows_it()
+    {
+        // 6 m wide hall, fire in the lower half: a 3 m wide gap above it.
+        List<FloorPlanElement> plan = [E(FloorElementType.Corridor, 0, 4, 20, 6), E(FloorElementType.Exit, 19, 4, 1, 6, "East")];
+        var danger = E(FloorElementType.DangerZone, 10, 4, 2, 3, "Fire");
+        var r = EvacuationRouter.FindRoute(20, 10, [.. plan, danger], [danger], 5, 5, clearanceMeters: 1);
+        Assert.True(r.Found);
+        Assert.False(r.ClearanceViolated);
+        Assert.True(r.MinDangerGapMeters >= 1);
+    }
+
+    [Fact]
+    public void Narrow_strip_next_to_danger_is_flagged_not_reported_as_safe()
+    {
+        // Audit case: the danger zone leaves only a 1 m strip of a 2 m corridor, and East is the only exit.
+        List<FloorPlanElement> plan = [E(FloorElementType.Corridor, 0, 4, 20, 2), E(FloorElementType.Exit, 19, 4, 1, 2, "East")];
+        var danger = E(FloorElementType.DangerZone, 10, 4, 2, 1, "Fire");
+
+        var withoutClearance = EvacuationRouter.FindRoute(20, 10, [.. plan, danger], [danger], 2, 5.5);
+        Assert.False(withoutClearance.ClearanceViolated); // old behaviour: looked like a normal route
+
+        var r = EvacuationRouter.FindRoute(20, 10, [.. plan, danger], [danger], 2, 5.5, clearanceMeters: 1);
+        Assert.True(r.Found);
+        Assert.True(r.ClearanceViolated);
+        Assert.True(r.MinDangerGapMeters < 1);
+        Assert.Contains("NO route keeps the required 1 m clearance", r.Message);
+        Assert.Contains("NOT a safe route", r.Message);
+    }
+
+    [Fact]
+    public void Clearance_prefers_far_door_and_flags_near_door_when_far_door_is_closed()
+    {
+        // Wall at x=10 with two doors; fire just behind the lower door.
+        List<FloorPlanElement> Plan(bool farClosed) =>
+        [
+            E(FloorElementType.Room, 0, 0, 10, 10), E(FloorElementType.Room, 10, 0, 10, 10),
+            E(FloorElementType.Wall, 9.9, 0, 0.2, 10),
+            E(FloorElementType.Door, 9.8, 1, 0.4, 1.5, "Near"), E(FloorElementType.Door, 9.8, 8, 0.4, 1.5, "Far", farClosed),
+            E(FloorElementType.Exit, 19, 0, 1, 10, "Main"),
+        ];
+        var danger = E(FloorElementType.DangerZone, 11, 0, 2, 3, "Fire"); // leaves a 0.5-1 m strip behind the near door
+
+        var open = EvacuationRouter.FindRoute(20, 10, [.. Plan(false), danger], [danger], 2, 2, clearanceMeters: 1);
+        Assert.True(open.Found);
+        Assert.False(open.ClearanceViolated);
+        Assert.Contains(open.Path, p => p[1] >= 8); // went through the far door
+
+        var closed = EvacuationRouter.FindRoute(20, 10, [.. Plan(true), danger], [danger], 2, 2, clearanceMeters: 1);
+        Assert.True(closed.Found);
+        Assert.True(closed.ClearanceViolated);
+    }
+
+    [Fact]
+    public void Danger_zone_across_the_whole_corridor_gives_no_route_with_or_without_clearance()
+    {
+        List<FloorPlanElement> plan = [E(FloorElementType.Corridor, 0, 4, 20, 2), E(FloorElementType.Exit, 19, 4, 1, 2, "East")];
+        var danger = E(FloorElementType.DangerZone, 10, 4, 2, 2, "Fire");
+        var r = EvacuationRouter.FindRoute(20, 10, [.. plan, danger], [danger], 2, 5, clearanceMeters: 1);
+        Assert.False(r.Found);
+        Assert.Contains("No safe route", r.Message);
+    }
+
+    [Fact]
     public void Person_inside_danger_zone_can_still_walk_out()
     {
         var danger = E(FloorElementType.DangerZone, 14, 4, 4, 2, "Fire");

@@ -1,4 +1,5 @@
 import { Component, ElementRef, effect, input, viewChild } from '@angular/core';
+import { HISTORY_POINTS } from '../../../core/services/signalr.service';
 
 /** Tiny line chart of the last readings, with the safety threshold as a dashed red line. */
 @Component({
@@ -9,12 +10,11 @@ export class SparklineComponent {
   readonly values = input.required<number[]>();
   readonly threshold = input.required<number>();
   readonly color = input('#10b981');
-  readonly points = input(60);
 
   private readonly canvas = viewChild.required<ElementRef<HTMLCanvasElement>>('canvas');
 
   constructor() {
-    effect(() => this.draw(this.canvas().nativeElement, this.values(), this.threshold(), this.color(), this.points()));
+    effect(() => this.draw(this.canvas().nativeElement, this.values(), this.threshold(), this.color(), HISTORY_POINTS));
   }
 
   private draw(canvas: HTMLCanvasElement, data: number[], threshold: number, color: string, points: number): void {

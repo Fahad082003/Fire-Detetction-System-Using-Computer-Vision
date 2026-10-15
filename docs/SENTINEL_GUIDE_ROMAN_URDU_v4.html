@@ -1,0 +1,2269 @@
+<!doctype html>
+<html lang="ur-Latn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sentinel Project Guide</title>
+<style>
+:root {
+  --bg: #f7f8fa; --panel: #ffffff; --text: #1e293b; --muted: #64748b; --line: #e2e8f0;
+  --accent: #dc2626; --accent-soft: #fef2f2; --link: #1d4ed8; --code-bg: #f1f5f9; --code-text: #9f1239;
+  --pre-bg: #0b1220; --pre-text: #e2e8f0; --th-bg: #0f172a; --th-text: #ffffff; --row-alt: #f8fafc;
+  --note-bg: #fff7ed; --note-line: #f59e0b; --mark: #fde68a;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b0f17; --panel: #111827; --text: #e5e7eb; --muted: #94a3b8; --line: #1f2937;
+    --accent: #f87171; --accent-soft: #2a1215; --link: #93c5fd; --code-bg: #1f2937; --code-text: #fda4af;
+    --pre-bg: #030712; --pre-text: #e5e7eb; --th-bg: #1f2937; --th-text: #f9fafb; --row-alt: #0f1623;
+    --note-bg: #2a1d0a; --note-line: #f59e0b; --mark: #854d0e;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0b0f17; --panel: #111827; --text: #e5e7eb; --muted: #94a3b8; --line: #1f2937;
+  --accent: #f87171; --accent-soft: #2a1215; --link: #93c5fd; --code-bg: #1f2937; --code-text: #fda4af;
+  --pre-bg: #030712; --pre-text: #e5e7eb; --th-bg: #1f2937; --th-text: #f9fafb; --row-alt: #0f1623;
+  --note-bg: #2a1d0a; --note-line: #f59e0b; --mark: #854d0e;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 72px; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.65 "Segoe UI", system-ui, -apple-system, Arial, sans-serif; }
+a { color: var(--link); }
+header.top { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 12px; padding: 10px 16px;
+  background: var(--panel); border-bottom: 1px solid var(--line); }
+header.top .brand { font-weight: 800; letter-spacing: .12em; color: var(--accent); white-space: nowrap; }
+header.top .sub { color: var(--muted); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+header.top .spacer { flex: 1; }
+header.top input { width: min(320px, 40vw); padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--text); font: inherit; font-size: 14px; }
+button.icon { border: 1px solid var(--line); background: var(--bg); color: var(--text); border-radius: 8px; padding: 6px 10px; cursor: pointer; font: inherit; font-size: 14px; }
+.layout { display: grid; grid-template-columns: 300px minmax(0, 1fr); max-width: 1320px; margin: 0 auto; }
+nav.toc { position: sticky; top: 57px; height: calc(100vh - 57px); overflow-y: auto; padding: 16px 12px 40px 16px; border-right: 1px solid var(--line); }
+nav.toc ul { list-style: none; margin: 0; padding: 0; }
+nav.toc li.part { margin: 16px 0 4px; font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+nav.toc a { display: block; padding: 5px 8px; border-radius: 6px; color: var(--text); text-decoration: none; font-size: 14px; line-height: 1.4; }
+nav.toc a:hover { background: var(--accent-soft); }
+nav.toc a.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+main { padding: 24px 40px 80px; min-width: 0; }
+.hero { background: linear-gradient(135deg, #0b1220, #2a0f12); color: #f1f5f9; border-radius: 14px; padding: 28px; margin-bottom: 28px; }
+.hero h1 { margin: 0 0 6px; font-size: 34px; letter-spacing: .14em; border: 0; color: #fff; }
+.hero p { margin: 0; color: #cbd5e1; max-width: 760px; }
+.hero .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin-top: 18px; }
+.hero .stats div { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12); border-radius: 10px; padding: 10px 12px; font-size: 14px; }
+.hero .stats b { display: block; color: #fff; font-size: 18px; }
+.part-label { margin: 40px 0 0; font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+section.chapter { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 8px 28px 20px; margin: 14px 0 22px; }
+h1 { font-size: 26px; margin: 18px 0 12px; padding-bottom: 8px; border-bottom: 3px solid var(--accent); }
+h2 { font-size: 20px; margin: 26px 0 8px; }
+h3 { font-size: 17px; margin: 22px 0 6px; color: var(--accent); }
+p, li { overflow-wrap: anywhere; }
+code { font-family: "Cascadia Code", Consolas, monospace; font-size: .88em; background: var(--code-bg); color: var(--code-text); padding: 1px 5px; border-radius: 4px; }
+pre { position: relative; background: var(--pre-bg); color: var(--pre-text); border-radius: 8px; padding: 14px 16px; overflow-x: auto; border-left: 3px solid var(--accent); font-size: 13.5px; line-height: 1.5; }
+pre code { background: none; color: inherit; padding: 0; font-size: inherit; }
+pre button.copy { position: absolute; top: 8px; right: 8px; font-size: 12px; padding: 3px 8px; border-radius: 6px; border: 1px solid #334155; background: #1e293b; color: #e2e8f0; cursor: pointer; opacity: .8; }
+.table-wrap { overflow-x: auto; margin: 0 0 14px; border: 1px solid var(--line); border-radius: 8px; }
+table { border-collapse: collapse; width: 100%; font-size: 14.5px; }
+th { background: var(--th-bg); color: var(--th-text); text-align: left; padding: 8px 10px; white-space: nowrap; }
+td { padding: 8px 10px; border-top: 1px solid var(--line); vertical-align: top; }
+tr:nth-child(even) td { background: var(--row-alt); }
+blockquote { margin: 0 0 14px; padding: 10px 14px; background: var(--note-bg); border-left: 4px solid var(--note-line); border-radius: 6px; }
+blockquote p { margin: 4px 0; }
+img { max-width: 100%; height: auto; display: block; margin: 8px auto 16px; border-radius: 8px; border: 1px solid var(--line); }
+td img { margin: 0; }
+mark { background: var(--mark); color: inherit; padding: 0 2px; border-radius: 3px; }
+.hidden { display: none !important; }
+#noresult { color: var(--muted); padding: 20px 0; }
+li.task { list-style: none; margin-left: -22px; }
+li.task input { width: 17px; height: 17px; margin: 0 6px 0 0; vertical-align: -3px; accent-color: #16a34a; cursor: pointer; }
+li.task:has(input:checked) { color: var(--muted); text-decoration: line-through; }
+.progress { display: flex; align-items: center; gap: 12px; margin-top: 16px; font-size: 14px; color: #e2e8f0; flex-wrap: wrap; }
+.progress i { flex: 1; min-width: 120px; height: 8px; background: rgba(255,255,255,.15); border-radius: 99px; overflow: hidden; }
+.progress i b { display: block; height: 100%; width: 0; background: #22c55e; transition: width .3s; }
+.progress .icon { background: transparent; color: #e2e8f0; border-color: rgba(255,255,255,.25); }
+#totop { position: fixed; right: 16px; bottom: 16px; z-index: 30; }
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; }
+  nav.toc { position: static; height: auto; max-height: none; border-right: 0; border-bottom: 1px solid var(--line); display: none; }
+  body.toc-open nav.toc { display: block; }
+  main { padding: 16px 16px 72px; }
+  section.chapter { padding: 4px 16px 14px; }
+  header.top .sub { display: none; }
+  header.top input { width: 100%; }
+  .hero { padding: 20px; } .hero h1 { font-size: 26px; }
+}
+@media (min-width: 901px) { #menu { display: none; } }
+@media print { header.top, nav.toc, #totop, pre button.copy { display: none !important; } .layout { display: block; } section.chapter { break-inside: auto; border: 0; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <button class="icon" id="menu" aria-label="Fehrist dikhayein">☰</button>
+  <span class="brand">SENTINEL</span>
+  <span class="sub">Project Guide v4 · Roman Urdu</span>
+  <span class="spacer"></span>
+  <input id="q" type="search" placeholder="Search… (jaise: epochs, sprinkler, D-Fire)" aria-label="Guide mein search">
+  <button class="icon" id="theme" aria-label="Dark ya light mode">◐</button>
+</header>
+<div class="layout">
+  <nav class="toc" aria-label="Fehrist"><ul><li class="part">A · Taaruf aur poora flow</li><li><a href="#ch1" data-ch="1">1. Sentinel Kya Hai?</a></li><li><a href="#ch2" data-ch="2">2. Poora System Ek Nazar Mein</a></li><li><a href="#ch3" data-ch="3">3. Poora Flow: Camera Se Screen Tak</a></li><li class="part">B · Backend</li><li><a href="#ch4" data-ch="4">4. Alert Engine: Incident Kaise Banta Hai</a></li><li><a href="#ch5" data-ch="5">5. Sensors Aur Smart Sprinklers</a></li><li><a href="#ch6" data-ch="6">6. Notifications (SMS, Email, Push)</a></li><li><a href="#ch7" data-ch="7">7. Danger Zone, Safe Zone Aur Insaan Ki Hifazat</a></li><li><a href="#ch8" data-ch="8">8. Fire Growth History Aur Logs</a></li><li><a href="#ch9" data-ch="9">9. Floor Plans, Evacuation Raasta Aur Waqt</a></li><li><a href="#ch10" data-ch="10">10. Database (SQL Server: SentinelDb)</a></li><li><a href="#ch11" data-ch="11">11. Hifazat (Security)</a></li><li class="part">C · Dashboard</li><li><a href="#ch12" data-ch="12">12. Dashboard (Website) Ki Screens</a></li><li class="part">D · AI models</li><li><a href="#ch13" data-ch="13">13. AI Service: Kya Hai Aur Kaise Kaam Karta Hai</a></li><li><a href="#ch14" data-ch="14">14. AI Model 1: Person (Insaan) Model</a></li><li><a href="#ch15" data-ch="15">15. AI Model 2: Fire/Smoke (Aag/Dhuwan) Model: Kya Aur Kahan Se</a></li><li><a href="#ch16" data-ch="16">16. Dataset: D-Fire (Kahan Se, Kitni Images)</a></li><li><a href="#ch17" data-ch="17">17. Training: Kahan, Kaise, Kitne Epochs</a></li><li><a href="#ch18" data-ch="18">18. Accuracy: Asli Numbers</a></li><li><a href="#ch19" data-ch="19">19. End-to-End Test: Poora System Ek Saath</a></li><li><a href="#ch20" data-ch="20">20. AI Page (Dashboard Par)</a></li><li class="part">E · Chalana aur reference</li><li><a href="#ch21" data-ch="21">21. Chalane Ka Tareeqa (Setup)</a></li><li><a href="#ch22" data-ch="22">22. Tests</a></li><li><a href="#ch23" data-ch="23">23. API Aur SignalR Ki Poori List</a></li><li><a href="#ch24" data-ch="24">24. Ahem Files</a></li><li class="part">F · Status aur baqi kaam</li><li><a href="#ch25" data-ch="25">25. Requirements Ka Status</a></li><li><a href="#ch26" data-ch="26">26. Kya Reh Gaya (Functionality)</a></li></ul></nav>
+  <main>
+    <div class="hero">
+      <h1>SENTINEL</h1>
+      <p>Fire &amp; Emergency Monitoring System: poore project ka flow shuru se aakhir tak (camera → AI → API → database → dashboard), aur AI models ki har detail: model kahan se aaya, dataset kaun sa, kitni tasveerein, kitne epochs, aur asli accuracy.</p>
+      <div class="stats"><div><b>YOLOX-Tiny</b>Person + Fire/Smoke models</div><div><b>21,527</b>D-Fire tasveerein (CC0)</div><div><b>80 epochs</b>Kaggle T4, ~4 h 39 min</div><div><b>93% / 92%</b>Aag / dhuwan pakda (test)</div></div>
+      <div id="progress" class="progress hidden"><span></span><i><b></b></i><button class="icon" id="reset">Ticks saaf karein</button></div>
+    </div>
+    <p class="part-label">A · Taaruf aur poora flow</p><section class="chapter" data-ch="1"><h1 id="ch1">1. Sentinel Kya Hai?</h1>
+<p><strong>Ek line mein:</strong> Sentinel ek <strong>fire-safety control room software</strong> hai. Ye building ke cameras (CCTV aur drone), dhuwen/garmi ke sensors aur smart sprinklers ko ek screen par jorta hai. <strong>AI</strong> camera mein aag, dhuwan aur insaan pehchaanta hai. Khatra ho to system khud:</p>
+<ul>
+<li>screen par <strong>alarm</strong> aur alert dikhata hai,</li>
+<li><strong>SMS, Email aur browser Push</strong> notification bhejta hai,</li>
+<li>us zone ke <strong>sprinklers</strong> chala sakta hai,</li>
+<li>har waqia ka <strong>log</strong> rakhta hai,</li>
+<li>building ke <strong>naqshe par mehfooz raasta</strong> aur bahar nikalne ka andazan waqt batata hai.</li>
+</ul>
+<h3 id="ch1-asal-zindagi-ki-misaal">Asal zindagi ki misaal</h3>
+<p>Ek factory ka security room sochiye: deewar par TV screens, aur ek guard jo sab dekh raha hai. Sentinel us guard ka computer version hai:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Asal duniya</th>
+<th>Sentinel mein</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CCTV ki screen</td>
+<td>Dashboard ki <strong>Video Wall</strong> (Angular)</td>
+</tr>
+<tr>
+<td>Guard ki aankh jo aag pehchaanti hai</td>
+<td><strong>AI Service</strong> (Python, YOLOX models)</td>
+</tr>
+<tr>
+<td>Guard ka dimagh: "kitna khatarnak hai?"</td>
+<td><code>AlertEngine.cs</code> (backend)</td>
+</tr>
+<tr>
+<td>Guard ki notebook</td>
+<td>SQL Server ke <code>IncidentAlerts</code> aur <code>IncidentLogs</code> tables</td>
+</tr>
+<tr>
+<td>Guard ka phone</td>
+<td><code>NotificationWorker</code>: Twilio SMS, Email, Web Push</td>
+</tr>
+<tr>
+<td>Sprinkler ka switch</td>
+<td><code>SprinklerService.cs</code> + <code>SmartSprinklers</code> table</td>
+</tr>
+<tr>
+<td>Radio jis se sab ko foran khabar milti hai</td>
+<td><strong>SignalR</strong> (live connection)</td>
+</tr>
+<tr>
+<td>Building ka naqsha deewar par</td>
+<td><strong>Floor Plans</strong> editor + Evacuation route</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="ch1-zaroori-alfaaz-aasan-matlab">Zaroori alfaaz (aasan matlab)</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Lafz</th>
+<th>Matlab</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>API</strong></td>
+<td>Backend ka "darwaza" jahan request aati hai, jaise <code>POST /api/detections</code></td>
+</tr>
+<tr>
+<td><strong>SignalR</strong></td>
+<td>Hamesha khula live connection. Server browser ko khud data bhej deta hai, page refresh ki zaroorat nahi</td>
+</tr>
+<tr>
+<td><strong>JWT token</strong></td>
+<td>Login ke baad milne wala "digital pass", har request ke saath jata hai</td>
+</tr>
+<tr>
+<td><strong>Device Key</strong></td>
+<td>Machines (AI service, sensors, simulator) ka password, header <code>X-Device-Key</code></td>
+</tr>
+<tr>
+<td><strong>Incident</strong></td>
+<td>Ek khatre ka waqia (aag, dhuwan, khatre mein insaan, sensor alarm)</td>
+</tr>
+<tr>
+<td><strong>Severity</strong></td>
+<td>Khatre ka darja: Low &lt; Medium &lt; High &lt; Critical</td>
+</tr>
+<tr>
+<td><strong>AI model</strong></td>
+<td>Training se seekha hua program jo tasveer mein cheezein pehchaanta hai</td>
+</tr>
+<tr>
+<td><strong>Dataset</strong></td>
+<td>Labels wali tasveeron ka majmua jis se model seekhta hai</td>
+</tr>
+<tr>
+<td><strong>Epoch</strong></td>
+<td>Training mein poore dataset par <strong>ek chakkar</strong></td>
+</tr>
+<tr>
+<td><strong>ONNX</strong></td>
+<td>AI model ki file ka format jo bina PyTorch ke CPU par chalta hai</td>
+</tr>
+<tr>
+<td><strong>Simulated</strong></td>
+<td>Asli nahi, test data. Aisi har cheez par <strong>SIMULATED</strong> label lagta hai</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p>⚠️ <strong>Imandari ki baat:</strong> sab kuch software aur lab mein test hua hai. Asli CCTV camera, asli SMS/Email aur asli sprinkler hardware ke saath test <strong>nahi</strong> hua. Is liye ye system abhi asli emergency ke liye <strong>"production-safe" nahi</strong> kaha ja sakta. Smoke detectors, fire panel aur insaani nigrani zaroori hain.</p>
+</blockquote>
+<hr /></section><section class="chapter" data-ch="2"><h1 id="ch2">2. Poora System Ek Nazar Mein</h1>
+<pre><code> ┌────────────────────┐   frames    ┌──────────────────────────┐
+ │ Camera / video file│ ──────────► │ AI SERVICE (Python)      │
+ └────────────────────┘             │ port 8008 · YOLOX · CPU  │
+ ┌────────────────────┐             └────────────┬─────────────┘
+ │ Simulator (.NET)   │ ─── nakli frames/sensors ─┤ POST /api/detections
+ │ IoT sensors        │                           │ (X-Device-Key)
+ └────────────────────┘                           ▼
+ ┌────────────────────────────────────────────────────────────────┐
+ │ ASP.NET CORE 8 WEB API  (port 5291)                            │
+ │ Controllers → Services: DetectionService, AlertEngine,         │
+ │ SensorService, SprinklerService, FloorPlanService,             │
+ │ EvacuationRouter, NotificationWorker → SMS / Email / Push      │
+ └───────┬─────────────────────────────────────┬──────────────────┘
+         │ EF Core                              │ SignalR /hubs/monitoring
+         ▼                                      ▼
+ ┌──────────────────┐                ┌──────────────────────────────┐
+ │ SQL SERVER       │                │ ANGULAR 22 DASHBOARD (4200)  │
+ │ SentinelDb       │                │ Dashboard · Floor Plans · AI │
+ └──────────────────┘                └──────────────────────────────┘
+</code></pre>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Hissa</th>
+<th>Technology</th>
+<th>Folder</th>
+<th>Port</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Frontend</td>
+<td>Angular 22, TypeScript, Tailwind CSS 4, Canvas, hls.js</td>
+<td><code>frontend/</code></td>
+<td>4200</td>
+</tr>
+<tr>
+<td>Backend</td>
+<td>ASP.NET Core 8 Web API (C#), SignalR, EF Core 8</td>
+<td><code>backend/Sentinel.Api/</code></td>
+<td>5291</td>
+</tr>
+<tr>
+<td>Database</td>
+<td>Microsoft SQL Server, EF migrations</td>
+<td><code>backend/Sentinel.Api/Migrations/</code></td>
+<td>1433</td>
+</tr>
+<tr>
+<td>AI Service</td>
+<td>Python 3.13, ONNX Runtime (CPU), OpenCV, NumPy</td>
+<td><code>ai-service/</code></td>
+<td>8008 (sirf 127.0.0.1)</td>
+</tr>
+<tr>
+<td>Simulator</td>
+<td>.NET console: nakli sensors, sprinklers aur AI frames</td>
+<td><code>backend/Sentinel.Simulator/</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td>Notifications</td>
+<td>Twilio SMS, SMTP Email (MailKit), Web Push (VAPID)</td>
+<td><code>backend/Sentinel.Api/Services/Notifications/</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td>Tests</td>
+<td>xUnit, Vitest, Python unittest</td>
+<td><code>backend/Sentinel.Api.Tests/</code>, <code>frontend/src/**/*.spec.ts</code>, <code>ai-service/tests/</code></td>
+<td>—</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Tabaqay (layers):</strong> Angular Component → Angular Service → HTTP (JWT) → Controller → Service → EF Core → SQL Server.</p>
+<p><strong>Waiter aur chef ki misaal:</strong> Controller "waiter" hai jo order leta hai. Service "chef" hai jo asal kaam karti hai. EF Core "translator" hai jo C# ko SQL mein badalta hai.</p>
+<hr /></section><section class="chapter" data-ch="3"><h1 id="ch3">3. Poora Flow: Camera Se Screen Tak</h1>
+<p><strong>Misaal: warehouse ke camera mein aag lagi</strong></p>
+<pre><code>1. Camera frame          → AI Service (sentinel_ai) har second 1–4 frame leta hai
+2. AI Service            → person + fire/smoke model chalata hai, boxes nikalta hai
+3. Tracking              → har cheez ko track id (F11, S2, P3)
+4. Confirmation          → wohi aag 3 frames mein dikhi? tab hi report
+5. Severity              → aag ke boxes frame ka kitna % → Low/Medium/High/Critical
+6. AI danger zone        → aag ke gird 25% bara laal zone
+7. POST /api/detections  → API (X-Device-Key ke saath)
+8. DetectionPayloadValidator → JSON ki jaanch + insaan danger zone mein? (backend khud hisaab)
+9. RealtimeNotifier      → SignalR &quot;detection&quot; → sab dashboards par boxes
+10. AlertEngine          → incident banao/barhao (dedupe ke saath)
+11. IncidentLogs         → Opened, FireMeasurement, PersonInDanger
+12. Emergency?           → SMS/Email/Push queue + Auto sprinklers (simulated data par nahi)
+13. SignalR              → &quot;incident&quot;, &quot;incidentLog&quot;, &quot;activity&quot; → dashboard update
+14. Evacuation panel     → us zone ka danger zone active → naya mehfooz raasta
+15. Calibrated camera    → camera mein dikha insaan naqshe par amber nuqta (Chapter 9)
+</code></pre>
+<p><strong>Bina refresh ke kaise?</strong> Browser aur server ke darmiyan SignalR connection hamesha khula rehta hai. Server naya data milte hi sab browsers ko bhej deta hai. Canvas har animation frame (~60 dafa per second) par dobara draw hota hai.</p>
+<p><strong>Detection do raaston se aa sakti hai:</strong></p>
+<ul>
+<li>REST: <code>POST /api/detections</code> (AI service yehi use karti hai).</li>
+<li>SignalR: hub method <code>PublishDetection(payload)</code> (simulator). Hub par 60 messages per second ki had hai.</li>
+</ul>
+<hr /></section><p class="part-label">B · Backend</p><section class="chapter" data-ch="4"><h1 id="ch4">4. Alert Engine: Incident Kaise Banta Hai</h1>
+<p><strong>File:</strong> <code>backend/Sentinel.Api/Services/AlertEngine.cs</code></p>
+<h3 id="ch4-severity-khatre-ka-darja">Severity (khatre ka darja)</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Halat</th>
+<th>Severity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Sirf dhuwan (aag nahi)</td>
+<td>Medium</td>
+</tr>
+<tr>
+<td>Aag</td>
+<td>AI ki <code>fireSeverity</code> (na ho to Medium)</td>
+</tr>
+<tr>
+<td>Aag + koi insaan nazar aaye</td>
+<td>Kam az kam High</td>
+</tr>
+<tr>
+<td>1–2 insaan danger zone mein</td>
+<td>High</td>
+</tr>
+<tr>
+<td>3 ya zyada insaan danger zone mein</td>
+<td>Critical</td>
+</tr>
+<tr>
+<td><strong>Aag + koi insaan danger zone mein</strong></td>
+<td><strong>Critical</strong></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="ch4-emergency-ka-rule">Emergency ka rule</h3>
+<pre><code>Emergency = DangerCount &gt; 0   YA   aag ki severity Critical   YA   incident Critical
+</code></pre>
+<p>Emergency par do kaam <strong>khud</strong> hote hain:</p>
+<ol>
+<li><strong>SMS + Email + Push</strong> notification queue mein.</li>
+<li>Us zone ke <strong>Auto mode</strong> sprinklers ON. Lekin agar data <strong>SIMULATED</strong> hai to sprinkler <strong>nahi</strong> chalte (<code>Alerts:AutoSprinklerOnSimulatedData = false</code>), sirf log likha jata hai.</li>
+</ol>
+<h3 id="ch4-duplicate-se-bachao">Duplicate se bachao</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Tareeqa</th>
+<th>Kya karta hai</th>
+<th>Setting</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Merge window</td>
+<td>Same source ka khula incident 90 second mein dobara aaye to naya nahi, wohi update</td>
+<td><code>IncidentMergeWindowSeconds = 90</code></td>
+</tr>
+<tr>
+<td>Escalation</td>
+<td>Severity sirf barhti hai, kam nahi hoti</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Vision throttle</td>
+<td>Ek camera ka database check har 2 second mein ek dafa (severity barhe to foran)</td>
+<td><code>VisionEvaluationIntervalSeconds = 2</code></td>
+</tr>
+<tr>
+<td>Cooldown</td>
+<td>Same source + zone + severity par 120 second tak dobara SMS nahi</td>
+<td><code>CooldownSeconds = 120</code></td>
+</tr>
+<tr>
+<td>Lock</td>
+<td>Do frames ek saath aayein to bhi ek hi incident</td>
+<td><code>IncidentLocks</code></td>
+</tr>
+</tbody>
+</table></div>
+<hr /></section><section class="chapter" data-ch="5"><h1 id="ch5">5. Sensors Aur Smart Sprinklers</h1>
+<h3 id="ch5-sensors-dhuwan-ppm-garmi-c">Sensors (dhuwan ppm, garmi °C)</h3>
+<p><strong>File:</strong> <code>Services/SensorRules.cs</code></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Halat</th>
+<th>Shart (misaal: temperature threshold 57°C)</th>
+<th>Kya hota hai</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Normal</td>
+<td>45.6°C se kam</td>
+<td>Kuch nahi</td>
+</tr>
+<tr>
+<td>Warning</td>
+<td>≥ threshold × 0.8</td>
+<td>Peela rang</td>
+</tr>
+<tr>
+<td>Alarm</td>
+<td>≥ threshold</td>
+<td>High incident + zone ke Auto sprinklers</td>
+</tr>
+<tr>
+<td>Critical</td>
+<td>≥ threshold × 1.25 (smoke × 1.5)</td>
+<td>Critical incident + <strong>emergency notifications</strong> + sprinklers</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>Readings <code>SensorReadings</code> table mein, <strong>48 ghante</strong> se purani khud delete.</li>
+<li>Dashboard par gauge aur chhota graph (sparkline), aakhri 60 readings.</li>
+</ul>
+<h3 id="ch5-smart-sprinklers">Smart sprinklers</h3>
+<ul>
+<li>Har sprinkler ka ek <strong>zone</strong> hai (Zone A/B/C).</li>
+<li><strong>Auto mode:</strong> Alert engine khud ON kar sakta hai.</li>
+<li><strong>Manual mode:</strong> sirf operator ON/OFF karta hai.</li>
+<li><strong>Master switch:</strong> saare sprinklers ek click mein, pehle confirm dialog.</li>
+<li>Sprinkler khud OFF <strong>nahi</strong> hota. Aag bujhne ke baad operator OFF karta hai.</li>
+</ul>
+<p><img alt="Sensors aur sprinkler panel" src="images/sensor-panel.png" /></p>
+<blockquote>
+<p>⚠️ Is project mein sprinklers <strong>simulated</strong> hain (database ki entries). Koi asli hardware nahi joda gaya.</p>
+</blockquote>
+<hr /></section><section class="chapter" data-ch="6"><h1 id="ch6">6. Notifications (SMS, Email, Push)</h1>
+<pre><code>AlertEngine ──Enqueue──► NotificationDispatcher (queue + cooldown, foran wapas)
+                              ▼
+                     NotificationWorker (background thread)
+                              ├─► TwilioSmsChannel → SMS
+                              ├─► EmailChannel     → Email (MailKit / SMTP)
+                              └─► WebPushChannel   → Browser push
+                              ▼
+                     SignalR &quot;notification&quot; → Live Event Log mein natija
+</code></pre>
+<ul>
+<li><strong>Background mein kyun?</strong> SMS/Email mein 2–5 second lag sakte hain. Request ke andar hota to live video atak jati.</li>
+<li><strong>Kab jati hain?</strong> Sirf <strong>emergency</strong> par, ya jab operator <strong>Emergency Dispatch</strong> dabaye.</li>
+<li><strong>Setting na ho to?</strong> Channel "skipped (not configured)" likhta hai, crash nahi.</li>
+<li><strong>Email console mode:</strong> SMTP host khali ho aur recipients hon to email API ki terminal mein print hota hai.</li>
+<li>Credentials <code>.env</code> mein (git se bahar). <code>.env.example</code> mein sirf namuna.</li>
+</ul>
+<blockquote>
+<p>⚠️ Is computer ki <code>.env</code> mein <strong>asli</strong> Twilio/SMTP credentials hain, lekin asli SMS/Email bhej kar <strong>test nahi</strong> kiya gaya.</p>
+</blockquote>
+<hr /></section><section class="chapter" data-ch="7"><h1 id="ch7">7. Danger Zone, Safe Zone Aur Insaan Ki Hifazat</h1>
+<h3 id="ch7-danger-zone-person-check-backend-khud-karta-hai">Danger zone person check (backend khud karta hai)</h3>
+<p><strong>File:</strong> <code>Validators/DetectionPayloadValidator.cs</code></p>
+<ol>
+<li>Har insaan ke box ka <strong>pair ka point</strong>: <code>x + width/2, y + height</code> (box ka neeche beech).</li>
+<li>Ye point kisi <strong>Danger</strong> ya <strong>Critical</strong> zone polygon ke andar hai? (ray-casting). Warning aur Safe zones nahi gine jaate.</li>
+<li>Haan → <code>AtRisk = true</code>, zone ka naam, aur <code>DangerCount</code> barhta hai. Backend kabhi AI se kam nahi ginta.</li>
+<li>Har (incident, insaan, zone) ka sirf <strong>ek</strong> <code>PersonInDanger</code> log.</li>
+</ol>
+<h3 id="ch7-danger-zones-kahan-se-aate-hain">Danger zones kahan se aate hain</h3>
+<ul>
+<li><strong>AI:</strong> har confirmed aag ke box ko 25% bara karke "AI fire area" zone.</li>
+<li><strong>Camera config:</strong> <code>ai-service/config.json</code> mein har camera ke fixed zones (misaal "Fuel store").</li>
+<li><strong>Naqsha:</strong> Floor plan ke danger zones (Chapter 9).</li>
+</ul>
+<h3 id="ch7-safe-zones-hare-rang">Safe zones (hare rang)</h3>
+<p>Mehfooz ilaqe (assembly point) <strong>hare</strong>, solid line. Danger zones <strong>laal</strong>, dashed aur dhadakte hue.</p>
+<p><img alt="Camera par laal danger zone aur hara safe zone" src="images/camera-safe-danger-zones.png" /></p>
+<h3 id="ch7-boxes-ke-rang">Boxes ke rang</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Cheez</th>
+<th>Rang</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Aag</td>
+<td>Laal, dhadakta</td>
+</tr>
+<tr>
+<td>Dhuwan</td>
+<td>Gray</td>
+</tr>
+<tr>
+<td>Insaan (mehfooz)</td>
+<td>Hara</td>
+</tr>
+<tr>
+<td>Insaan danger zone mein</td>
+<td>Amber, "IN DANGER"</td>
+</tr>
+<tr>
+<td>Heatmap</td>
+<td>Peela → laal</td>
+</tr>
+</tbody>
+</table></div>
+<p>AI 1.5 second tak data na bheje to tile par <strong>"NO AI DATA"</strong>. 4.5 second baad boxes gayab.</p>
+<hr /></section><section class="chapter" data-ch="8"><h1 id="ch8">8. Fire Growth History Aur Logs</h1>
+<h3 id="ch8-aag-ki-naap-graph">Aag ki naap (graph)</h3>
+<pre><code>FireAreaPercent = (saare Fire boxes ka width × height ka jama) ÷ (frame ki width × height) × 100
+</code></pre>
+<ul>
+<li>Camera incident: AI fire area % ka graph. Sensor incident: sensor readings ka graph.</li>
+<li>Graph par likha hai <strong>"not a physical fire size"</strong>: ye screen par hissa hai, meters nahi.</li>
+</ul>
+<p><img alt="Incident History: graph aur logs" src="images/incident-history.png" /></p>
+<h3 id="ch8-logs-incidentlogs-table">Logs (<code>IncidentLogs</code> table)</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Kab</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Opened</code></td>
+<td>Naya incident</td>
+</tr>
+<tr>
+<td><code>Escalated</code></td>
+<td>Darja barha</td>
+</tr>
+<tr>
+<td><code>Resolved</code></td>
+<td>Operator ne Resolve dabaya</td>
+</tr>
+<tr>
+<td><code>FireMeasurement</code></td>
+<td>Aag ki naap badli</td>
+</tr>
+<tr>
+<td><code>PersonInDanger</code></td>
+<td>Insaan danger zone mein</td>
+</tr>
+<tr>
+<td><code>EvacuationRoute</code></td>
+<td>Raasta nikala gaya ("ESTIMATE")</td>
+</tr>
+</tbody>
+</table></div>
+<p>Har log mein <code>Simulated</code> column. Dashboard par SIMULATED (jamni) aur ESTIMATE (neela) labels. Naya log SignalR <code>incidentLog</code> se foran screen par.</p>
+<p><img alt="Alert logs" src="images/alert-logs.png" /></p>
+<hr /></section><section class="chapter" data-ch="9"><h1 id="ch9">9. Floor Plans, Evacuation Raasta Aur Waqt</h1>
+<h3 id="ch9-naqsha-banana-floor-plans-page">Naqsha banana (Floor Plans page)</h3>
+<p><img alt="Floor Plan editor" src="images/floorplan-editor.png" /></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Kaam</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>+ Room / + Corridor</td>
+<td>Chalne ki jagah</td>
+</tr>
+<tr>
+<td>+ Wall</td>
+<td>Deewar (0.2 m moti)</td>
+</tr>
+<tr>
+<td>+ Door</td>
+<td>Darwaza (deewar par). "Blocked" = band</td>
+</tr>
+<tr>
+<td>+ Exit</td>
+<td>Emergency exit</td>
+</tr>
+<tr>
+<td>+ Safe zone / + Danger zone</td>
+<td>Mehfooz / khatarnak ilaqa. Danger zone ko camera zone (jaise <code>Zone B</code>) se jor sakte hain</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>Apne naqshe ki <strong>PNG/JPG</strong> background mein upload kar sakte hain (5 MB tak, file ke andar ke bytes check hote hain).</li>
+<li>Tasveer sirf background hai. System tasveer se deewarein <strong>khud nahi</strong> pehchaanta.</li>
+<li>Har cheez meters mein, 0.1 m par snap. Backend 2,000 elements tak, ghalti par 400 aur saaf message.</li>
+</ul>
+<h3 id="ch9-raasta-kaise-nikalta-hai-evacuationrouter-cs">Raasta kaise nikalta hai (<code>EvacuationRouter.cs</code>)</h3>
+<ol>
+<li>Naqsha 0.5 m ke khanon (grid) mein. Bari building par khana bara (max ~200,000 khane).</li>
+<li>Chal sakte hain: khule Room/Corridor/Door/Exit/SafeZone. Band: deewar, band darwaza, <strong>active danger zone</strong>.</li>
+<li>Danger zone active hai jab "Active now" tick ho, <strong>ya</strong> us ke linked zone mein khula incident ho.</li>
+<li><strong>Dijkstra</strong> (8 simtein): qareeb tareen pohanch-sakne-wala khula exit.</li>
+<li><strong>1 m clearance:</strong> danger zone se 1 m ke andar wale khane mehngay. Koi raasta 1 m door na reh sake to saaf warning: "CLEARANCE VIOLATED".</li>
+<li>Insaan khud danger zone ke andar ho to bahar nikalne ki ijazat, message "leave immediately".</li>
+</ol>
+<h3 id="ch9-waqt-eta">Waqt (ETA)</h3>
+<pre><code>Andazan waqt = faasla (m) ÷ 1.2 m/s       misaal: 26.9 m ÷ 1.2 = ~22 s
+</code></pre>
+<p>Dhuwan, bheer, seedhiyan shamil nahi. Is liye screen par "estimate" likha hai.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Aag se pehle</th>
+<th>Zone B mein aag ke baad</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><img alt="Pehle" src="images/evacuation-before.png" /></td>
+<td><img alt="Baad" src="images/evacuation-after.png" /></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="ch9-camera-ko-naqshe-se-jorna-calibration-homography">Camera ko naqshe se jorna (calibration / homography)</h3>
+<p><strong>Masla:</strong> camera tasveer ko <strong>pixels</strong> mein dekhta hai, naqsha <strong>meters</strong> mein hai. Pehle system ko pata nahi tha ke camera mein dikha insaan naqshe par kahan hai, is liye operator ko haath se click karna padta tha.</p>
+<p><strong>Hal:</strong> har camera ke liye <strong>4 jodiyan</strong>: farsh ke 4 kone camera ki tasveer mein kahan hain (pixels) aur naqshe par kahan hain (meters). In se ek 3×3 hisaab (<strong>homography</strong>) banta hai jo tasveer ka har farsh wala pixel naqshe ke meter mein badal deta hai. Bilkul jaise mobile ka document scanner tirchi photo ko seedha kar deta hai.</p>
+<p><strong>Kaise lagayein (Floor Plans page → Camera calibration):</strong></p>
+<ol>
+<li>Naqsha kholein aur pehle <strong>Save</strong> karein.</li>
+<li><strong>Camera</strong> chunein.</li>
+<li>Har point ke liye <strong>Camera px</strong> (x, y) likhein. Camera ki ek snapshot Paint mein kholein, kone par mouse rakhein, Paint neeche x, y dikhata hai.</li>
+<li><strong>Plan m</strong> likhein, ya <strong>Plan m ⌖</strong> dabayein aur naqshe par wohi kona click karein.</li>
+<li><strong>Save calibration</strong>. Hatana ho to <strong>Remove</strong>.</li>
+</ol>
+<p><img alt="Camera calibration panel" src="images/camera-calibration.png" /></p>
+<p><strong>Is ke baad:</strong> dashboard ke Evacuation panel mein us camera ke har insaan ka <strong>amber nuqta</strong> naqshe par aata hai (insaan ke <strong>pairon</strong> ka point: box ka neeche beech). Kisi nuqte par click karein to raasta <strong>usi insaan ki jagah</strong> se nikalta hai.</p>
+<p><img alt="Camera ke insaan naqshe par (amber nuqte) aur ek nuqte se raasta" src="images/evacuation-camera-people.png" /></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Cheez</th>
+<th>Tafseel</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Save kahan</td>
+<td><code>CameraFeeds.Calibration</code> column (JSON), migration <code>CameraCalibration</code></td>
+</tr>
+<tr>
+<td>API</td>
+<td><code>PUT /api/cameras/{id}/calibration</code> (save), <code>DELETE /api/cameras/{id}/calibration</code> (hatana)</td>
+</tr>
+<tr>
+<td>Jaanch (backend)</td>
+<td>Plan maujood ho, 4 points, naqshe ke andar, aur <strong>koi 3 points ek line mein na hon</strong> (warna 400)</td>
+</tr>
+<tr>
+<td>Hisaab kahan</td>
+<td>Browser mein: <code>frontend/src/app/shared/utils/homography.ts</code> (har frame par, server par bojh nahi)</td>
+</tr>
+<tr>
+<td>Nuqta kab gayab</td>
+<td>Camera se 4.5 second tak frame na aaye</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p>⚠️ <strong>Hadein:</strong>
+- Sirf <strong>farsh</strong> ke liye sahi hai, is liye pairon ka point. Seedhi ya mezzanine par khade insaan ki jagah ghalat ho sakti hai.
+- Camera <strong>hila</strong> to calibration dobara karni hogi.
+- Fish-eye/wide lens mein kinare mude hote hain, wahan andaza kam sahi.
+- Ek insaan do cameras mein dikhe to <strong>do nuqte</strong>.
+- Nuqta andaza hai (kuch decimeter tak farq), GPS nahi.
+- Raasta khud tab nikalta hai jab nuqte par <strong>click</strong> karein; har insaan ka raasta bina click ke nahi.
+- Calibration save karne par sirf <strong>usi browser</strong> ki list update hoti hai; doosre khule dashboards reload ke baad dekhte hain.
+- Asli camera ke saath abhi <strong>test nahi</strong> hua: simulator ke nakli insaanon par check kiya.</p>
+</blockquote>
+<hr /></section><section class="chapter" data-ch="10"><h1 id="ch10">10. Database (SQL Server: SentinelDb)</h1>
+<pre><code>CameraFeeds ─┐                          FloorPlans ──1──* FloorPlanElements
+SensorNodes ─┼──► IncidentAlerts ──1──* IncidentLogs
+     └──1──* SensorReadings
+SmartSprinklers          Users ──1──* PushSubscriptions
+</code></pre>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Table</th>
+<th>Kya rakhta hai</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CameraFeeds</code></td>
+<td>Camera: id (<code>cam-warehouse</code>), naam, CCTV/Drone, stream URL, zone, naqshe se jor (<code>Calibration</code>)</td>
+</tr>
+<tr>
+<td><code>SensorNodes</code> / <code>SensorReadings</code></td>
+<td>Sensor aur us ki readings ki history</td>
+</tr>
+<tr>
+<td><code>SmartSprinklers</code></td>
+<td>Sprinkler: zone, ON/OFF, Auto/Manual</td>
+</tr>
+<tr>
+<td><code>IncidentAlerts</code></td>
+<td>Incident: waqt, camera/sensor, zone, severity, aag, insaan, resolve</td>
+</tr>
+<tr>
+<td><code>IncidentLogs</code></td>
+<td>Har incident ki history (Chapter 8)</td>
+</tr>
+<tr>
+<td><code>FloorPlans</code> / <code>FloorPlanElements</code></td>
+<td>Naqshe aur un ke rooms, deewarein, exits, zones</td>
+</tr>
+<tr>
+<td><code>Users</code> / <code>PushSubscriptions</code></td>
+<td>Login users aur browser push</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>Teen migrations: <code>InitialCreate</code>, <code>FloorPlansAndIncidentLogs</code>, <code>CameraCalibration</code> (cameras ka naqshe se jor).</li>
+<li>Waqt <strong>UTC</strong> mein save, browser local time dikhata hai.</li>
+<li>Demo data (Development): 4 cameras (<code>cam-lobby</code> Zone A, <code>cam-warehouse</code> Zone B, <code>cam-server</code> Zone C, <code>drone-01</code> Zone B), 6 sensors, 5 sprinklers.</li>
+</ul>
+<hr /></section><section class="chapter" data-ch="11"><h1 id="ch11">11. Hifazat (Security)</h1>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Cheez</th>
+<th>Kaise</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Operator login</td>
+<td>JWT token (8 ghante), password hash</td>
+</tr>
+<tr>
+<td>Machines</td>
+<td><code>X-Device-Key</code> header</td>
+</tr>
+<tr>
+<td>Roles</td>
+<td>Operator (dashboard), Device (sensors/AI), OperatorOrDevice</td>
+</tr>
+<tr>
+<td>Secrets</td>
+<td><code>.env</code> mein, <code>.git/info/exclude</code> se git se bahar</td>
+</tr>
+<tr>
+<td>SignalR</td>
+<td>60 messages/second ki had</td>
+</tr>
+<tr>
+<td>Uploads</td>
+<td>Sirf PNG/JPG, bytes check, 5 MB, server ka apna file naam</td>
+</tr>
+<tr>
+<td>AI service</td>
+<td>Sirf <code>127.0.0.1</code> par, bahar se nahi jur sakta</td>
+</tr>
+<tr>
+<td>AI model files</td>
+<td>sha256 check. File badli ho to load nahi hoti</td>
+</tr>
+<tr>
+<td>Training checkpoints</td>
+<td><code>weights_only=True</code>: sirf numbers khulte hain, koi code nahi chalta</td>
+</tr>
+<tr>
+<td>Errors</td>
+<td>Har ghalti saaf JSON (400/401/404/500)</td>
+</tr>
+</tbody>
+</table></div>
+<hr /></section><p class="part-label">C · Dashboard</p><section class="chapter" data-ch="12"><h1 id="ch12">12. Dashboard (Website) Ki Screens</h1>
+<p><img alt="Login" src="images/login.png" /></p>
+<p><strong>Top bar:</strong> system ka haal, Live/Offline, ghari, awaaz band, <strong>Enable Alerts</strong> (browser push), <strong>Emergency Dispatch</strong>, Logout. Menu: <strong>Dashboard · Floor Plans · AI</strong>.</p>
+<p><img alt="Dashboard: aag ka manzar" src="images/dashboard-fire.png" /></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Hissa</th>
+<th>Kaam</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>KPI strip</strong></td>
+<td>Khule incidents, ginay gaye insaan, sab se zyada garmi aur dhuwan</td>
+</tr>
+<tr>
+<td><strong>Video Wall</strong></td>
+<td>Saare cameras, CCTV/Drone filter, heatmap on/off, click = bara</td>
+</tr>
+<tr>
+<td><strong>Video tile</strong></td>
+<td>Live video + AI boxes, zones, heatmap. Chips: SIM DATA, NO AI DATA</td>
+</tr>
+<tr>
+<td><strong>Sensor panel</strong></td>
+<td>Gauges, graph, sprinkler switches, Auto/Manual, Master</td>
+</tr>
+<tr>
+<td><strong>Alert logs</strong></td>
+<td>Khule incidents, Resolve button</td>
+</tr>
+<tr>
+<td><strong>Live Event Log</strong></td>
+<td>SMS gaya, sprinkler chala, waghera</td>
+</tr>
+<tr>
+<td><strong>Incident History</strong></td>
+<td>Graph + logs, filters</td>
+</tr>
+<tr>
+<td><strong>Evacuation panel</strong></td>
+<td>Naqsha, click karke raasta aur ETA, safe zones ki list, calibrated cameras ke insaan (amber nuqte)</td>
+</tr>
+<tr>
+<td><strong>Floor Plans page</strong></td>
+<td>Naqsha editor (Chapter 9)</td>
+</tr>
+<tr>
+<td><strong>AI page</strong></td>
+<td>Models ka haal + test photo (Chapter 20)</td>
+</tr>
+</tbody>
+</table></div>
+<p><img alt="KPI strip" src="images/kpis.png" /></p>
+<p><img alt="Video Wall" src="images/video-wall.png" /></p>
+<p><img alt="Live Event Log" src="images/activity.png" /></p>
+<p><img alt="Emergency Dispatch" src="images/dispatch-dialog.png" /></p>
+<hr /></section><p class="part-label">D · AI models</p><section class="chapter" data-ch="13"><h1 id="ch13">13. AI Service: Kya Hai Aur Kaise Kaam Karta Hai</h1>
+<p><strong>Kya hai?</strong> <code>ai-service/</code> ek <strong>alag Python program</strong> hai jo camera ki tasveer par AI models chalata hai aur nateeja API ko bhejta hai.</p>
+<p><strong>Alag kyun?</strong> CPU par ek tasveer 150–450 ms leti hai. API ke andar hota to API slow ho jati. Alag hone se API tez rehti hai, aur AI band ho to baaki system chalta rehta hai.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Cheez</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Zubaan</td>
+<td>Python 3.13</td>
+</tr>
+<tr>
+<td>Libraries</td>
+<td><code>numpy 2.5.4</code>, <code>opencv-python-headless 5.0.0.93</code>, <code>onnxruntime 1.31.0</code> (bas yehi teen)</td>
+</tr>
+<tr>
+<td>Hardware</td>
+<td><strong>Sirf CPU.</strong> Purane Intel Xeon W3520 (bina AVX) par chal kar check kiya. ~0.5 GB RAM</td>
+</tr>
+<tr>
+<td>Port</td>
+<td><code>127.0.0.1:8008</code></td>
+</tr>
+<tr>
+<td>Endpoints</td>
+<td><code>GET /health</code> (models ka haal), <code>POST /infer?cameraId=…</code> (ek tasveer, max 8 MB)</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="ch13-har-frame-par-kya-hota-hai-pipeline">Har frame par kya hota hai (pipeline)</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Qadam</th>
+<th>Tafseel</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Letterbox</td>
+<td>Tasveer bina khinche 416×416 mein fit</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Models</td>
+<td>Person model + fire/smoke model</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Filter + NMS</td>
+<td>Threshold se kam hatao. Ek cheez par kai boxes hon to sabse acha</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Tracking</td>
+<td>Pichle frame se 30%+ overlap = wohi track id. 5 se zyada frames gayab = track khatam</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Confirmation</td>
+<td>Aag/dhuwan <strong>3 frames</strong> mein dikhe tab report. Insaan foran</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Severity</td>
+<td>Aag ka frame mein area %: 2% se kam Low, 2–10% Medium, 10–25% High, 25%+ Critical</td>
+</tr>
+<tr>
+<td>7</td>
+<td>AI danger zone</td>
+<td>Aag ka box har taraf 25% bara</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Heatmap</td>
+<td>16×9 khane, har frame 0.8 se thanda. <strong>Sirf "kahan dikha"</strong>, prediction nahi</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Explanation</td>
+<td>Misaal: <code>fire 0.83 &gt;= threshold 0.40; box 3.1% of frame; confirmed: track F11 seen 3/4 frames</code></td>
+</tr>
+<tr>
+<td>10</td>
+<td>Bhejna</td>
+<td><code>POST /api/detections</code> + <code>X-Device-Key</code></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Simulated:</strong> video <strong>file</strong> se aaya data hamesha <code>simulated: true</code>. Live camera (RTSP) par aap khud batate hain.</p>
+<hr /></section><section class="chapter" data-ch="14"><h1 id="ch14">14. AI Model 1: Person (Insaan) Model</h1>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Sawal</th>
+<th>Jawab</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Model</strong></td>
+<td><strong>YOLOX-Tiny</strong> (object detection)</td>
+</tr>
+<tr>
+<td><strong>Kis ne banaya</strong></td>
+<td><strong>Megvii</strong> (company) ki research team, open-source project "YOLOX"</td>
+</tr>
+<tr>
+<td><strong>Kahan se liya</strong></td>
+<td>Official GitHub release: <code>github.com/Megvii-BaseDetection/YOLOX/releases/tag/0.1.1rc0</code>, file <code>yolox_tiny.onnx</code></td>
+</tr>
+<tr>
+<td><strong>Kis par trained</strong></td>
+<td><strong>COCO dataset</strong> (Microsoft COCO, ~118,000 training images, 80 qisam ki cheezein)</td>
+</tr>
+<tr>
+<td><strong>Humne kya kiya</strong></td>
+<td>Khud train <strong>nahi</strong> kiya. Official model jaisa hai waisa liya. 80 classes mein se sirf <code>person</code> istemaal</td>
+</tr>
+<tr>
+<td><strong>License</strong></td>
+<td>Apache-2.0 (free, commercial bhi)</td>
+</tr>
+<tr>
+<td><strong>Input</strong></td>
+<td>416 × 416 pixel</td>
+</tr>
+<tr>
+<td><strong>Threshold</strong></td>
+<td>0.45</td>
+</tr>
+<tr>
+<td><strong>File / size</strong></td>
+<td><code>ai-service/models/yolox_tiny.onnx</code>, ~20 MB</td>
+</tr>
+<tr>
+<td><strong>sha256</strong></td>
+<td><code>427cc366d34e27ff7a03e2899b5e3671425c262ea2291f88bb942bc1cc70b0f7</code></td>
+</tr>
+<tr>
+<td><strong>Download</strong></td>
+<td><code>tools/download_models.py</code> official link se, sha256 check ke saath</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="ch14-test-penn-fudan-dataset">Test: Penn-Fudan dataset</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Cheez</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Dataset</td>
+<td><strong>Penn-Fudan Pedestrian Database</strong> (University of Pennsylvania), <code>cis.upenn.edu/~jshi/ped_html/</code></td>
+</tr>
+<tr>
+<td>Size</td>
+<td>170 tasveerein, hamare evaluation mein 423 insaan ke boxes</td>
+</tr>
+<tr>
+<td>Kami</td>
+<td>Har tasveer mein insaan hain, is liye "khali scene" par galti nahi napi gayi</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Threshold</th>
+<th>Precision</th>
+<th>Recall</th>
+<th>F1</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0.25</td>
+<td>0.618</td>
+<td>0.993</td>
+<td>0.762</td>
+</tr>
+<tr>
+<td>0.35</td>
+<td>0.663</td>
+<td>0.993</td>
+<td>0.795</td>
+</tr>
+<tr>
+<td><strong>0.45 (laga hua)</strong></td>
+<td>0.707</td>
+<td>0.993</td>
+<td>0.826</td>
+</tr>
+<tr>
+<td>0.55</td>
+<td>0.758</td>
+<td>0.991</td>
+<td>0.859</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li><strong>Recall 0.993:</strong> 423 mein se 420 insaan pakde ✅ (shart ≥ 0.85).</li>
+<li><strong>Speed:</strong> p95 139 ms ✅.</li>
+<li><strong>Precision 0.707</strong> (shart ≥ 0.80): "galat" boxes aankh se dekhe gaye. Zyada tar <strong>asli insaan</strong> the (cycle wale, peeche khade) jin par Penn-Fudan ne label nahi lagaya. Phir bhi 0.80 <strong>pakka nahi</strong>.</li>
+<li><strong>Faisla:</strong> <em>improvement required</em>. Agla qadam: poore label wala dataset (COCO val2017 ya site CCTV).</li>
+</ul>
+<hr /></section><section class="chapter" data-ch="15"><h1 id="ch15">15. AI Model 2: Fire/Smoke (Aag/Dhuwan) Model: Kya Aur Kahan Se</h1>
+<h3 id="ch15-khud-train-kyun-karna-para">Khud train kyun karna para?</h3>
+<ul>
+<li>Person model (COCO) mein aag ya dhuwen ki class <strong>hai hi nahi</strong>.</li>
+<li>Koi official, free license wala, tayyar fire/smoke ONNX model nahi mila.</li>
+<li>D-Fire walon ke apne YOLOv5 weights hain, lekin wo <code>.pt</code> pickle hain (khulte waqt code chal sakta hai) aur YOLOv5 ka license AGPL-3.0 hai. Is liye nahi liye.</li>
+</ul>
+<h3 id="ch15-model-ki-pehchaan">Model ki pehchaan</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Sawal</th>
+<th>Jawab</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Model</strong></td>
+<td><strong>YOLOX-Tiny</strong> (wohi design jo person model ka), depth 0.33, width 0.375</td>
+</tr>
+<tr>
+<td><strong>Shuru ka model (base)</strong></td>
+<td>Official <strong>COCO pretrained</strong> <code>yolox_tiny.pth</code>, Megvii release 0.1.1rc0</td>
+</tr>
+<tr>
+<td><strong>Base ka sha256</strong></td>
+<td><code>9de513de589ac98bb92d3bca53b5af7b9acfa9b0bacb831f7999d0f7afaee8f0</code></td>
+</tr>
+<tr>
+<td><strong>Tareeqa</strong></td>
+<td><strong>Fine-tuning:</strong> COCO par seekha hua model aag/dhuwan ke liye dobara sikhaya</td>
+</tr>
+<tr>
+<td><strong>Training code</strong></td>
+<td>YOLOX 0.3.0 (<code>github.com/Megvii-BaseDetection/YOLOX</code>), Apache-2.0</td>
+</tr>
+<tr>
+<td><strong>Classes</strong></td>
+<td>2: <strong>0 = smoke (dhuwan)</strong>, <strong>1 = fire (aag)</strong></td>
+</tr>
+<tr>
+<td><strong>Input</strong></td>
+<td>416 × 416 pixel</td>
+</tr>
+<tr>
+<td><strong>Threshold</strong></td>
+<td>0.40</td>
+</tr>
+<tr>
+<td><strong>Natija file</strong></td>
+<td><code>ai-service/models/fire_smoke_yolox.onnx</code>, ~20 MB</td>
+</tr>
+<tr>
+<td><strong>sha256</strong></td>
+<td><code>8d73df91dbb0241cfb04cacf529a8be4b26e68d4fccbb20cd816884bfa914d73</code></td>
+</tr>
+<tr>
+<td><strong>License</strong></td>
+<td>YOLOX code Apache-2.0 + D-Fire data CC0</td>
+</tr>
+</tbody>
+</table></div>
+<hr /></section><section class="chapter" data-ch="16"><h1 id="ch16">16. Dataset: D-Fire (Kahan Se, Kitni Images)</h1>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Sawal</th>
+<th>Jawab</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Naam</strong></td>
+<td><strong>D-Fire</strong>: An image dataset for fire and smoke detection</td>
+</tr>
+<tr>
+<td><strong>Kahan se</strong></td>
+<td><code>github.com/gaiasd/DFireDataset</code> (official OneDrive link)</td>
+</tr>
+<tr>
+<td><strong>Banane wale</strong></td>
+<td>Pedro de Venâncio, Adriano Lisboa, Adriano Barbosa (Brazil). Paper: <em>Neural Computing and Applications</em>, 2022</td>
+</tr>
+<tr>
+<td><strong>License</strong></td>
+<td><strong>CC0 1.0</strong> (public domain, bilkul free)</td>
+</tr>
+<tr>
+<td><strong>File</strong></td>
+<td><code>D-Fire.zip</code>, 3,036,222,313 bytes (~3 GB)</td>
+</tr>
+<tr>
+<td><strong>sha256</strong></td>
+<td><code>3824fb3ce32cfa8b538792dfd460603648d271072ac6ae34f1af0c713f60260c</code></td>
+</tr>
+<tr>
+<td><strong>Label format</strong></td>
+<td>YOLO: har tasveer ki <code>.txt</code> file, har line = <code>class cx cy w h</code></td>
+</tr>
+<tr>
+<td><strong>Kul tasveerein</strong></td>
+<td><strong>21,527</strong> (train 17,221 + test 4,306)</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="ch16-tasveeron-ki-ginti-humne-khud-gini">Tasveeron ki ginti (humne khud gini)</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Hissa</th>
+<th>Tasveerein</th>
+<th>Bina aag/dhuwen</th>
+<th>Aag wali</th>
+<th>Dhuwen wali</th>
+<th>Aag ke boxes</th>
+<th>Dhuwen ke boxes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Official TRAIN (poora)</td>
+<td>17,221</td>
+<td>7,833</td>
+<td>4,707</td>
+<td>8,444</td>
+<td>11,814</td>
+<td>9,550</td>
+</tr>
+<tr>
+<td>→ <strong>Training</strong> (85%)</td>
+<td><strong>14,621</strong></td>
+<td>7,123</td>
+<td>3,696</td>
+<td>6,755</td>
+<td>9,125</td>
+<td>7,577</td>
+</tr>
+<tr>
+<td>→ <strong>Validation</strong> (15%)</td>
+<td><strong>2,600</strong></td>
+<td>710</td>
+<td>1,011</td>
+<td>1,689</td>
+<td>2,689</td>
+<td>1,973</td>
+</tr>
+<tr>
+<td>Official <strong>TEST</strong></td>
+<td><strong>4,306</strong></td>
+<td>2,005</td>
+<td>1,115</td>
+<td>2,081</td>
+<td>2,878</td>
+<td>2,315</td>
+</tr>
+</tbody>
+</table></div>
+<p><em>(Ek tasveer mein aag aur dhuwan dono ho sakte hain, is liye columns ka jama tasveeron se zyada hai.)</em></p>
+<h3 id="ch16-data-ki-jaanch-aur-bantwara-tools-prepare-dataset-py">Data ki jaanch aur bantwara (<code>tools/prepare_dataset.py</code>)</h3>
+<ul>
+<li>Har tasveer khol kar dekhi, labels ki range check ki.</li>
+<li>Train aur test mein <strong>ek bhi same tasveer nahi</strong> (leakage nahi).</li>
+<li>26 khali (zero-area) labels hata kar gine gaye.</li>
+<li><strong>Validation</strong> official TRAIN mein se nikali: file naam ke <strong>groups</strong> (100 lagatar frames ka ek group, kul 174 groups → 148 training, 26 validation), seed 42. Is se ek hi jagah ki milti julti tasveerein dono taraf nahi jaatin.</li>
+<li><strong>TEST set training mein kabhi use nahi hua.</strong> Sirf aakhri score ke liye.</li>
+</ul>
+<hr /></section><section class="chapter" data-ch="17"><h1 id="ch17">17. Training: Kahan, Kaise, Kitne Epochs</h1>
+<h3 id="ch17-pehli-koshish-is-computer-par-cpu-pilot-fail">Pehli koshish: is computer par CPU pilot (fail)</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Cheez</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Hardware</td>
+<td>Intel Xeon W3520 (bina AVX), GPU kaam ka nahi (Quadro FX 380, 256 MB)</td>
+</tr>
+<tr>
+<td>Andaza</td>
+<td>YOLOX-Tiny 80 epochs = <strong>~13.6 din</strong> (0.867 s per image)</td>
+</tr>
+<tr>
+<td>Pilot</td>
+<td>YOLOX-Nano @ 320, 4,000 training + 800 validation tasveerein, 4 epochs (lr 0.01, backbone frozen)</td>
+</tr>
+<tr>
+<td>Natija</td>
+<td>Aag recall <strong>0.000</strong>: kuch nahi pakda. <strong>Install nahi</strong> kiya</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="ch17-asal-training-kaggle-gpu-par">Asal training: Kaggle GPU par</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Cheez</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Jagah</strong></td>
+<td><strong>Kaggle</strong> (Google ki free cloud), notebook "Sentinel", Version 1 ("Save &amp; Run All")</td>
+</tr>
+<tr>
+<td><strong>GPU</strong></td>
+<td><strong>NVIDIA Tesla T4</strong></td>
+</tr>
+<tr>
+<td><strong>Tareekh</strong></td>
+<td>14 October 2026</td>
+</tr>
+<tr>
+<td><strong>Notebook</strong></td>
+<td><code>ai-service/training/train_fire_smoke_colab.ipynb</code></td>
+</tr>
+<tr>
+<td><strong>Settings file</strong></td>
+<td><code>ai-service/training/yolox_tiny_dfire.py</code></td>
+</tr>
+<tr>
+<td><strong>Training tasveerein</strong></td>
+<td><strong>14,621</strong></td>
+</tr>
+<tr>
+<td><strong>Validation tasveerein</strong></td>
+<td><strong>2,600</strong></td>
+</tr>
+<tr>
+<td><strong>Epochs</strong></td>
+<td><strong>80</strong></td>
+</tr>
+<tr>
+<td><strong>Batch size</strong></td>
+<td>32 tasveerein ek saath</td>
+</tr>
+<tr>
+<td><strong>Steps per epoch</strong></td>
+<td>457 (14,621 ÷ 32)</td>
+</tr>
+<tr>
+<td><strong>Kul steps</strong></td>
+<td>36,560 (457 × 80)</td>
+</tr>
+<tr>
+<td><strong>Speed</strong></td>
+<td>~0.45 second per step, ~3.5 minute per epoch</td>
+</tr>
+<tr>
+<td><strong>Kul waqt</strong></td>
+<td>~<strong>4 ghante 39 minute</strong></td>
+</tr>
+<tr>
+<td><strong>Precision</strong></td>
+<td>fp16 (mixed precision, tez)</td>
+</tr>
+<tr>
+<td><strong>Augmentation</strong></td>
+<td>Mosaic (scale 0.5–1.5), random size (320–640), aakhri <strong>10 epochs bina augmentation</strong>, mixup band</td>
+</tr>
+<tr>
+<td><strong>Validation</strong></td>
+<td>Har 5 epoch baad. Best = sab se acha validation AP</td>
+</tr>
+<tr>
+<td><strong>Loss</strong></td>
+<td>13.3 (shuru) → ~5.5 (epoch 2 tak)</td>
+</tr>
+<tr>
+<td><strong>Best validation</strong></td>
+<td><strong>AP50:95 = 0.359</strong>, <strong>epoch 80</strong> par</td>
+</tr>
+<tr>
+<td><strong>Best checkpoint</strong></td>
+<td><code>best_ckpt.pth</code>, 40.58 MB, sha256 <code>df57126a47872a8e3899486d1d2ff45962d28a7257363a522dcc1e9c99d32ffc</code></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="ch17-ek-masla-aur-us-ka-hal">Ek masla aur us ka hal</h3>
+<ul>
+<li>Training <strong>poori</strong> hui, lekin notebook ka "export" cell fail hua: YOLOX 0.3.0 ka export <code>torch.onnx._export</code> use karta hai jo naye PyTorch mein nahi.</li>
+<li>Checkpoints Kaggle Output mein mehfooz the. <code>best_ckpt.pth</code> download kiya.</li>
+<li>Apna script <code>ai-service/training/export_onnx.py</code> banaya:<ul>
+<li><code>torch.load(weights_only=True)</code>: sirf numbers khulte hain, koi code nahi chalta. Sirf numpy ka number type allow (YOLOX <code>best_ap</code> usi mein rakhta hai).</li>
+<li><code>torch.onnx.export</code> (opset 11) → <code>fire_smoke_yolox.onnx</code> → sha256 <code>models.json</code> mein.</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-powershell">cd ai-service\training
+python export_onnx.py --exp yolox_tiny_dfire.py --ckpt best_ckpt.pth --out ..\models\fire_smoke_yolox.onnx
+</code></pre>
+<hr /></section><section class="chapter" data-ch="18"><h1 id="ch18">18. Accuracy: Asli Numbers</h1>
+<h3 id="ch18-lafzon-ka-matlab">Lafzon ka matlab</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Lafz</th>
+<th>Matlab</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Recall</strong></td>
+<td>Jitni aag thi us mein se kitni pakdi. 0.93 = 100 mein se 93</td>
+</tr>
+<tr>
+<td><strong>Precision</strong></td>
+<td>Model ke boxes mein se kitne sahi</td>
+</tr>
+<tr>
+<td><strong>FPR (galat alarm)</strong></td>
+<td>Bina aag wali tasveeron mein se kitni par galti se aag</td>
+</tr>
+<tr>
+<td><strong>Image-level</strong></td>
+<td>Poori tasveer: aag hai ya nahi</td>
+</tr>
+<tr>
+<td><strong>Box-level</strong></td>
+<td>Har shola/dhuwan sahi jagah par (IoU ≥ 0.5)</td>
+</tr>
+<tr>
+<td><strong>AP50:95</strong></td>
+<td>Training ka mila jula score (box kitna theek baitha)</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="ch18-pass-hone-ki-shartein">Pass hone ki shartein</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Class</th>
+<th>Shart</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fire</td>
+<td>Image recall ≥ 0.90 <strong>aur</strong> FPR ≤ 0.10</td>
+</tr>
+<tr>
+<td>Smoke</td>
+<td>Image recall ≥ 0.80, FPR ≤ 0.15</td>
+</tr>
+<tr>
+<td>Fire/Smoke boxes</td>
+<td>Precision ≥ 0.60</td>
+</tr>
+<tr>
+<td>Person</td>
+<td>Recall ≥ 0.85 aur precision ≥ 0.80</td>
+</tr>
+<tr>
+<td>Speed</td>
+<td>p95 ≤ 1000 ms</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="ch18-fire-smoke-d-fire-test-4-306-tasveerein-training-mein-kabhi-">Fire/Smoke: D-Fire TEST (4,306 tasveerein, training mein kabhi nahi dekhi)</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Threshold</th>
+<th>Fire box P / R</th>
+<th>Fire image recall / FPR</th>
+<th>Smoke box P / R</th>
+<th>Smoke image recall / FPR</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0.25</td>
+<td>0.642 / 0.697</td>
+<td>0.952 / 0.011</td>
+<td>0.793 / 0.798</td>
+<td>0.947 / 0.039</td>
+</tr>
+<tr>
+<td>0.30</td>
+<td>0.676 / 0.682</td>
+<td>0.947 / 0.009</td>
+<td>0.808 / 0.791</td>
+<td>0.939 / 0.034</td>
+</tr>
+<tr>
+<td>0.35</td>
+<td>0.706 / 0.668</td>
+<td>0.940 / 0.007</td>
+<td>0.821 / 0.784</td>
+<td>0.932 / 0.032</td>
+</tr>
+<tr>
+<td><strong>0.40 (laga hua)</strong></td>
+<td>0.731 / 0.649</td>
+<td><strong>0.932 / 0.006</strong></td>
+<td>0.833 / 0.777</td>
+<td><strong>0.923 / 0.028</strong></td>
+</tr>
+<tr>
+<td>0.50</td>
+<td>0.783 / 0.602</td>
+<td>0.904 / 0.004</td>
+<td>0.856 / 0.754</td>
+<td>0.891 / 0.024</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Shart (threshold 0.40)</th>
+<th>Mila</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fire image recall ≥ 0.90</td>
+<td><strong>0.932</strong> (1,115 mein se 1,039)</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Fire galat alarm ≤ 0.10</td>
+<td><strong>0.006</strong> (2,005 mein se 4)</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Smoke image recall ≥ 0.80</td>
+<td><strong>0.923</strong> (2,081 mein se 1,920)</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Smoke galat alarm ≤ 0.15</td>
+<td><strong>0.028</strong> (2,005 mein se 17)</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Box precision ≥ 0.60</td>
+<td>Fire 0.731, Smoke 0.833</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Speed p95 ≤ 1000 ms</td>
+<td><strong>356 ms</strong> (CPU)</td>
+<td>✅</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Mushkil cases (0.40):</strong></p>
+<ul>
+<li>Sirf dhuwan (aag nahi): 1,186 mein se 1,074 par dhuwan pakda, 15 par galti se aag.</li>
+<li>Chhoti aag (frame ka 1% se kam): 831 mein se 769.</li>
+<li>Andheri tasveerein: 229 bina aag wali mein se 2 par galat aag.</li>
+</ul>
+<p><strong>Speed (Xeon CPU):</strong> fire model akela mean 182 ms, p95 356 ms. Dono models saath ~460 ms per frame.</p>
+<p><strong>CPU pilot se muqabla:</strong> aag recall 0.000 → <strong>0.932</strong>.</p>
+<p><strong>Faisla:</strong> <em>meets the defined development criteria</em> (D-Fire test par).</p>
+<blockquote>
+<p>⚠️ <strong>Kamzoriyan:</strong>
+- <strong>Fire box recall 0.65:</strong> tasveer mein aag pakad leta hai, lekin har shola nahi. Severity kabhi kam aa sakti hai.
+- D-Fire test usi qisam ki tasveeron se hai jaisa train. Site ka CCTV, fog, steam, dust, IR <strong>test nahi</strong>.
+- Ye lab ke numbers hain, <strong>safety certificate nahi</strong>.</p>
+</blockquote>
+<hr /></section><section class="chapter" data-ch="19"><h1 id="ch19">19. End-to-End Test: Poora System Ek Saath</h1>
+<p><strong>Maqsad:</strong> model akela nahi, <strong>poora system</strong> check karna: AI service → API → database → SignalR → dashboard.</p>
+<p><strong>Hifazat:</strong></p>
+<ul>
+<li>Alag test database <code>SentinelDb_E2E_20261015</code>, baad mein <strong>delete</strong>. Asli <code>SentinelDb</code> ko nahi chhua.</li>
+<li><code>.env</code> <strong>load nahi</strong> ki (asli SMS/Email credentials), throwaway keys. Koi hardware nahi.</li>
+<li>Input <code>e2e-fire.avi</code>: D-Fire TEST ki 40 tasveerein ki video, camera <code>cam-warehouse</code> (Zone B), <strong>SIMULATED</strong>.</li>
+</ul>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Run</th>
+<th>Kya hua</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Run 1</strong> (1 frame/second)</td>
+<td>10 frames, <strong>0 detection</strong>. Detector ne har frame mein aag pakdi, lekin ye alag alag photos hain, aag ki jagah har baar badli, to 3-frame confirmation ne sahi taur par kuch report nahi kiya. <strong>Sabaq:</strong> camera ka view 3 frames tak ek jaisa hona chahiye</td>
+</tr>
+<tr>
+<td><strong>Run 2</strong> (4 frame/second)</td>
+<td>40 frames, 0 failure. Incident #1: <strong>Low → Medium</strong>, "Fire detected (Medium), Smoke detected … [SIMULATED DATA]". <strong>Sirf ek</strong> incident (dedupe). 6 logs (fire 1.05% → 2.5% → 4.36% → 0.54%), sab simulated. SignalR events dashboard tak. <strong>Paanchon sprinkler band</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Test nahi hua:</strong> emergency raasta (High/Critical, danger zone mein insaan) jo notifications aur sprinklers chalata hai. Wo sirf unit tests mein.</p>
+<hr /></section><section class="chapter" data-ch="20"><h1 id="ch20">20. AI Page (Dashboard Par)</h1>
+<p><img alt="AI page: dono models loaded, aag wali test photo" src="images/ai-tab-fire.png" /></p>
+<p><strong>Baen taraf, "AI inference service":</strong></p>
+<ul>
+<li>Hara <strong>ONLINE · all models loaded</strong> / Peela <em>degraded</em> (koi model missing) / Laal <strong>OFFLINE</strong>.</li>
+<li>Har model: naam, classes, threshold, file, license. Kitni inferences, average ms.</li>
+<li>Camera sources: kaun se camera jure, haal, frames. File par <strong>SIMULATED / TEST INPUT</strong>.</li>
+</ul>
+<p><strong>Daen taraf, "Test image analysis":</strong></p>
+<ol>
+<li><strong>Choose image…</strong> (PNG/JPG, 5 MB tak).</li>
+<li>Asli models chalte hain, boxes tasveer par (aag laal, dhuwan gray).</li>
+<li>Table: class, confidence, box, <strong>"Why (evidence)"</strong>.</li>
+</ol>
+<blockquote>
+<p>⚠️ Sirf <strong>preview</strong>: koi incident, alert ya sprinkler nahi. Kuch na mile to iska matlab ye <strong>nahi</strong> ke jagah mehfooz hai.</p>
+</blockquote>
+<p><strong>APIs:</strong> <code>GET /api/ai/status</code>, <code>POST /api/ai/analyze</code> (multipart <code>file</code>). Errors: 503 service/model nahi, 504 timeout, 502 kharab jawab.</p>
+<hr /></section><p class="part-label">E · Chalana aur reference</p><section class="chapter" data-ch="21"><h1 id="ch21">21. Chalane Ka Tareeqa (Setup)</h1>
+<p><strong>Pehle install:</strong> .NET 8 SDK, Node.js 20.19+ aur Angular CLI, SQL Server, <code>dotnet-ef</code>, Python 3.13.</p>
+<h3 id="ch21-env-project-folder-mein-env-example-se-copy"><code>.env</code> (project folder mein, <code>.env.example</code> se copy)</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Kaam</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ConnectionStrings__Sentinel</code></td>
+<td>SQL Server</td>
+</tr>
+<tr>
+<td><code>Jwt__SigningKey</code></td>
+<td>Login token ki chaabi (lambi random)</td>
+</tr>
+<tr>
+<td><code>Device__ApiKey</code></td>
+<td>Machines ki chaabi</td>
+</tr>
+<tr>
+<td><code>Seed__AdminEmail</code>, <code>Seed__AdminPassword</code></td>
+<td>Pehla admin</td>
+</tr>
+<tr>
+<td><code>Notifications__Sms__…</code>, <code>__Email__…</code>, <code>__WebPush__…</code></td>
+<td>Alerts (ikhtiyari)</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="ch21-4-windows">4 windows</h3>
+<pre><code class="language-powershell"># 1) Backend API  → http://localhost:5291/swagger
+cd &lt;project&gt;\backend
+dotnet ef database update --project Sentinel.Api
+dotnet run --project Sentinel.Api --launch-profile http
+
+# 2) Dashboard  → http://localhost:4200
+cd &lt;project&gt;\frontend
+npm install
+ng serve
+
+# 3) AI service  → http://127.0.0.1:8008/health
+cd &lt;project&gt;\ai-service
+py -3.13 -m venv .venv
+.\.venv\Scripts\python -m pip install -r requirements.txt
+.\.venv\Scripts\python tools\download_models.py
+.\.venv\Scripts\python -m sentinel_ai
+
+# 4) (Demo) Simulator: Zone B mein aag
+cd &lt;project&gt;\backend
+dotnet run --project Sentinel.Simulator -- --device-key &lt;Device__ApiKey&gt; --ignite &quot;Zone B&quot;
+</code></pre>
+<p>Simulator ke options: <code>--base-url</code>, <code>--device-key</code>, <code>--ignite</code>, <code>--fps</code>, <code>--fire-probability</code>, <code>--telemetry-interval</code>.</p>
+<h3 id="ch21-ai-se-camera-jorna-ai-service-config-json">AI se camera jorna (<code>ai-service/config.json</code>)</h3>
+<pre><code class="language-json">{
+  &quot;api&quot;: &quot;http://localhost:5291&quot;,
+  &quot;cameras&quot;: [
+    { &quot;cameraId&quot;: &quot;cam-lobby&quot;, &quot;source&quot;: &quot;${CAM_LOBBY_URL}&quot;, &quot;fps&quot;: 1, &quot;enabled&quot;: true }
+  ]
+}
+</code></pre>
+<ul>
+<li><code>source</code>: <code>rtsp://…</code> (live), <code>0</code> (webcam) ya video file (hamesha SIMULATED).</li>
+<li>Camera ka password environment variable mein, <code>SENTINEL_DEVICE_KEY</code> = <code>Device__ApiKey</code>.</li>
+<li><code>fire_smoke_yolox.onnx</code> git mein nahi. Usay <code>models/</code> mein rakhna hai (Chapter 17).</li>
+</ul>
+<blockquote>
+<p>⚠️ Asli camera aur asli <code>.env</code> ke saath aag dikhi to <strong>asli SMS/Email</strong> jayenge. Pehle safe test number/email se test karein.</p>
+</blockquote>
+<hr /></section><section class="chapter" data-ch="22"><h1 id="ch22">22. Tests</h1>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Hissa</th>
+<th>Tests</th>
+<th>Kya check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Backend (xUnit)</td>
+<td><strong>56</strong></td>
+<td>Alert rules, API + SignalR integration, evacuation router, floor plans + logs, camera calibration, AI client</td>
+</tr>
+<tr>
+<td>Frontend (Vitest)</td>
+<td><strong>25</strong></td>
+<td>Login expiry, homography, calibrated camera ke nuqte, overlay drawing, floor plan editor, evacuation panel, AI page, formatting</td>
+</tr>
+<tr>
+<td>AI service (unittest)</td>
+<td><strong>15</strong></td>
+<td>Box decode, NMS, kharab/badli model file rad, tracking, 3-frame confirmation, severity, adhoori settings, kharab frame ke baad camera chalta rahe, API contract, service errors, video = SIMULATED (mock: sirf logic, accuracy nahi)</td>
+</tr>
+<tr>
+<td>Production build</td>
+<td>✅</td>
+<td><code>ng build</code></td>
+</tr>
+<tr>
+<td>AI evaluation</td>
+<td>Asli models</td>
+<td>Chapter 14, 18</td>
+</tr>
+<tr>
+<td>End-to-end</td>
+<td>Asli services</td>
+<td>Chapter 19</td>
+</tr>
+</tbody>
+</table></div>
+<pre><code class="language-powershell">cd backend;    dotnet test
+cd frontend;   ng test --watch=false;  ng build
+cd ai-service; .\.venv\Scripts\python -m unittest discover -s tests
+cd ai-service; .\.venv\Scripts\python tools\evaluate.py --data &lt;D-Fire\test&gt; --classes 0=Smoke,1=Fire --sweep 0.25,0.3,0.35,0.4,0.5 --out reports\fire
+</code></pre>
+<p>Sab 15 October 2026 ko pass hue.</p>
+<hr /></section><section class="chapter" data-ch="23"><h1 id="ch23">23. API Aur SignalR Ki Poori List</h1>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Route</th>
+<th>Kaun</th>
+<th>Kaam</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>POST</td>
+<td><code>/api/auth/login</code></td>
+<td>Sab</td>
+<td>Login → JWT</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/auth/me</code></td>
+<td>Login</td>
+<td>Apni maloomat</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/dashboard/snapshot</code></td>
+<td>Operator</td>
+<td>Poori screen ka data</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/cameras</code>, <code>/api/cameras/{id}</code>, <code>/api/cameras/{id}/stream</code></td>
+<td>Operator/Device</td>
+<td>Cameras, MJPEG stream</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/detections</code></td>
+<td>Operator/Device</td>
+<td>AI frame</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/incidents</code>, <code>/api/incidents/{id}</code></td>
+<td>Operator</td>
+<td>Incidents</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/incidents/logs?incidentId=&amp;type=&amp;limit=</code></td>
+<td>Operator</td>
+<td>Logs</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/incidents/{id}/resolve</code></td>
+<td>Operator</td>
+<td>Band karna</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/incidents/dispatch</code></td>
+<td>Operator</td>
+<td>Manual emergency</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/iot/sensors</code>, <code>/sensors/{id}</code>, <code>/sensors/{id}/history</code></td>
+<td>Operator/Device</td>
+<td>Sensors</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/iot/sensors/{id}/readings</code>, <code>/api/iot/telemetry</code></td>
+<td>Operator/Device</td>
+<td>Readings</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/iot/sprinklers</code></td>
+<td>Operator/Device</td>
+<td>Sprinklers</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/iot/sprinklers/{id}/toggle</code>, <code>/api/iot/sprinklers/master</code></td>
+<td>Operator/Device</td>
+<td>ON/OFF</td>
+</tr>
+<tr>
+<td>GET/POST/PUT/DELETE</td>
+<td><code>/api/floorplans</code>, <code>/api/floorplans/{id}</code></td>
+<td>Operator</td>
+<td>Naqshe</td>
+</tr>
+<tr>
+<td>PUT/GET</td>
+<td><code>/api/floorplans/{id}/image</code></td>
+<td>Operator</td>
+<td>Naqshe ki tasveer</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/floorplans/{id}/route</code></td>
+<td>Operator</td>
+<td>Evacuation raasta</td>
+</tr>
+<tr>
+<td>PUT/DELETE</td>
+<td><code>/api/cameras/{id}/calibration</code></td>
+<td>Operator</td>
+<td>Camera ko naqshe se jorna / hatana</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/ai/status</code></td>
+<td>Operator</td>
+<td>AI ka haal</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/ai/analyze</code></td>
+<td>Operator</td>
+<td>Test photo</td>
+</tr>
+<tr>
+<td>GET/POST</td>
+<td><code>/api/push/vapid-public-key</code>, <code>/subscribe</code>, <code>/unsubscribe</code></td>
+<td>Operator</td>
+<td>Browser push</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/health</code></td>
+<td>Sab</td>
+<td>API zinda hai?</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>SignalR hub <code>/hubs/monitoring</code>:</strong></p>
+<ul>
+<li><strong>Server → browser events:</strong> <code>snapshot</code>, <code>detection</code>, <code>telemetry</code>, <code>sprinkler</code>, <code>incident</code>, <code>notification</code>, <code>activity</code>, <code>incidentLog</code>.</li>
+<li><strong>Device → server methods:</strong> <code>PublishDetection</code>, <code>PublishTelemetry</code>.</li>
+</ul>
+<hr /></section><section class="chapter" data-ch="24"><h1 id="ch24">24. Ahem Files</h1>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>File</th>
+<th>Kaam</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>backend/Sentinel.Api/Program.cs</code></td>
+<td>App ka switchboard: <code>.env</code>, DI, auth, CORS, SignalR, Swagger</td>
+</tr>
+<tr>
+<td><code>Services/DetectionService.cs</code></td>
+<td>Detection: validate → broadcast → evaluate</td>
+</tr>
+<tr>
+<td><code>Services/AlertEngine.cs</code></td>
+<td>Severity, incidents, emergency, logs</td>
+</tr>
+<tr>
+<td><code>Services/SensorService.cs</code>, <code>SensorRules.cs</code></td>
+<td>Sensor readings aur halat</td>
+</tr>
+<tr>
+<td><code>Services/SprinklerService.cs</code></td>
+<td>Sprinklers</td>
+</tr>
+<tr>
+<td><code>Services/Notifications/</code></td>
+<td>SMS, Email, Push</td>
+</tr>
+<tr>
+<td><code>Services/FloorPlanService.cs</code>, <code>EvacuationRouter.cs</code></td>
+<td>Naqshe aur raasta</td>
+</tr>
+<tr>
+<td><code>Services/AiInferenceClient.cs</code>, <code>Controllers/AiController.cs</code></td>
+<td>API ↔ AI service</td>
+</tr>
+<tr>
+<td><code>Validators/DetectionPayloadValidator.cs</code></td>
+<td>AI JSON jaanch + danger zone person check</td>
+</tr>
+<tr>
+<td><code>Hubs/EmergencyMonitoringHub.cs</code></td>
+<td>SignalR</td>
+</tr>
+<tr>
+<td><code>frontend/src/app/core/services/signalr.service.ts</code></td>
+<td>Live data</td>
+</tr>
+<tr>
+<td><code>frontend/src/app/features/dashboard/video-feed/overlay-renderer.ts</code></td>
+<td>Boxes/zones/heatmap drawing</td>
+</tr>
+<tr>
+<td><code>frontend/src/app/features/floor-plans/</code></td>
+<td>Naqsha editor</td>
+</tr>
+<tr>
+<td><code>frontend/src/app/features/ai/</code></td>
+<td>AI page</td>
+</tr>
+<tr>
+<td><code>frontend/src/app/shared/utils/homography.ts</code></td>
+<td>Camera pixel → naqsha meter (4 points se)</td>
+</tr>
+<tr>
+<td><code>ai-service/sentinel_ai/detector.py</code></td>
+<td>ONNX model chalana + sha256</td>
+</tr>
+<tr>
+<td><code>ai-service/sentinel_ai/pipeline.py</code>, <code>tracker.py</code></td>
+<td>Confirmation, severity, zones, heatmap, tracking</td>
+</tr>
+<tr>
+<td><code>ai-service/sentinel_ai/service.py</code></td>
+<td>HTTP server + camera workers</td>
+</tr>
+<tr>
+<td><code>ai-service/models/models.json</code></td>
+<td>Models ki list</td>
+</tr>
+<tr>
+<td><code>ai-service/tools/prepare_dataset.py</code>, <code>evaluate.py</code></td>
+<td>Dataset jaanch, accuracy</td>
+</tr>
+<tr>
+<td><code>ai-service/training/</code></td>
+<td>Notebook, settings, export script</td>
+</tr>
+<tr>
+<td><code>ai-service/reports/</code></td>
+<td>Evaluation reports (JSON)</td>
+</tr>
+</tbody>
+</table></div>
+<hr /></section><p class="part-label">F · Status aur baqi kaam</p><section class="chapter" data-ch="25"><h1 id="ch25">25. Requirements Ka Status</h1>
+<p><strong>Kul 26 points: ✅ 20 · ⚠️ 5 · ❌ 1</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Requirement</th>
+<th>Status</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1.1</td>
+<td>Video se aag/dhuwan</td>
+<td>✅</td>
+<td>Fire/smoke model, 93% / 92%</td>
+</tr>
+<tr>
+<td>1.2</td>
+<td>Boxes/heatmap dikhana</td>
+<td>✅</td>
+<td></td>
+</tr>
+<tr>
+<td>1.3</td>
+<td>Mukhtalif mahol</td>
+<td>⚠️</td>
+<td>Sirf andheri photos. Fog, steam, IR nahi</td>
+</tr>
+<tr>
+<td>1.4</td>
+<td>Accuracy</td>
+<td>✅</td>
+<td>Chapter 18</td>
+</tr>
+<tr>
+<td>2.1</td>
+<td>Insaan pehchaanna</td>
+<td>⚠️</td>
+<td>Recall 99%, precision 0.80 pakki nahi</td>
+</tr>
+<tr>
+<td>2.2</td>
+<td>Insaan track karna</td>
+<td>⚠️</td>
+<td>IoU tracker, bheer mein IDs badal sakti hain</td>
+</tr>
+<tr>
+<td>2.3</td>
+<td>Danger zone mein insaan</td>
+<td>✅</td>
+<td>Backend ka polygon check</td>
+</tr>
+<tr>
+<td>2.4</td>
+<td>Evacuation raasta</td>
+<td>✅</td>
+<td>Dijkstra, 1 m clearance</td>
+</tr>
+<tr>
+<td>2.5</td>
+<td>Khatre saaf nishaan-zada</td>
+<td>✅</td>
+<td></td>
+</tr>
+<tr>
+<td>3.1</td>
+<td>Aag small/medium/large</td>
+<td>✅</td>
+<td>AI area % se</td>
+</tr>
+<tr>
+<td>3.2</td>
+<td>Aag ka barhna</td>
+<td>✅</td>
+<td>Graph, physical size nahi</td>
+</tr>
+<tr>
+<td>3.3</td>
+<td>Phailne ka prediction</td>
+<td>❌</td>
+<td>Nahi bana</td>
+</tr>
+<tr>
+<td>3.4</td>
+<td>Risk heatmap</td>
+<td>⚠️</td>
+<td>"Kahan dikha" heatmap, prediction nahi</td>
+</tr>
+<tr>
+<td>3.5</td>
+<td>Early warning</td>
+<td>✅</td>
+<td></td>
+</tr>
+<tr>
+<td>4.1–4.4</td>
+<td>Alerts</td>
+<td>✅</td>
+<td>Asli bhej kar test nahi</td>
+</tr>
+<tr>
+<td>5.1</td>
+<td>Live video par nishaan</td>
+<td>✅</td>
+<td>Asli camera test nahi</td>
+</tr>
+<tr>
+<td>5.2</td>
+<td>Safe zones</td>
+<td>✅</td>
+<td></td>
+</tr>
+<tr>
+<td>5.3</td>
+<td>Logs</td>
+<td>✅</td>
+<td></td>
+</tr>
+<tr>
+<td>5.4</td>
+<td>Dashboard</td>
+<td>✅</td>
+<td></td>
+</tr>
+<tr>
+<td>6.1</td>
+<td>Drone feeds</td>
+<td>✅</td>
+<td></td>
+</tr>
+<tr>
+<td>6.2</td>
+<td>IoT/sprinkler simulation</td>
+<td>✅</td>
+<td></td>
+</tr>
+<tr>
+<td>6.3</td>
+<td>Explainable AI</td>
+<td>⚠️</td>
+<td>Likhi hui wajah, visual nahi</td>
+</tr>
+<tr>
+<td>6.4</td>
+<td>Evacuation time</td>
+<td>✅</td>
+<td>Andaza</td>
+</tr>
+</tbody>
+</table></div>
+<hr /></section><section class="chapter" data-ch="26"><h1 id="ch26">26. Kya Reh Gaya (Functionality)</h1>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Functionality</th>
+<th>Abhi</th>
+<th>Hona chahiye</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><strong>Camera lost alert</strong></td>
+<td>Camera band ho (bijli jaye) to system chup</td>
+<td>30 sec frame na aaye to alert; zone mein aag ho to High</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>Asli CCTV camera</strong></td>
+<td>Sirf video file/photos</td>
+<td>RTSP camera live</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>Asli alerts pahunchna</strong></td>
+<td>Code bana, bhej kar check nahi</td>
+<td>Test number/email par tasdeeq</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>Aag phailne ka prediction</strong></td>
+<td>Nahi</td>
+<td>Agla ilaqa batana</td>
+</tr>
+<tr>
+<td>5</td>
+<td><strong>Camera ↔ naqsha</strong></td>
+<td>✅ Ban gaya: calibrated camera ka insaan naqshe par nuqta, click = raasta (asli camera par test baqi)</td>
+<td>Har insaan ka raasta bina click ke; aag ki jagah bhi naqshe par</td>
+</tr>
+<tr>
+<td>15</td>
+<td><strong>Simulated sensor data</strong></td>
+<td>Simulator ke sensors par SIMULATED ka nishaan nahi, Alarm par Auto sprinklers chal jaate hain</td>
+<td>Telemetry mein <code>simulated</code> flag</td>
+</tr>
+<tr>
+<td>6</td>
+<td><strong>Tircha kamre + seedhiyan</strong></td>
+<td>Seedhe kamre, har floor alag</td>
+<td>Har shakal, floors ke beech raasta</td>
+</tr>
+<tr>
+<td>7</td>
+<td><strong>Smart ETA</strong></td>
+<td>Faasla ÷ 1.2 m/s</td>
+<td>Bheer, dhuwan, seedhiyan</td>
+</tr>
+<tr>
+<td>8</td>
+<td><strong>Raat/fog/steam AI</strong></td>
+<td>Sirf andheri photos check</td>
+<td>IR/fog footage par test aur training</td>
+</tr>
+<tr>
+<td>9</td>
+<td><strong>Insaan AI ki jaanch</strong></td>
+<td>Precision pakki nahi</td>
+<td>Poore label wale data par test</td>
+</tr>
+<tr>
+<td>10</td>
+<td><strong>Bheer mein tracking</strong></td>
+<td>Saada tracker</td>
+<td>ByteTrack jaisa</td>
+</tr>
+<tr>
+<td>11</td>
+<td><strong>Visual explanation</strong></td>
+<td>Likhi wajah</td>
+<td>Grad-CAM</td>
+</tr>
+<tr>
+<td>12</td>
+<td><strong>Severity calibration</strong></td>
+<td>Screen ka %</td>
+<td>Har camera ke liye meters</td>
+</tr>
+<tr>
+<td>13</td>
+<td><strong>Rescue ko raasta SMS</strong></td>
+<td>Nahi</td>
+<td>Raasta SMS mein</td>
+</tr>
+<tr>
+<td>14</td>
+<td><strong>Kai servers</strong></td>
+<td>Dedupe ek process mein</td>
+<td>Shared lock (Redis)</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="ch26-aakhri-baat">Aakhri baat</h3>
+<ul>
+<li>AI <strong>madadgar</strong> hai, <strong>fire alarm ka badal nahi</strong>.</li>
+<li>Aag mein bijli jaye to camera band ho sakte hain: cameras UPS/PoE backup par.</li>
+<li>Asli fire-safety hardware ko test mein bina ijazat aur safe tareeqe ke na chalayein.</li>
+<li>Site par test aur certified fire-safety review ke baghair system <strong>production-safe nahi</strong>.</li>
+</ul></section>
+    <p id="noresult" class="hidden">Kuch nahi mila. Doosra lafz try karein.</p>
+  </main>
+</div>
+<button class="icon" id="totop" aria-label="Upar jayein">↑ Upar</button>
+<script>
+(() => {
+  const root = document.documentElement, store = (k, v) => { try { v === undefined ? null : localStorage.setItem(k, v); return localStorage.getItem(k); } catch { return null; } };
+  const saved = store('sentinel-theme'); if (saved) root.dataset.theme = saved;
+  document.getElementById('theme').onclick = () => {
+    const dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+    root.dataset.theme = dark ? 'light' : 'dark'; store('sentinel-theme', root.dataset.theme);
+  };
+  document.getElementById('menu').onclick = () => document.body.classList.toggle('toc-open');
+  document.querySelectorAll('nav.toc a').forEach(a => a.addEventListener('click', () => document.body.classList.remove('toc-open')));
+  document.getElementById('totop').onclick = () => scrollTo({ top: 0 });
+  // Test checkboxes: ticks are kept in this browser (localStorage) and shown as progress in the banner.
+  const tasks = [...document.querySelectorAll('li.task input')], tickKey = 'sentinel-ticks-v4';
+  if (tasks.length) {
+    let done = {}; try { done = JSON.parse(localStorage.getItem(tickKey) || '{}'); } catch { done = {}; }
+    const bar = document.getElementById('progress');
+    const show = () => { const n = tasks.filter(t => t.checked).length; bar.querySelector('span').textContent = `Tests: ${n} / ${tasks.length} ho gaye`; bar.querySelector('b').style.width = (100 * n / tasks.length) + '%'; };
+    tasks.forEach(t => { t.checked = !!done[t.dataset.task]; t.addEventListener('change', () => { done[t.dataset.task] = t.checked; try { localStorage.setItem(tickKey, JSON.stringify(done)); } catch {} show(); }); });
+    document.getElementById('reset').onclick = () => { done = {}; try { localStorage.removeItem(tickKey); } catch {} tasks.forEach(t => t.checked = false); show(); };
+    bar.classList.remove('hidden'); show();
+  }
+  document.querySelectorAll('pre').forEach(pre => {
+    const b = document.createElement('button'); b.className = 'copy'; b.textContent = 'Copy';
+    b.onclick = async () => { try { await navigator.clipboard.writeText(pre.innerText.replace(/Copy$/, '').trim()); b.textContent = 'Copied ✓'; } catch { b.textContent = 'Copy nahi hua'; } setTimeout(() => b.textContent = 'Copy', 1500); };
+    pre.appendChild(b);
+  });
+  // Highlight the chapter being read in the sidebar.
+  const links = new Map([...document.querySelectorAll('nav.toc a')].map(a => [a.dataset.ch, a]));
+  let ticking = false;
+  const markActive = () => {
+    ticking = false;
+    const current = [...document.querySelectorAll('section.chapter:not(.hidden)')].filter(s => s.getBoundingClientRect().top <= 160).pop();
+    links.forEach(l => l.classList.remove('active'));
+    if (current) links.get(current.dataset.ch)?.classList.add('active');
+  };
+  addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(markActive); } }, { passive: true });
+  markActive();
+  // Search: show only chapters that contain every typed word.
+  const q = document.getElementById('q'), sections = [...document.querySelectorAll('section.chapter')], labels = [...document.querySelectorAll('.part-label')];
+  const clearMarks = () => document.querySelectorAll('mark').forEach(m => m.replaceWith(m.textContent));
+  q.addEventListener('input', () => {
+    clearMarks(); document.querySelectorAll('section.chapter').forEach(s => s.normalize());
+    const words = q.value.toLowerCase().split(/\s+/).filter(Boolean); let shown = 0;
+    sections.forEach(s => {
+      const hit = !words.length || words.every(w => s.textContent.toLowerCase().includes(w));
+      s.classList.toggle('hidden', !hit); links.get(s.dataset.ch)?.parentElement.classList.toggle('hidden', !hit); shown += hit;
+      if (hit && words.length) {
+        const walker = document.createTreeWalker(s, NodeFilter.SHOW_TEXT), nodes = [];
+        while (walker.nextNode()) if (!walker.currentNode.parentElement.closest('pre, button')) nodes.push(walker.currentNode);
+        const rx = new RegExp('(' + words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')', 'gi');
+        nodes.forEach(n => { if (!rx.test(n.nodeValue)) return; rx.lastIndex = 0; const span = document.createElement('span'); span.innerHTML = n.nodeValue.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])).replace(rx, '<mark>$1</mark>'); n.replaceWith(...span.childNodes); });
+      }
+    });
+    labels.forEach(l => l.classList.toggle('hidden', words.length > 0));
+    document.querySelectorAll('nav.toc li.part').forEach(p => p.classList.toggle('hidden', words.length > 0));
+    document.getElementById('noresult').classList.toggle('hidden', shown > 0);
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-<article class="tile relative overflow-hidden rounded-xl border bg-black transition"
+<article class="relative overflow-hidden rounded-xl border bg-black transition"
          [class.border-ink-600]="!alertLevel()"
          [class.border-amber-500]="alertLevel() === 'elevated'"
          [class.tile-critical]="alertLevel() === 'critical'"
@@ -51,7 +51,12 @@
       <span class="chip">HUM <b class="text-green-400">{{ stats()?.humanCount ?? 0 }}</b></span>
       <span class="chip" [class.chip-danger]="(stats()?.dangerCount ?? 0) > 0">DANGER <b>{{ stats()?.dangerCount ?? 0 }}</b></span>
       @if (stats()?.simulated) { <span class="chip" title="Producer marked this data as simulated">SIM DATA</span> }
-      <span class="chip" [class.chip-fire]="stats()?.fireDetected">FIRE <b>{{ stats()?.fireDetected ? (stats()?.fireSeverity ?? 'YES') : '—' }}</b></span>
+      @if (stats()?.model; as m) {
+        <span class="chip" [title]="'Detections from AI model: ' + m">AI</span>
+        @if (m.includes(':missing')) { <span class="chip text-amber-300" [title]="'Model not loaded: ' + m">MODEL MISSING</span> }
+      }
+      @if (stats()?.smokeDetected) { <span class="chip chip-fire">SMOKE</span> }
+      <span class="chip" [class.chip-fire]="stats()?.fireDetected" title="Fire severity = share of the image covered by fire boxes, not a calibrated physical size">FIRE <b>{{ stats()?.fireDetected ? (stats()?.fireSeverity ?? 'YES') : '—' }}</b></span>
     </div>
     <div class="pointer-events-none absolute bottom-2.5 right-2.5 font-mono text-[10px] uppercase tracking-wider text-slate-400">{{ camera().locationZone }}</div>
   </div>

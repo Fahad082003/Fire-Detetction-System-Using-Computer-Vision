@@ -10,6 +10,8 @@ public class CameraFeed
     public StreamFormat StreamFormat { get; set; } = StreamFormat.Simulated;
     public CameraStatus Status { get; set; } = CameraStatus.Online;
     public string LocationZone { get; set; } = string.Empty;
+    /// <summary>JSON <see cref="DTOs.CameraCalibrationDto"/>: links this camera's frame to a floor plan; null = not calibrated.</summary>
+    public string? Calibration { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 

@@ -7,6 +7,8 @@ public interface ICameraService
 {
     Task<IReadOnlyList<CameraFeedDto>> GetAllAsync(CancellationToken ct = default);
     Task<CameraFeed> GetEntityAsync(string id, CancellationToken ct = default);
+    /// <summary>Saves (or with null clears) the camera ↔ floor-plan calibration.</summary>
+    Task<CameraFeedDto> SaveCalibrationAsync(string id, CameraCalibrationDto? calibration, CancellationToken ct = default);
 }
 
 public interface ISensorService

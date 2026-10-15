@@ -63,9 +63,7 @@ public class FloorPlanService(
         // Trust the file's magic bytes, not its name or the browser-supplied content type.
         var head = new byte[8];
         await using (var s = file.OpenReadStream()) _ = await s.ReadAtLeastAsync(head, head.Length, throwOnEndOfStream: false, ct);
-        var ext = head is [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A] ? ".png"
-                : head is [0xFF, 0xD8, 0xFF, ..] ? ".jpg"
-                : throw new AppValidationException("file", "Only PNG or JPG images are allowed.");
+        var ext = ImageExtension(head) ?? throw new AppValidationException("file", "Only PNG or JPG images are allowed.");
 
         var dir = ImageDirectory();
         Directory.CreateDirectory(dir);
@@ -100,7 +98,7 @@ public class FloorPlanService(
         var active = plan.Elements.Where(e => e.Type == FloorElementType.DangerZone
             && (e.IsActive || (!string.IsNullOrWhiteSpace(e.Zone) && openZones.Contains(e.Zone)))).ToList();
 
-        var r = EvacuationRouter.FindRoute(plan.WidthMeters, plan.HeightMeters, plan.Elements.ToList(), active, request.X, request.Y);
+        var r = EvacuationRouter.FindRoute(plan.WidthMeters, plan.HeightMeters, plan.Elements.ToList(), active, request.X, request.Y, _opt.DangerClearanceMeters);
         var speed = _opt.WalkingSpeedMetersPerSecond;
         var seconds = r.Found ? Math.Round(r.DistanceMeters / speed, 1) : 0;
 
@@ -108,6 +106,7 @@ public class FloorPlanService(
         var logZone = $"Floor plan #{plan.Id} {plan.Name}";
         var details = r.Found
             ? $"ESTIMATE: route from ({request.X:0.#}, {request.Y:0.#}) m to exit '{r.ExitName}': {r.DistanceMeters:0.#} m, ~{seconds:0} s at {speed} m/s"
+              + (r.ClearanceViolated ? $" | CLEARANCE VIOLATED: passes within {r.MinDangerGapMeters:0.#} m of an active danger zone (required {_opt.DangerClearanceMeters:0.#} m)" : "")
             : $"No safe route from ({request.X:0.#}, {request.Y:0.#}) m: {r.Message}";
         var last = await db.IncidentLogs.Where(l => l.Type == IncidentLogType.EvacuationRoute && l.Zone == logZone)
             .OrderByDescending(l => l.Id).Select(l => l.Details).FirstOrDefaultAsync(ct);
@@ -115,8 +114,13 @@ public class FloorPlanService(
             await alerts.AddLogAsync(new IncidentLog { Type = IncidentLogType.EvacuationRoute, Zone = logZone, Details = details }, ct);
 
         return new RouteResultDto(r.Found, r.Message, r.Path, r.DistanceMeters, seconds, speed, r.ExitName, r.StartInDangerZone,
-            active.Select(e => string.IsNullOrWhiteSpace(e.Name) ? "Danger zone" : e.Name).ToList());
+            active.Select(e => string.IsNullOrWhiteSpace(e.Name) ? "Danger zone" : e.Name).ToList(),
+            r.ClearanceViolated, r.MinDangerGapMeters, _opt.DangerClearanceMeters);
     }
+
+    /// <summary>".png" / ".jpg" from the file's magic bytes, or null for anything else.</summary>
+    public static string? ImageExtension(ReadOnlySpan<byte> head) =>
+        head is [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, ..] ? ".png" : head is [0xFF, 0xD8, 0xFF, ..] ? ".jpg" : null;
 
     private async Task<FloorPlan> FindAsync(int id, CancellationToken ct) =>
         await db.FloorPlans.Include(p => p.Elements).FirstOrDefaultAsync(p => p.Id == id, ct)

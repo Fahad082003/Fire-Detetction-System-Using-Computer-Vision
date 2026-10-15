@@ -118,6 +118,29 @@ public class FloorPlanAndLogTests(SentinelApiFactory factory) : IClassFixture<Se
         Assert.All(filtered!, l => Assert.Equal(IncidentLogType.FireMeasurement, l.Type));
     }
 
+    [Fact]
+    public async Task Camera_calibration_is_validated_saved_and_cleared()
+    {
+        var op = await factory.OperatorClientAsync();
+        var plan = (await (await op.PostAsJsonAsync("/api/floorplans", Plan())).Content.ReadFromJsonAsync<FloorPlanDto>(Json))!;
+        const string url = "/api/cameras/cam-lobby/calibration";
+        double[][] image = [[100, 600], [1100, 600], [900, 200], [300, 200]], floor = [[0, 0], [20, 0], [20, 10], [0, 10]];
+        object Body(double[][] planPoints, int? planId = null) => new { floorPlanId = planId ?? plan.Id, imagePoints = image, planPoints };
+
+        Assert.Equal(HttpStatusCode.BadRequest, (await op.PutAsJsonAsync(url, Body([[0, 0], [10, 0], [20, 0], [0, 10]]))).StatusCode); // 3 on one line
+        Assert.Equal(HttpStatusCode.BadRequest, (await op.PutAsJsonAsync(url, Body([[0, 0], [25, 0], [20, 10], [0, 10]]))).StatusCode); // outside 20 x 10 m
+        Assert.Equal(HttpStatusCode.BadRequest, (await op.PutAsJsonAsync(url, Body(floor, planId: 999_999))).StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await factory.DeviceClient().PutAsJsonAsync(url, Body(floor))).StatusCode);
+
+        var saved = await (await op.PutAsJsonAsync(url, Body(floor))).Content.ReadFromJsonAsync<CameraFeedDto>(Json);
+        Assert.Equal(plan.Id, saved!.Calibration!.FloorPlanId);
+        var listed = await op.GetFromJsonAsync<List<CameraFeedDto>>("/api/cameras", Json);
+        Assert.Equal(floor, listed!.Single(c => c.Id == "cam-lobby").Calibration!.PlanPoints);
+
+        var cleared = await (await op.DeleteAsync(url)).Content.ReadFromJsonAsync<CameraFeedDto>(Json);
+        Assert.Null(cleared!.Calibration);
+    }
+
     private static async Task<HttpResponseMessage> Upload(HttpClient client, int id, byte[] bytes, string name)
     {
         var content = new MultipartFormDataContent();

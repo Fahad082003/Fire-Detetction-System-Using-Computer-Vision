@@ -16,18 +16,21 @@
   } @else if (plan(); as p) {
     <div class="p-3">
       <app-floor-plan-map [width]="p.widthMeters" [height]="p.heightMeters" [elements]="p.elements" [imageUrl]="imageUrl()"
-                          [route]="result()?.path ?? null" [start]="start()" [activeDanger]="result()?.activeDangerZones ?? []"
+                          [route]="result()?.path ?? null" [start]="start()" [people]="people()" [activeDanger]="result()?.activeDangerZones ?? []"
                           (pointer)="onPointer($event)" />
 
       <div class="mt-3 text-sm" aria-live="polite">
         @if (!start()) {
-          <p class="text-slate-500">Click the person's <b>known</b> position on the plan. Positions are entered manually — there is no indoor tracking.</p>
+          <p class="text-slate-500">Click the person's <b>known</b> position on the plan, or an <span class="text-amber-400">amber dot</span>:
+            a person seen by a camera calibrated to this plan (Floor Plans → Camera calibration). The dot is an estimate from the camera.</p>
         } @else if (routing()) {
           <p class="text-slate-500">Calculating…</p>
         } @else if (error(); as e) {
           <p class="text-red-400" role="alert">{{ e }}</p>
         } @else if (result(); as r) {
-          @if (r.found) {
+          @if (r.found && r.clearanceViolated) {
+            <p class="font-semibold text-red-400" role="alert">⚠ {{ r.message }}</p>
+          } @else if (r.found) {
             <p class="font-semibold text-green-400">{{ r.message }}</p>
             <p class="mt-1 text-slate-300">
               Distance <b>{{ r.distanceMeters | number: '1.0-1' }} m</b> · Estimated walking time <b>~{{ r.estimatedSeconds | number: '1.0-0' }} s</b>

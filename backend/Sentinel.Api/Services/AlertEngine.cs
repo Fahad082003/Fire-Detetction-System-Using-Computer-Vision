@@ -42,9 +42,9 @@ public class AlertEngine(
     /// <summary>Severity of an AI frame, or null when nothing is alert-worthy.</summary>
     public static Severity? ClassifyDetection(DetectionFrameDto f)
     {
-        if (!f.FireDetected && f.DangerCount == 0) return null;
+        if (!f.FireDetected && f.DangerCount == 0 && !f.SmokeDetected) return null;
 
-        var severity = Severity.Low;
+        var severity = f.SmokeDetected ? Severity.Medium : Severity.Low; // smoke without flames still needs an operator
         if (f.FireDetected)
         {
             severity = f.FireSeverity ?? Severity.Medium;
@@ -76,12 +76,13 @@ public class AlertEngine(
         var zone = camera?.LocationZone ?? "Unassigned";
         var parts = new List<string>();
         if (frame.FireDetected) parts.Add(frame.FireSeverity is { } fs ? $"Fire detected ({fs})" : "Fire detected");
+        if (frame.SmokeDetected) parts.Add("Smoke detected");
         var dangerZones = frame.Detections.Where(d => d.DangerZone is not null).Select(d => d.DangerZone).Distinct().ToList();
         if (frame.DangerCount > 0)
             parts.Add($"{frame.DangerCount} human(s) in danger zone{(dangerZones.Count > 0 ? $" '{string.Join("', '", dangerZones)}'" : "")}");
         if (frame.HumanCount > 0) parts.Add($"{frame.HumanCount} human(s) in view");
         var cameraName = camera?.Name ?? frame.CameraId;
-        var simulated = frame.Simulated ? " [SIMULATED DATA]" : "";
+        var simulated = (frame.Model is null ? "" : $" [AI {frame.Model}]") + (frame.Simulated ? " [SIMULATED DATA]" : "");
 
         var (incident, action) = await UpsertIncidentAsync(new IncidentDraft(
             IncidentSource.Vision, zone, severity.Value, camera?.Id, null, frame.FireDetected, frame.FireSeverity,
@@ -243,7 +244,10 @@ public class AlertEngine(
             if (dispatcher.Enqueue(incident, forceNotify))
                 logger.LogInformation("Emergency notifications queued for incident #{Id}", incident.Id);
         }
-        if (emergency)
+        if (emergency && simulated && !_opt.AutoSprinklerOnSimulatedData)
+            await realtime.ActivityAsync("warning",
+                $"Incident #{incident.Id}: sprinkler auto-activation skipped, the triggering data is SIMULATED (Alerts:AutoSprinklerOnSimulatedData=false)", incident.Zone);
+        else if (emergency)
             await sprinklers.AutoActivateZoneAsync(incident.Zone, $"emergency incident #{incident.Id}", ct);
     }
 }

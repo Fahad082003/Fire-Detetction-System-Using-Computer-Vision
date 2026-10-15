@@ -2,7 +2,8 @@ using Sentinel.Api.Models;
 
 namespace Sentinel.Api.Services;
 
-public record RouteResult(bool Found, string Message, List<double[]> Path, double DistanceMeters, string? ExitName, bool StartInDangerZone)
+public record RouteResult(bool Found, string Message, List<double[]> Path, double DistanceMeters, string? ExitName, bool StartInDangerZone,
+    bool ClearanceViolated = false, double? MinDangerGapMeters = null)
 {
     public static RouteResult Fail(string message, bool startInDanger = false) => new(false, message, [], 0, null, startInDanger);
 }
@@ -12,14 +13,19 @@ public record RouteResult(bool Found, string Message, List<double[]> Path, doubl
 /// rooms, corridors, doors, exits and safe zones are walkable; walls (unless an open door/exit overlaps them),
 /// blocked doors/exits and active danger zones are obstacles. Dijkstra with 8 neighbours finds the nearest
 /// reachable open exit, so a blocked nearest exit automatically yields the next reachable one.
+/// Clearance: cells closer than <c>clearanceMeters</c> to an active danger zone cost <see cref="NearDangerCostFactor"/>
+/// times more, so the route keeps its distance whenever any other way exists. A route that still enters that band
+/// is returned with <see cref="RouteResult.ClearanceViolated"/> and an explicit warning, never as a normal route.
 /// </summary>
 public static class EvacuationRouter
 {
     private const double BaseCellMeters = 0.5;
     private const int MaxCells = 200_000;
+    /// <summary>Large enough that any detour through free space beats a step next to a danger zone.</summary>
+    public const double NearDangerCostFactor = 1000;
 
     public static RouteResult FindRoute(double width, double height, IReadOnlyList<FloorPlanElement> elements,
-        IReadOnlyCollection<FloorPlanElement> activeDanger, double startX, double startY)
+        IReadOnlyCollection<FloorPlanElement> activeDanger, double startX, double startY, double clearanceMeters = 0)
     {
         if (!elements.Any(e => e.Type is FloorElementType.Room or FloorElementType.Corridor))
             return RouteResult.Fail("Floor plan has no rooms or corridors, so no walkable area is defined.");
@@ -39,6 +45,8 @@ public static class EvacuationRouter
         int cols = (int)Math.Ceiling(width / cell), rows = (int)Math.Ceiling(height / cell), n = cols * rows;
         var free = new bool[n];
         var goal = new bool[n];
+        var gap = new double[n]; // distance from the cell square to the nearest active danger zone
+        Array.Fill(gap, double.PositiveInfinity);
         for (var r = 0; r < rows; r++)
         for (var c = 0; c < cols; c++)
         {
@@ -51,6 +59,7 @@ public static class EvacuationRouter
             var i = r * cols + c;
             free[i] = true;
             goal[i] = exits.Any(e => Inside(e, cx, cy));
+            foreach (var z in dangers) gap[i] = Math.Min(gap[i], Gap(z, x0, y0, cell));
         }
 
         int sc = Math.Clamp((int)(startX / cell), 0, cols - 1), sr = Math.Clamp((int)(startY / cell), 0, rows - 1);
@@ -85,7 +94,7 @@ public static class EvacuationRouter
                 if (!free[v]) continue;
                 var diagonal = dr != 0 && dc != 0;
                 if (diagonal && (!free[ur * cols + nc] || !free[nr * cols + uc])) continue; // no corner cutting
-                var nd = du + (diagonal ? Math.Sqrt(2) : 1) * cell;
+                var nd = du + (diagonal ? Math.Sqrt(2) : 1) * cell * (gap[v] < clearanceMeters ? NearDangerCostFactor : 1);
                 if (nd < dist[v]) { dist[v] = nd; prev[v] = u; queue.Enqueue(v, nd); }
             }
         }
@@ -108,10 +117,24 @@ public static class EvacuationRouter
 
         double gx = (reached % cols + 0.5) * cell, gy = (reached / cols + 0.5) * cell;
         var exitName = exits.First(e => Inside(e, gx, gy)).Name;
-        return new RouteResult(true, startDanger.Count > 0
-                ? $"Route to exit '{exitName}'. Start point is inside an active danger zone: leave immediately."
-                : $"Route to exit '{exitName}'.",
-            path, Math.Round(distance, 2), exitName, startDanger.Count > 0);
+        double? minGap = dangers.Count > 0 ? Math.Round(cells.Min(c => gap[c]), 2) : null;
+        var violated = minGap < clearanceMeters;
+        var message = startDanger.Count > 0
+            ? $"Route to exit '{exitName}'. Start point is inside an active danger zone: leave immediately."
+            : $"Route to exit '{exitName}'.";
+        if (violated)
+            message = $"NO route keeps the required {clearanceMeters:0.#} m clearance from active danger zones. "
+                      + $"The least-exposed route to exit '{exitName}' passes within {minGap:0.#} m of danger: it is NOT a safe route, verify on site."
+                      + (startDanger.Count > 0 ? " Start point is inside an active danger zone: leave immediately." : "");
+        return new RouteResult(true, message, path, Math.Round(distance, 2), exitName, startDanger.Count > 0, violated, minGap);
+    }
+
+    /// <summary>Shortest distance between element <paramref name="e"/> and the square cell at (x0, y0); 0 when they touch.</summary>
+    private static double Gap(FloorPlanElement e, double x0, double y0, double size)
+    {
+        double dx = Math.Max(0, Math.Max(e.X - (x0 + size), x0 - (e.X + e.Width)));
+        double dy = Math.Max(0, Math.Max(e.Y - (y0 + size), y0 - (e.Y + e.Height)));
+        return Math.Sqrt(dx * dx + dy * dy);
     }
 
     public static bool Inside(FloorPlanElement e, double x, double y) =>

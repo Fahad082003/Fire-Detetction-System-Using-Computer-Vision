@@ -34,6 +34,7 @@ public class SentinelDbContext(DbContextOptions<SentinelDbContext> options) : Db
             e.Property(x => x.Id).HasMaxLength(64);
             e.Property(x => x.Name).HasMaxLength(120).IsRequired();
             e.Property(x => x.StreamUrl).HasMaxLength(500);
+            e.Property(x => x.Calibration).HasMaxLength(2000);
             e.Property(x => x.LocationZone).HasMaxLength(64).IsRequired();
             e.HasIndex(x => x.LocationZone);
         });

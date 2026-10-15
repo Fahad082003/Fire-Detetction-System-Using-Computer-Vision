@@ -17,10 +17,11 @@ export class AuthService {
   private readonly session = signal<StoredSession | null>(this.restore());
 
   readonly user = computed(() => this.session()?.user ?? null);
-  readonly isLoggedIn = computed(() => {
+  /** A method, not computed(): it must re-check the clock on every call, not only when the session changes. */
+  isLoggedIn(): boolean {
     const s = this.session();
     return !!s && new Date(s.expiresAt).getTime() > Date.now();
-  });
+  }
 
   /** Current bearer token, or null when logged out / expired. */
   token(): string | null {

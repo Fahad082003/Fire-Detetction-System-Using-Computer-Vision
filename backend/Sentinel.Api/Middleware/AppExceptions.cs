@@ -20,3 +20,10 @@ public class AppValidationException : Exception
 
 /// <summary>Thrown when credentials are wrong or an account is disabled (→ HTTP 401).</summary>
 public class UnauthorizedAppException(string message) : Exception(message);
+
+/// <summary>An external service (e.g. the AI inference service) is unconfigured, down, too slow or answered badly.</summary>
+public class DependencyException(int statusCode, string title, string message) : Exception(message)
+{
+    public int StatusCode { get; } = statusCode;
+    public string Title { get; } = title;
+}

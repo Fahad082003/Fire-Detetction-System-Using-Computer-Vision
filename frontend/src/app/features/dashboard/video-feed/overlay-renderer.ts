@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { FRAME_STALE_MS as STALE_MS } from '../../../core/services/signalr.service';
 import { DangerZone, DetectionFrame, Heatmap } from '../../../shared/models/api.models';
 
 /** Box colours: Fire = red, Humans = green, humans inside a danger zone = pulsing amber. */
@@ -13,7 +14,6 @@ export const OVERLAY_COLORS = {
 } as const;
 const ZONE_RGB: Record<DangerZone['level'], string> = { Warning: '245,158,11', Danger: '239,68,68', Critical: '220,38,38', Safe: '34,197,94' };
 const LABEL_FONT = '600 11px "JetBrains Mono", Consolas, monospace';
-export const STALE_MS = 1500;
 const EXPIRE_MS = 4500;
 const EASING_RATE = 14;
 

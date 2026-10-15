@@ -71,6 +71,10 @@ let nextUid = 0;
           <polyline [attr.points]="pts" fill="none" stroke="#22c55e" [attr.stroke-width]="labelSize() * 0.6"
                     stroke-linejoin="round" stroke-linecap="round" [attr.marker-end]="'url(#' + uid + '-arrow)'" class="pointer-events-none" />
         }
+        @for (q of people(); track $index) {
+          <circle [attr.cx]="q.x" [attr.cy]="q.y" [attr.r]="labelSize() * 0.6" fill="#f59e0b" stroke="#000" stroke-width="1"
+                  vector-effect="non-scaling-stroke" class="pointer-events-none" />
+        }
         @if (start(); as st) {
           <circle [attr.cx]="st[0]" [attr.cy]="st[1]" [attr.r]="labelSize() * 0.8" fill="#22d3ee" stroke="#fff" stroke-width="1.5"
                   vector-effect="non-scaling-stroke" class="pointer-events-none" />
@@ -91,6 +95,8 @@ export class FloorPlanMapComponent {
   readonly imageUrl = input<string | null>(null);
   readonly route = input<[number, number][] | null>(null);
   readonly start = input<[number, number] | null>(null);
+  /** Live people placed on the plan from calibrated cameras (meters). */
+  readonly people = input<{ x: number; y: number }[]>([]);
   readonly selected = input<number | null>(null);
   readonly preview = input<PlanRect | null>(null);
   /** Names of danger zones that are currently active (shown with a stronger red). */

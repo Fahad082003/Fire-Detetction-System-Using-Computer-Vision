@@ -9,8 +9,16 @@ namespace Sentinel.Api.Tests;
 
 public class AlertRulesTests
 {
-    private static DetectionFrameDto Frame(bool fire = false, Severity? fireSeverity = null, int humans = 0, int danger = 0) =>
-        new("cam-1", DateTime.UtcNow, 1280, 720, false, [], [], null, [], fire, fireSeverity, humans, danger);
+    private static DetectionFrameDto Frame(bool fire = false, Severity? fireSeverity = null, int humans = 0, int danger = 0, bool smoke = false) =>
+        new("cam-1", DateTime.UtcNow, 1280, 720, false, [], [], null, [], fire, fireSeverity, humans, danger, SmokeDetected: smoke);
+
+    [Fact]
+    public void Smoke_without_flames_is_medium_but_not_an_emergency()
+    {
+        Assert.Equal(Severity.Medium, AlertEngine.ClassifyDetection(Frame(smoke: true)));
+        Assert.False(AlertEngine.IsEmergency(Frame(smoke: true)));
+        Assert.Equal(Severity.High, AlertEngine.ClassifyDetection(Frame(fire: true, fireSeverity: Severity.High, smoke: true)));
+    }
 
     [Fact]
     public void Nothing_alertworthy_returns_null() =>

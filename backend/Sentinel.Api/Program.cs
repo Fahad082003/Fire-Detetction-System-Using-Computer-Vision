@@ -40,6 +40,8 @@ builder.Services.Configure<DeviceOptions>(config.GetSection(DeviceOptions.Sectio
 builder.Services.Configure<SeedOptions>(config.GetSection(SeedOptions.Section));
 builder.Services.Configure<NotificationOptions>(config.GetSection(NotificationOptions.Section));
 builder.Services.Configure<FloorPlanOptions>(config.GetSection(FloorPlanOptions.Section));
+builder.Services.Configure<AiServiceOptions>(config.GetSection(AiServiceOptions.Section));
+builder.Services.AddHttpClient<AiInferenceClient>();
 
 var jwt = config.GetSection(JwtOptions.Section).Get<JwtOptions>() ?? new JwtOptions();
 if (string.IsNullOrWhiteSpace(jwt.SigningKey) || jwt.SigningKey.Length < 32)
@@ -92,9 +94,9 @@ builder.Services.AddScoped<DbSeeder>();
 
 // ---------------------------------------------------------------- web: JSON, SignalR, CORS, rate limit
 builder.Services.AddControllers()
-    .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+    .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(allowIntegerValues: false)));
 builder.Services.AddSignalR(o => o.MaximumReceiveMessageSize = 512 * 1024)
-    .AddJsonProtocol(o => o.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+    .AddJsonProtocol(o => o.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter(allowIntegerValues: false)));
 
 var allowedOrigins = config.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? ["http://localhost:4200"];
 builder.Services.AddCors(o => o.AddPolicy("Frontend", p =>

@@ -106,6 +106,39 @@
         }
       </section>
 
+      <section class="panel flex flex-col gap-2 p-4" aria-label="Camera calibration">
+        <h3 class="panel-title">Camera calibration</h3>
+        <p class="text-[11px] text-slate-500">Links a camera to this plan, so people it sees appear as amber dots in the dashboard's evacuation panel.
+          Choose 4 floor corners that the camera sees. <b>Camera px</b>: read x, y from a camera snapshot (Paint shows them at the bottom).
+          <b>Plan m</b>: type them, or press <b>Plan m ⌖</b> and click the plan. Save the plan first.</p>
+        <select class="input" [value]="calibCamera()?.id ?? ''" (change)="chooseCamera($any($event.target).value)" aria-label="Camera">
+          <option value="">Choose a camera…</option>
+          @for (c of live.cameras(); track c.id) {
+            <option [value]="c.id">{{ c.name }} ({{ c.id }}){{ c.calibration ? (c.calibration.floorPlanId === current()?.id ? ' · calibrated here' : ' · calibrated to another plan') : '' }}</option>
+          }
+        </select>
+        @if (calibCamera(); as cam) {
+          <ol class="flex flex-col gap-2 text-xs">
+            @for (row of [0, 1, 2, 3]; track row) {
+              <li class="grid grid-cols-[4.5rem_1fr_1fr] items-center gap-1 rounded-lg border border-ink-700 p-1.5">
+                <span class="text-slate-400">{{ row + 1 }} · Camera px</span>
+                <input class="input !h-7 w-full min-w-0 !px-1.5 text-xs" type="number" min="0" [value]="calibImage()[row][0]" (change)="calibInput('image', row, 0, $event)" [attr.aria-label]="'Point ' + (row + 1) + ' camera x'" />
+                <input class="input !h-7 w-full min-w-0 !px-1.5 text-xs" type="number" min="0" [value]="calibImage()[row][1]" (change)="calibInput('image', row, 1, $event)" [attr.aria-label]="'Point ' + (row + 1) + ' camera y'" />
+                <button type="button" class="btn btn-sm !px-1.5" [class.btn-success]="calibPick() === row" (click)="calibPick.set(calibPick() === row ? null : row)" [attr.aria-label]="'Pick point ' + (row + 1) + ' on the plan'">Plan m ⌖</button>
+                <input class="input !h-7 w-full min-w-0 !px-1.5 text-xs" type="number" min="0" step="0.1" [value]="calibPlan()[row][0]" (change)="calibInput('plan', row, 0, $event)" [attr.aria-label]="'Point ' + (row + 1) + ' plan x'" />
+                <input class="input !h-7 w-full min-w-0 !px-1.5 text-xs" type="number" min="0" step="0.1" [value]="calibPlan()[row][1]" (change)="calibInput('plan', row, 1, $event)" [attr.aria-label]="'Point ' + (row + 1) + ' plan y'" />
+              </li>
+            }
+          </ol>
+          @if (calibPick() !== null) { <p class="text-[11px] text-cyan-300">Click point {{ calibPick()! + 1 }} on the plan.</p> }
+          <div class="flex gap-2">
+            <button type="button" class="btn btn-sm btn-success" (click)="saveCalibration()" [disabled]="dirty()">Save calibration</button>
+            @if (cam.calibration) { <button type="button" class="btn btn-sm btn-ghost text-red-400" (click)="clearCalibration()">Remove</button> }
+          </div>
+          @if (dirty()) { <p class="text-[11px] text-amber-400">Save the plan first.</p> }
+        }
+      </section>
+
       <section class="panel p-4 text-xs text-slate-400" aria-label="Legend">
         <h3 class="panel-title mb-2">Legend</h3>
         <ul class="grid grid-cols-2 gap-1.5">

@@ -16,7 +16,7 @@ public class DashboardService(SentinelDbContext db, IOptions<AlertOptions> optio
     public async Task<DashboardSnapshotDto> GetSnapshotAsync(CancellationToken ct = default)
     {
         var cameras = await db.CameraFeeds.AsNoTracking().OrderBy(c => c.FeedType).ThenBy(c => c.Name).ToListAsync(ct);
-        var sensors = await db.SensorNodes.AsNoTracking().OrderBy(s => s.LocationZone).ThenBy(s => s.Type).ToListAsync(ct);
+        var sensors = await db.SensorNodes.AsNoTracking().OrderBy(s => s.LocationZone).ThenBy(s => s.Type).ThenBy(s => s.Id).ToListAsync(ct);
         var sprinklers = await db.SmartSprinklers.AsNoTracking().OrderBy(s => s.Zone).ThenBy(s => s.Id).ToListAsync(ct);
         var incidents = await db.IncidentAlerts.AsNoTracking().Include(i => i.Camera)
             .OrderByDescending(i => i.Timestamp).Take(50).ToListAsync(ct);

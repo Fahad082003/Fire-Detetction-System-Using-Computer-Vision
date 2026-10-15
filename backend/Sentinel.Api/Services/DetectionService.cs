@@ -14,8 +14,7 @@ public class DetectionService(IAlertEngine alerts, IRealtimeNotifier realtime) :
         // 1) Overlay first: dashboards draw boxes at stream rate, before any database work.
         await realtime.DetectionAsync(frame);
 
-        // 2) Alert routine only for alert-worthy frames.
-        if (!frame.FireDetected && frame.DangerCount == 0) return (frame, null);
+        // 2) Alert routine (returns null for frames that are not alert-worthy).
         var incident = await alerts.EvaluateDetectionAsync(frame, ct);
         return (frame, incident?.Id);
     }

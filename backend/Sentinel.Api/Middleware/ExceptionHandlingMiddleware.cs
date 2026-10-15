@@ -39,6 +39,7 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
                 Title = v.Message,
             },
             NotFoundException => new ProblemDetails { Status = StatusCodes.Status404NotFound, Title = "Not found", Detail = ex.Message },
+            DependencyException d => new ProblemDetails { Status = d.StatusCode, Title = d.Title, Detail = ex.Message },
             UnauthorizedAppException => new ProblemDetails { Status = StatusCodes.Status401Unauthorized, Title = "Unauthorized", Detail = ex.Message },
             _ => new ProblemDetails
             {
@@ -48,7 +49,9 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
             },
         };
 
-        if (problem.Status >= 500)
+        if (ex is DependencyException)  // expected operational state (e.g. AI service down): no stack trace
+            logger.LogWarning("{Title} for {Method} {Path}: {Detail}", problem.Title, context.Request.Method, context.Request.Path, ex.Message);
+        else if (problem.Status >= 500)
             logger.LogError(ex, "Unhandled exception for {Method} {Path}", context.Request.Method, context.Request.Path);
 
         problem.Extensions["traceId"] = context.TraceIdentifier;

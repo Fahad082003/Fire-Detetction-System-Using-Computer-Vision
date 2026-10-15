@@ -1,0 +1,110 @@
+<main class="grid items-start gap-3.5 p-3 md:p-5 xl:grid-cols-[360px_minmax(0,1fr)]">
+  <!-- ================= service status ================= -->
+  <section class="panel" aria-labelledby="ai-status-title">
+    <header class="panel-head">
+      <h2 id="ai-status-title" class="panel-title">AI inference service</h2>
+      <button type="button" class="btn btn-sm" (click)="refresh()">Refresh</button>
+    </header>
+    <div class="space-y-3 p-4 text-sm">
+      @if (statusError(); as e) {
+        <p class="text-red-400" role="alert">{{ e }}</p>
+      } @else if (status(); as s) {
+        @if (!s.configured) {
+          <p class="font-semibold text-amber-400">Not configured: {{ s.error }}</p>
+        } @else if (!s.online) {
+          <p class="font-semibold text-red-400" role="alert">OFFLINE · {{ s.error }}</p>
+          <p class="text-xs text-slate-500">No AI detections are produced while the service is offline. Start it with
+            <code>python -m sentinel_ai</code> in <code>ai-service/</code>.</p>
+        } @else if (s.service; as svc) {
+          <p class="font-semibold" [class]="svc.status === 'ok' ? 'text-green-400' : 'text-amber-400'">
+            ONLINE · {{ svc.status === 'ok' ? 'all models loaded' : svc.status === 'degraded' ? 'some models missing' : 'no model loaded' }}
+          </p>
+          <ul class="space-y-2">
+            @for (m of svc.models; track m.name) {
+              <li class="rounded-lg border border-ink-700 p-2">
+                <div class="flex items-center gap-2">
+                  <span class="h-2 w-2 rounded-full" [class]="m.loaded ? 'bg-green-500' : 'bg-red-500'"></span>
+                  <b>{{ m.name }}</b><span class="text-xs text-slate-500">{{ m.categories.join(', ') }} · threshold {{ m.threshold }}</span>
+                </div>
+                <div class="mt-1 text-xs text-slate-400">{{ m.file }} · {{ m.license }}</div>
+                @if (m.note) { <div class="mt-1 text-xs text-amber-300">{{ m.note }}</div> }
+                @if (m.error) { <div class="mt-1 text-xs text-red-300">{{ m.error }}</div> }
+              </li>
+            }
+          </ul>
+          <p class="text-xs text-slate-400">Inferences: {{ svc.inference.count }}@if (svc.inference.avgMs !== null) { · average {{ svc.inference.avgMs }} ms}</p>
+          <h3 class="panel-title">Camera sources</h3>
+          @if (svc.cameras.length) {
+            <ul class="space-y-1 text-xs">
+              @for (c of svc.cameras; track c.cameraId) {
+                <li>
+                  <b>{{ c.cameraId }}</b> · {{ c.kind }}@if (c.simulated) { · <span class="text-amber-300">SIMULATED / TEST INPUT</span>}
+                  · {{ c.state }} · sent {{ c.framesSent }}@if (c.error) { · <span class="text-red-300">{{ c.error }}</span>}
+                </li>
+              }
+            </ul>
+          } @else {
+            <p class="text-xs text-slate-500">No camera configured in ai-service/config.json. Dashboard feeds without an AI source show "NO AI DATA".</p>
+          }
+        }
+      } @else {
+        <p class="text-slate-500">Checking…</p>
+      }
+    </div>
+  </section>
+
+  <!-- ================= test image ================= -->
+  <section class="panel" aria-labelledby="ai-test-title">
+    <header class="panel-head">
+      <h2 id="ai-test-title" class="panel-title">Test image analysis</h2>
+      <label class="btn btn-sm btn-success cursor-pointer">
+        Choose image…
+        <input type="file" accept="image/png,image/jpeg" class="sr-only" (change)="onFile($event)" [disabled]="busy()" />
+      </label>
+    </header>
+    <div class="space-y-3 p-4 text-sm">
+      <p class="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+        TEST INPUT · preview only. The real models run on this image, but no incident, alert, notification or sprinkler action is created.
+        A single image has no multi-frame confirmation, so expect more false positives than on live cameras.
+      </p>
+      @if (busy()) { <p class="text-slate-400">Running inference… (CPU inference can take a few seconds)</p> }
+      @if (error(); as e) { <p class="font-semibold text-red-400" role="alert">{{ e }}</p> }
+      @if (imageUrl(); as url) {
+        <div class="relative inline-block max-w-full">
+          <img [src]="url" alt="Uploaded test image" class="block max-h-[60vh] max-w-full" />
+          @if (result(); as r) {
+            <svg class="pointer-events-none absolute inset-0 h-full w-full" [attr.viewBox]="'0 0 ' + r.frame.frameWidth + ' ' + r.frame.frameHeight"
+                 preserveAspectRatio="none" aria-hidden="true">
+              @for (d of r.frame.detections; track $index) {
+                <rect [attr.x]="d.bbox[0]" [attr.y]="d.bbox[1]" [attr.width]="d.bbox[2]" [attr.height]="d.bbox[3]"
+                      fill="none" [attr.stroke]="color(d)" stroke-width="3" vector-effect="non-scaling-stroke" />
+              }
+            </svg>
+          }
+        </div>
+      }
+      @if (result(); as r) {
+        <p class="text-xs text-slate-400">Model: <b>{{ r.frame.model ?? 'not reported' }}</b> · inference {{ r.inferenceMs | number: '1.0-0' }} ms ·
+          fire {{ r.frame.fireDetected ? (r.frame.fireSeverity ?? 'yes') + ' (by image area, not physical size)' : 'no' }} · smoke {{ r.frame.smokeDetected ? 'yes' : 'no' }} · people {{ r.frame.humanCount }}</p>
+        @if (r.frame.detections.length) {
+          <table class="w-full text-left text-xs">
+            <thead class="text-slate-500"><tr><th class="py-1">Class</th><th>Confidence</th><th>Box (px)</th><th>Why (evidence)</th></tr></thead>
+            <tbody>
+              @for (d of r.frame.detections; track $index) {
+                <tr class="border-t border-ink-700 align-top">
+                  <td class="py-1 font-semibold" [style.color]="color(d)">{{ d.label ?? d.category }}</td>
+                  <td>{{ d.confidence * 100 | number: '1.0-0' }}%</td>
+                  <td class="font-mono">{{ d.bbox[0] | number: '1.0-0' }}, {{ d.bbox[1] | number: '1.0-0' }}, {{ d.bbox[2] | number: '1.0-0' }}×{{ d.bbox[3] | number: '1.0-0' }}</td>
+                  <td class="text-slate-400">{{ d.explanation ?? '—' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        } @else {
+          <p class="text-slate-400">The loaded models found nothing above their confidence thresholds.
+            This is not proof the scene is safe, especially if a model is missing (see status).</p>
+        }
+      }
+    </div>
+  </section>
+</main>

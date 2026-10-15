@@ -42,7 +42,8 @@ public class RouteRequest
 /// <summary>Estimated route to the nearest reachable exit. EstimatedSeconds = DistanceMeters / WalkingSpeedMetersPerSecond.</summary>
 public record RouteResultDto(
     bool Found, string Message, IReadOnlyList<double[]> Path, double DistanceMeters, double EstimatedSeconds,
-    double WalkingSpeedMetersPerSecond, string? ExitName, bool StartInDangerZone, IReadOnlyList<string> ActiveDangerZones);
+    double WalkingSpeedMetersPerSecond, string? ExitName, bool StartInDangerZone, IReadOnlyList<string> ActiveDangerZones,
+    bool ClearanceViolated, double? MinDangerGapMeters, double RequiredClearanceMeters);
 
 public record IncidentLogDto(
     long Id, int? IncidentId, IncidentLogType Type, DateTime Timestamp, string Zone, string Details,

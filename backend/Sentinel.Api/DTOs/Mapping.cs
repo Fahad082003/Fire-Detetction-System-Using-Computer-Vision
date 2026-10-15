@@ -8,7 +8,8 @@ namespace Sentinel.Api.DTOs;
 public static class Mapping
 {
     public static CameraFeedDto ToDto(this CameraFeed c) =>
-        new(c.Id, c.Name, c.FeedType, c.StreamUrl, c.StreamFormat, c.Status, c.LocationZone, c.UpdatedAt);
+        new(c.Id, c.Name, c.FeedType, c.StreamUrl, c.StreamFormat, c.Status, c.LocationZone, c.UpdatedAt,
+            c.Calibration is null ? null : System.Text.Json.JsonSerializer.Deserialize<CameraCalibrationDto>(c.Calibration));
 
     public static SensorNodeDto ToDto(this SensorNode s, AlertOptions options, IReadOnlyList<double>? history = null) =>
         new(s.Id, s.Type, s.CurrentValue, s.Threshold, Math.Round(SensorRules.CriticalThreshold(s, options), 2),

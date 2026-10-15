@@ -351,10 +351,6 @@ namespace Sentinel.Simulator
                     polygon = Enumerable.Range(0, 10).Select(i => i * Math.PI / 5)
                         .Select(a => new[] { (center.X + radius * Math.Cos(a)) * w, (center.Y + radius * 0.8 * Math.Sin(a)) * h }).ToList(),
                 });
-            }
-
-            if (burning)
-            {
                 zones.Add(new
                 {
                     label = "assembly point", level = "Safe",

@@ -1,4 +1,4 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { IncidentAlert } from '../../shared/models/api.models';
 import { errorMessage } from '../../shared/utils/format';
@@ -24,8 +24,8 @@ export class PushNotificationService {
   private subscription: PushSubscription | null = null;
 
   readonly supported = typeof navigator !== 'undefined' && 'serviceWorker' in navigator && 'Notification' in window;
-  readonly enabled = signal(false);
   readonly mode = signal<'push' | 'local' | 'off'>('off');
+  readonly enabled = computed(() => this.mode() !== 'off');
 
   async init(): Promise<void> {
     if (!this.supported || this.registration) return;
@@ -34,7 +34,7 @@ export class PushNotificationService {
       this.vapidKey = (await firstValueFrom(this.api.vapidPublicKey())).publicKey;
       if (this.vapidKey && 'PushManager' in window) this.subscription = await this.registration.pushManager.getSubscription();
       const local = !this.vapidKey && Notification.permission === 'granted';
-      this.setMode(this.subscription ? 'push' : local ? 'local' : 'off');
+      this.mode.set(this.subscription ? 'push' : local ? 'local' : 'off');
     } catch (err) {
       console.warn('[push] init failed', err);
     }
@@ -58,10 +58,10 @@ export class PushNotificationService {
           applicationServerKey: urlBase64ToUint8Array(this.vapidKey),
         });
         await firstValueFrom(this.api.subscribePush(this.subscription.toJSON()));
-        this.setMode('push');
+        this.mode.set('push');
         this.toast.show('Push alerts enabled', 'This device receives incident alerts even when the dashboard is closed.', 'success');
       } else {
-        this.setMode('local');
+        this.mode.set('local');
         this.toast.show('Desktop alerts enabled', 'Alerts appear while this dashboard is open (server push not configured).', 'success');
       }
     } catch (err) {
@@ -76,7 +76,7 @@ export class PushNotificationService {
       await firstValueFrom(this.api.unsubscribePush(endpoint)).catch(() => undefined);
       this.subscription = null;
     }
-    this.setMode('off');
+    this.mode.set('off');
     this.toast.show('Alerts disabled', '', 'info', 2500);
   }
 
@@ -91,8 +91,4 @@ export class PushNotificationService {
     });
   }
 
-  private setMode(mode: 'push' | 'local' | 'off'): void {
-    this.mode.set(mode);
-    this.enabled.set(mode !== 'off');
-  }
 }

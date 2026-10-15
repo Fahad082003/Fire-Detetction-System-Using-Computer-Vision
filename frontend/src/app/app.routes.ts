@@ -23,6 +23,11 @@ export const routes: Routes = [
         loadComponent: () => import('./features/floor-plans/floor-plans.component').then((m) => m.FloorPlansComponent),
         title: 'Floor Plans · Sentinel',
       },
+      {
+        path: 'ai',
+        loadComponent: () => import('./features/ai/ai-analysis.component').then((m) => m.AiAnalysisComponent),
+        title: 'AI Analysis · Sentinel',
+      },
     ],
   },
   { path: '**', redirectTo: '' },

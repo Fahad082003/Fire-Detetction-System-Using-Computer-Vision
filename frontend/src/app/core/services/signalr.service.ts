@@ -17,9 +17,10 @@ export type ConnectionState = 'disconnected' | 'connecting' | 'connected' | 'rec
 export interface FrameStats {
   cameraId: string; humanCount: number; dangerCount: number;
   fireDetected: boolean; fireSeverity: string | null; simulated: boolean; receivedAt: number;
+  smokeDetected: boolean; model: string | null;
 }
 
-const HISTORY_POINTS = 60;
+export const HISTORY_POINTS = 60;
 const MAX_INCIDENTS = 200;
 const MAX_ACTIVITY = 250;
 export const FRAME_STALE_MS = 1500;
@@ -196,6 +197,7 @@ export class SignalRService {
     this.pendingStats.set(frame.cameraId, {
       cameraId: frame.cameraId, humanCount: frame.humanCount, dangerCount: frame.dangerCount,
       fireDetected: frame.fireDetected, fireSeverity: frame.fireSeverity, simulated: frame.simulated, receivedAt: Date.now(),
+      smokeDetected: frame.smokeDetected, model: frame.model,
     });
   }
 
