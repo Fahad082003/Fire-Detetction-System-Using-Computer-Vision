@@ -246,6 +246,7 @@ dotnet restore
 dotnet ef database update --project Sentinel.Api
 </code></pre>
 <p>✅ Aakhir mein <strong>"Done."</strong> likha aaye. Is se SQL Server mein <code>SentinelDb</code> database aur saari tables ban jaati hain.</p>
+<p><strong>Doosre PC ka data chahiye</strong> (misaal office wala data ghar par)? To ye command chalane ke bajaye <code>.\database\load.ps1</code> chalayein (Chapter 5, "Database doosre PC se").</p>
 <h3 id="ch3-qadam-3-website-ke-packages">Qadam 3: Website ke packages</h3>
 <pre><code class="language-powershell">cd C:\Users\m_fahad\Desktop\Project\frontend
 npm install
@@ -255,11 +256,10 @@ npm install
 <pre><code class="language-powershell">cd C:\Users\m_fahad\Desktop\Project\ai-service
 py -3.13 -m venv .venv
 .\.venv\Scripts\python -m pip install -r requirements.txt
-.\.venv\Scripts\python tools\download_models.py
 </code></pre>
 <ul>
-<li><code>download_models.py</code> <strong>person (insaan) model</strong> official website se laata hai aur us ka fingerprint (sha256) check karta hai.</li>
-<li><strong>Fire/smoke model</strong> (<code>fire_smoke_yolox.onnx</code>) is computer par <code>ai-service\models\</code> mein pehle se hai. Naye computer par is file ko yahan copy karna hoga.</li>
+<li>Dono AI models repo ke saath aate hain, kuch download nahi karna.</li>
+<li>Agar <code>ai-service\models\</code> mein koi <code>.onnx</code> file na ho, to <code>.\.venv\Scripts\python tools\download_models.py</code> person model official website se laata hai (sha256 check ke saath).</li>
 </ul>
 <p>✅ <code>ai-service\models\</code> folder mein ye 3 files hon: <code>models.json</code>, <code>yolox_tiny.onnx</code>, <code>fire_smoke_yolox.onnx</code>.</p>
 <hr /></section><section class="chapter" data-ch="4"><h1 id="ch4">4. Safe Test Mode (Test Se Pehle Zaroor)</h1>
@@ -306,6 +306,23 @@ ng serve
 <p>Simulator <strong>nakli</strong> cameras, sensors aur aag banata hai, taake asli aag ke baghair demo ho sake (Chapter 8).</p>
 <h3 id="ch5-system-band-karna">System band karna</h3>
 <p>Har window mein <strong>Ctrl + C</strong> dabayein, ya window band kar dein. Data database mein mehfooz rehta hai.</p>
+<h3 id="ch5-database-doosre-pc-se-office-ghar">Database doosre PC se (office ↔ ghar)</h3>
+<p>Dono PCs par ek jaisa data rakhne ke liye database ek backup file (<code>database\SentinelDb.bak</code>) ban kar git se jata hai.</p>
+<p><strong>Kaam khatam karte waqt (jis PC par kaam kiya):</strong></p>
+<pre><code class="language-powershell">cd C:\Users\m_fahad\Desktop\Project
+.\database\save.ps1
+git add database\SentinelDb.bak
+git commit -m &quot;db: update&quot;
+git push
+</code></pre>
+<p><strong>Doosre PC par kaam shuru karte waqt</strong> (pehle API band karein):</p>
+<pre><code class="language-powershell">git pull
+.\database\load.ps1
+</code></pre>
+<p>"yes" likhein. ✅ "Restored SentinelDb…" aaye. Database na ho to ban jata hai, ho to <strong>poora badal</strong> jata hai.</p>
+<blockquote>
+<p>⚠️ Ek waqt mein <strong>ek hi PC</strong> par kaam karein. Dono jagah data badla aur save/load bhool gaye, to ek jagah ka kaam mit jayega. Login wohi email/password chalta hai jo pehle PC par tha.</p>
+</blockquote>
 <hr /></section><section class="chapter" data-ch="6"><h1 id="ch6">6. Login Karna</h1>
 <ol>
 <li>Browser (Chrome/Edge) kholein: <strong>http://localhost:4200</strong></li>
@@ -1021,6 +1038,21 @@ cd C:\Users\m_fahad\Desktop\Project\ai-service
 <td><code>#</code> hatayein (Chapter 4), Live Event Log mein error dekhein</td>
 </tr>
 <tr>
+<td><code>load.ps1</code>: "Cannot open server" ya "network-related"</td>
+<td>SQL Server band, ya Express naam se install</td>
+<td>SQL Server start karein; Express ho to <code>.\database\load.ps1 -Server "localhost\SQLEXPRESS"</code> aur <code>.env</code> mein bhi wohi naam</td>
+</tr>
+<tr>
+<td><code>load.ps1</code>: version wala error</td>
+<td>Doosre PC par SQL Server purana</td>
+<td>SQL Server 2022 ya naya install karein</td>
+</tr>
+<tr>
+<td>PowerShell: "running scripts is disabled"</td>
+<td>Script chalane ki ijazat band</td>
+<td><code>powershell -ExecutionPolicy Bypass -File .\database\load.ps1</code></td>
+</tr>
+<tr>
 <td>Floor plan save par laal message</td>
 <td>Koi cheez naqshe se bahar</td>
 <td>Message mein naam likha hota hai, us ko andar karein</td>
@@ -1228,6 +1260,13 @@ cd C:\Users\m_fahad\Desktop\Project\ai-service
 <td>19</td>
 <td>Safe Test Mode <strong>band</strong> kiya (<code>#</code> hataye)</td>
 <td>4</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>20</td>
+<td><code>save.ps1</code> → push → doosre PC par pull → <code>load.ps1</code></td>
+<td>5</td>
 <td></td>
 <td></td>
 </tr>

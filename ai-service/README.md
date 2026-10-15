@@ -14,8 +14,8 @@ camera / video / test image ─► sentinel_ai (ONNX Runtime, CPU)
 ## Models
 | Name | File | Source | License | Status |
 |---|---|---|---|---|
-| person | `yolox_tiny.onnx` (COCO, class `person` only) | https://github.com/Megvii-BaseDetection/YOLOX/releases/tag/0.1.1rc0 | Apache-2.0 | Downloaded and sha256-verified by `tools/download_models.py` |
-| fire_smoke | `fire_smoke_yolox.onnx` | Fine-tune it yourself: see [training/README.md](training/README.md) (D-Fire, CC0) | YOLOX Apache-2.0 + D-Fire CC0 | Installed 2026-10-15 (YOLOX-Tiny @ 416, trained on D-Fire). Not stored in git: export it from your checkpoint with training/export_onnx.py. Metrics: [reports/README.md](reports/README.md) |
+| person | `yolox_tiny.onnx` (COCO, class `person` only) | https://github.com/Megvii-BaseDetection/YOLOX/releases/tag/0.1.1rc0 | Apache-2.0 | In the repo. If it is missing, `tools/download_models.py` fetches it from the official URL and checks its sha256 |
+| fire_smoke | `fire_smoke_yolox.onnx` | Fine-tune it yourself: see [training/README.md](training/README.md) (D-Fire, CC0) | YOLOX Apache-2.0 + D-Fire CC0 | Installed 2026-10-15 (YOLOX-Tiny @ 416, trained on D-Fire). In the repo; it can be re-exported from the checkpoint with training/export_onnx.py. Metrics: [reports/README.md](reports/README.md) |
 
 There is no fire-spread prediction model (requirement 3.3). The heatmap is a decaying map of **where fire/smoke was detected**. It is not a prediction of where fire will go.
 
@@ -29,7 +29,7 @@ There is no fire-spread prediction model (requirement 3.3). The heatmap is a dec
 cd C:\Users\m_fahad\Desktop\Project\ai-service
 py -3.13 -m venv .venv
 .\.venv\Scripts\python -m pip install -r requirements.txt
-.\.venv\Scripts\python tools\download_models.py         # official URLs, sha256 checked
+.\.venv\Scripts\python tools\download_models.py         # only if models\ is missing a file (official URLs, sha256 checked)
 Copy-Item config.example.json config.json               # then enable cameras; keep secrets in env vars
 $env:SENTINEL_DEVICE_KEY = "<same value as Device__ApiKey in the API .env>"   # only needed when cameras are enabled
 .\.venv\Scripts\python -m sentinel_ai                   # http://127.0.0.1:8008/health

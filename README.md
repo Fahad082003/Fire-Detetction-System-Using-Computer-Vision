@@ -1,10 +1,15 @@
 # Sentinel — Emergency Monitoring Command Center
 
-Real-time fire/threat monitoring. External AI services send **pre-computed inference JSON**: bounding boxes, danger zones and fire severity. Sentinel draws that JSON live over CCTV and drone feeds. It also opens and escalates incidents, sends SMS, email and web-push alerts, and switches on smart sprinklers automatically.
+Real-time fire/threat monitoring. Its own AI service (or any producer that posts the same JSON) sends bounding boxes, danger zones and fire severity, and Sentinel draws them live over CCTV and drone feeds. It also:
+- opens and escalates incidents, and sends SMS, email and web-push alerts;
+- switches on smart sprinklers automatically;
+- raises a **camera lost** alert when a camera goes silent;
+- places people seen by calibrated cameras on the floor plan, and computes an evacuation route from where they stand.
 
 > AI inference runs in a separate Python service, [ai-service/](ai-service/README.md), using ONNX Runtime on CPU.
 > - **Person detection** (YOLOX-Tiny, Apache-2.0) is installed and was evaluated on 2026-10-13: see [ai-service/reports](ai-service/reports/README.md).
-> - **Fire/smoke detection** (YOLOX-Tiny fine-tuned on D-Fire) is installed and was evaluated on 2026-10-15. The `.onnx` file is not in git: see [ai-service/training](ai-service/training/README.md).
+> - **Fire/smoke detection** (YOLOX-Tiny fine-tuned on D-Fire) is installed and was evaluated on 2026-10-15: see [ai-service/training](ai-service/training/README.md).
+> - Both model files (`ai-service/models/*.onnx`, about 20 MB each) are in the repo, so a fresh clone needs no download.
 >
 > The dashboard's **AI** tab shows which models are actually loaded.
 

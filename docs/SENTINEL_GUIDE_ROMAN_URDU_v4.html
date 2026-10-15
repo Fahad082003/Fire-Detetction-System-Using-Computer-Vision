@@ -1031,8 +1031,8 @@ SmartSprinklers          Users ──1──* PushSubscriptions
 <td><code>427cc366d34e27ff7a03e2899b5e3671425c262ea2291f88bb942bc1cc70b0f7</code></td>
 </tr>
 <tr>
-<td><strong>Download</strong></td>
-<td><code>tools/download_models.py</code> official link se, sha256 check ke saath</td>
+<td><strong>Repo mein</strong></td>
+<td>Haan, <code>ai-service/models/</code> mein. File na ho to <code>tools/download_models.py</code> official link se laata hai (sha256 check)</td>
 </tr>
 </tbody>
 </table></div>
@@ -1660,8 +1660,7 @@ ng serve
 cd &lt;project&gt;\ai-service
 py -3.13 -m venv .venv
 .\.venv\Scripts\python -m pip install -r requirements.txt
-.\.venv\Scripts\python tools\download_models.py
-.\.venv\Scripts\python -m sentinel_ai
+.\.venv\Scripts\python -m sentinel_ai          # dono models repo mein hain, download ki zaroorat nahi
 
 # 4) (Demo) Simulator: Zone B mein aag
 cd &lt;project&gt;\backend
@@ -1679,11 +1678,56 @@ dotnet run --project Sentinel.Simulator -- --device-key &lt;Device__ApiKey&gt; -
 <ul>
 <li><code>source</code>: <code>rtsp://…</code> (live), <code>0</code> (webcam) ya video file (hamesha SIMULATED).</li>
 <li>Camera ka password environment variable mein, <code>SENTINEL_DEVICE_KEY</code> = <code>Device__ApiKey</code>.</li>
-<li><code>fire_smoke_yolox.onnx</code> git mein nahi. Usay <code>models/</code> mein rakhna hai (Chapter 17).</li>
+<li>Dono models (<code>yolox_tiny.onnx</code>, <code>fire_smoke_yolox.onnx</code>) repo ke <code>ai-service/models/</code> mein hain.</li>
 </ul>
 <blockquote>
 <p>⚠️ Asli camera aur asli <code>.env</code> ke saath aag dikhi to <strong>asli SMS/Email</strong> jayenge. Pehle safe test number/email se test karein.</p>
 </blockquote>
+<hr />
+<h3 id="ch21-database-doosre-pc-par-office-ghar">Database doosre PC par (office ↔ ghar)</h3>
+<p>Database git ke zariye ek backup file <code>database/SentinelDb.bak</code> ban kar jata hai.</p>
+<pre><code class="language-powershell"># Kaam khatam (PC 1)
+.\database\save.ps1
+git add database\SentinelDb.bak; git commit -m &quot;db: update&quot;; git push
+
+# Kaam shuru (PC 2) — API band karke; ye local database ko POORA badal deta hai
+git pull
+.\database\load.ps1          # &quot;yes&quot; likhein
+</code></pre>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Baat</th>
+<th>Matlab</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Database nahi hai</td>
+<td><code>load.ps1</code> naya bana deta hai</td>
+</tr>
+<tr>
+<td>Database hai</td>
+<td>Backup se <strong>poora badal</strong> deta hai (mila kar nahi)</td>
+</tr>
+<tr>
+<td>Aakhri <code>save</code> jeetta hai</td>
+<td>Ek waqt mein ek hi PC par kaam karein</td>
+</tr>
+<tr>
+<td>SQL Server</td>
+<td>Doosre PC par 2022 ya naya; Express ho to <code>-Server "localhost\SQLEXPRESS"</code></td>
+</tr>
+<tr>
+<td>Login</td>
+<td>Users bhi saath aate hain: wohi email/password chalta hai</td>
+</tr>
+<tr>
+<td><code>.env</code></td>
+<td>Har PC par alag banti hai, git mein nahi jaati</td>
+</tr>
+</tbody>
+</table></div>
 <hr /></section><section class="chapter" data-ch="22"><h1 id="ch22">22. Tests</h1>
 <div class="table-wrap"><table>
 <thead>
