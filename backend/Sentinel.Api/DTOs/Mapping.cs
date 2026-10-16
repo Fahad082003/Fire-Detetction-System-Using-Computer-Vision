@@ -7,8 +7,12 @@ namespace Sentinel.Api.DTOs;
 /// <summary>Entity → DTO conversions. Entities never leave the API directly.</summary>
 public static class Mapping
 {
-    public static CameraFeedDto ToDto(this CameraFeed c) =>
-        new(c.Id, c.Name, c.FeedType, c.StreamUrl, c.StreamFormat, c.Status, c.LocationZone, c.UpdatedAt,
+    public static string MaskCredentials(string url) =>
+        System.Text.RegularExpressions.Regex.Replace(url, "(?<=://)[^/@]+@", "***@");
+
+    /// <summary>Stream credentials (rtsp://user:pass@…) are masked unless the caller is the AI service / a device.</summary>
+    public static CameraFeedDto ToDto(this CameraFeed c, bool revealCredentials = false) =>
+        new(c.Id, c.Name, c.FeedType, revealCredentials ? c.StreamUrl : MaskCredentials(c.StreamUrl), c.StreamFormat, c.Status, c.LocationZone, c.UpdatedAt,
             c.Calibration is null ? null : System.Text.Json.JsonSerializer.Deserialize<CameraCalibrationDto>(c.Calibration));
 
     public static SensorNodeDto ToDto(this SensorNode s, AlertOptions options, IReadOnlyList<double>? history = null) =>

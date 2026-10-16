@@ -10,13 +10,36 @@ namespace Sentinel.Api.Controllers;
 [Route("api/cameras")]
 public class CamerasController(ICameraService cameras, IHttpClientFactory httpClients, ILogger<CamerasController> logger) : ApiControllerBase
 {
+    /// <summary>Only devices (the AI service) get the full stream link; dashboard users see credentials masked.</summary>
     [HttpGet]
     [Authorize(Policy = AuthPolicies.OperatorOrDevice)]
-    public async Task<IReadOnlyList<CameraFeedDto>> GetAll(CancellationToken ct) => await cameras.GetAllAsync(ct);
+    public async Task<IReadOnlyList<CameraFeedDto>> GetAll(CancellationToken ct) =>
+        await cameras.GetAllAsync(ct, revealCredentials: User.IsInRole(AuthPolicies.DeviceRole));
 
     [HttpGet("{id}")]
     [Authorize(Policy = AuthPolicies.OperatorOrDevice)]
-    public async Task<CameraFeedDto> Get(string id, CancellationToken ct) => (await cameras.GetEntityAsync(id, ct)).ToDto();
+    public async Task<CameraFeedDto> Get(string id, CancellationToken ct) =>
+        (await cameras.GetEntityAsync(id, ct)).ToDto(revealCredentials: User.IsInRole(AuthPolicies.DeviceRole));
+
+    [HttpPost]
+    [Authorize(Policy = AuthPolicies.Admin)]
+    public async Task<ActionResult<CameraFeedDto>> Create(SaveCameraRequest request, CancellationToken ct)
+    {
+        var created = await cameras.CreateAsync(request, ct);
+        return CreatedAtAction(nameof(Get), new { id = created.Id }, created);
+    }
+
+    [HttpPut("{id}")]
+    [Authorize(Policy = AuthPolicies.Admin)]
+    public async Task<CameraFeedDto> Update(string id, SaveCameraRequest request, CancellationToken ct) => await cameras.UpdateAsync(id, request, ct);
+
+    [HttpDelete("{id}")]
+    [Authorize(Policy = AuthPolicies.Admin)]
+    public async Task<IActionResult> Delete(string id, CancellationToken ct)
+    {
+        await cameras.DeleteAsync(id, ct);
+        return NoContent();
+    }
 
     /// <summary>Links the camera to a floor plan with 4 point pairs, so the dashboard can place detected people on the plan.</summary>
     [HttpPut("{id}/calibration")]

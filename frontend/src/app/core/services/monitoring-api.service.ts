@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   AiAnalysis, AiStatus, CameraCalibration, CameraFeed, FireRisk, FloorPlan, IncidentAlert, IncidentLog, IncidentLogType, ManualDispatchRequest, MasterSprinklerResult, RouteResult,
-  SaveFloorPlan, SensorHistory, SmartSprinkler, SprinklerMode,
+  SaveCamera, SaveFloorPlan, SensorHistory, SmartSprinkler, SprinklerMode,
 } from '../../shared/models/api.models';
 
 /** Every REST call the dashboard makes. Components never use HttpClient directly. */
@@ -80,6 +80,18 @@ export class MonitoringApiService {
   /** Fetched as a blob so the JWT interceptor applies (an <img src> could not send it). */
   floorPlanImage(id: number): Observable<Blob> {
     return this.http.get(`${this.base}/floorplans/${id}/image`, { responseType: 'blob' });
+  }
+
+  createCamera(camera: SaveCamera): Observable<CameraFeed> {
+    return this.http.post<CameraFeed>(`${this.base}/cameras`, camera);
+  }
+
+  updateCamera(id: string, camera: SaveCamera): Observable<CameraFeed> {
+    return this.http.put<CameraFeed>(`${this.base}/cameras/${encodeURIComponent(id)}`, camera);
+  }
+
+  deleteCamera(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/cameras/${encodeURIComponent(id)}`);
   }
 
   saveCalibration(cameraId: string, calibration: CameraCalibration): Observable<CameraFeed> {

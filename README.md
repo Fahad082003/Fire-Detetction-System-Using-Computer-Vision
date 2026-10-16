@@ -56,12 +56,14 @@ cd C:\Users\m_fahad\Desktop\Project\ai-service
 py -3.13 -m venv .venv; .\.venv\Scripts\python -m pip install -r requirements.txt
 .\.venv\Scripts\python tools\download_models.py; .\.venv\Scripts\python -m sentinel_ai    # http://127.0.0.1:8008/health
 
-# Simulator (new terminal): fire in Zone B
+# Simulator (new terminal): fire in the warehouse
 cd C:\Users\m_fahad\Desktop\Project\backend
-dotnet run --project Sentinel.Simulator -- --device-key <Device__ApiKey> --ignite "Zone B"
+dotnet run --project Sentinel.Simulator -- --device-key <Device__ApiKey> --ignite "Ground Floor - Warehouse"
 ```
 
-Log in with `Seed__AdminEmail` and `Seed__AdminPassword`. The admin account is created on the first API start, when the Users table is empty. In Development, demo cameras, sensors and sprinklers are seeded automatically.
+After the first setup, `.\start.ps1` opens the API, the dashboard and the AI service in their own windows (`.\start.ps1 -Simulator` adds the fire demo). It reads `Device__ApiKey` from `.env` and hands it to the AI service.
+
+Log in with `Seed__AdminEmail` and `Seed__AdminPassword`. The admin account is created on the first API start, when the Users table is empty. In Development, demo cameras, sensors and sprinklers are seeded automatically. An Admin adds, edits and deletes the customer's own cameras on the **Devices** page. Stream passwords are masked for dashboard users and sent only to the AI service. When `SENTINEL_DEVICE_KEY` is set, the AI service reloads its camera list from the API every 60 s, so a camera added there is analysed within a minute without editing `config.json`. For a live test without an IP camera, `ai-service\tools\mjpeg_camera.py 0` serves the laptop webcam (or a video file) as MJPEG at `http://127.0.0.1:8090/video`. Add it on the Devices page with format Mjpeg. `ai-service\tools\live_test.py` runs the whole chain automatically with `samples/fire-test.avi` (D-Fire test frames, CC0): camera, floor plan, calibration, AI fire incident, danger zone, re-routed evacuation and the risk heatmap, then prints PASS/FAIL. It refuses to run while real SMS or email settings are in `.env`.
 
 ## Same database on two PCs (private repo only)
 
@@ -104,3 +106,5 @@ cd ai-service; .\.venv\Scripts\python -m unittest discover -s tests   # AI servi
 - Nine hands-on tests, each with the expected result.
 - A "Safe Test Mode" that keeps real SMS and email from being sent during tests.
 - Troubleshooting and a printable checklist.
+
+**[docs/FIREVISION_AI_FEATURES_GUIDE_ROMAN_URDU.html](docs/FIREVISION_AI_FEATURES_GUIDE_ROMAN_URDU.html)** explains how to use each feature: where to click, what to fill in and what you should see. It covers adding cameras, drawing a floor plan, calibration, evacuation routes, the risk heatmap, alerts, sprinklers, dispatch, the simulator and moving the database between PCs.

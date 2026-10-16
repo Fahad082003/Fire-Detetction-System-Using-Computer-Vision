@@ -21,6 +21,7 @@
     <a routerLink="/ai" routerLinkActive="seg-btn-active" class="seg-btn" [title]="aiTitle()">
       AI <span class="ml-1 inline-block h-2 w-2 rounded-full {{ aiDot() }}"></span>
     </a>
+    @if (auth.user()?.role === 'Admin') { <a routerLink="/devices" routerLinkActive="seg-btn-active" class="seg-btn">Devices</a> }
   </nav>
 
   <div role="status" aria-live="polite"

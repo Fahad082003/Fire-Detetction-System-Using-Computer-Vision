@@ -33,6 +33,6 @@ public class FloorPlanElement
     public bool IsBlocked { get; set; }
     /// <summary>Danger zones: manually marked as currently dangerous.</summary>
     public bool IsActive { get; set; }
-    /// <summary>Danger zones: camera/sensor zone name (e.g. "Zone B"); an open incident there makes it active.</summary>
+    /// <summary>Danger zones: camera/sensor zone name (e.g. "Ground Floor - Warehouse"); an open incident there makes it active.</summary>
     public string? Zone { get; set; }
 }

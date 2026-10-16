@@ -162,16 +162,16 @@ public class AiServiceTests(FakeAiFactory factory) : IClassFixture<FakeAiFactory
 
         using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<SentinelDbContext>();
-        var incident = await db.IncidentAlerts.Where(i => i.Zone == "Zone C" && !i.IsResolved).OrderByDescending(i => i.Id).FirstAsync();
+        var incident = await db.IncidentAlerts.Where(i => i.Zone == "First Floor - Server Hall" && !i.IsResolved).OrderByDescending(i => i.Id).FirstAsync();
         Assert.Equal(Severity.Medium, incident.Severity);
         Assert.Contains("Smoke detected", incident.Message);
         Assert.Contains("[AI fire:fire_smoke]", incident.Message);
-        Assert.False(await db.SmartSprinklers.AnyAsync(s => s.Zone == "Zone C" && s.IsActive)); // not an emergency
+        Assert.False(await db.SmartSprinklers.AnyAsync(s => s.Zone == "First Floor - Server Hall" && s.IsActive)); // not an emergency
     }
 
     [Theory]
-    [InlineData("cam-lobby", "Zone A", true, false)]  // simulated test input: incident yes, relays untouched
-    [InlineData("drone-01", "Zone B", false, true)]   // live data: existing emergency rule switches Auto relays
+    [InlineData("cam-lobby", "Ground Floor - Lobby", true, false)]  // simulated test input: incident yes, relays untouched
+    [InlineData("drone-01", "Ground Floor - Warehouse", false, true)]   // live data: existing emergency rule switches Auto relays
     public async Task Simulated_emergency_frames_never_switch_sprinklers(string camera, string zone, bool simulated, bool expectActive)
     {
         var resp = await factory.DeviceClient().PostAsJsonAsync("/api/detections", new

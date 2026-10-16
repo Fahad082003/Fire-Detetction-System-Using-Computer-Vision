@@ -1,5 +1,10 @@
 import { chartPath } from '../dashboard/incident-history/incident-history.component';
-import { drawnRect } from './floor-plans.component';
+import { TestBed } from '@angular/core/testing';
+import { MonitoringApiService } from '../../core/services/monitoring-api.service';
+import { SignalRService } from '../../core/services/signalr.service';
+import { ConfirmService, ToastService } from '../../core/services/ui.service';
+import { PlanPointer } from '../../shared/components/floor-plan-map.component';
+import { drawnRect, FloorPlansComponent } from './floor-plans.component';
 
 describe('drawnRect (floor-plan drawing)', () => {
   it('normalises a drag in any direction and snaps to 0.1 m', () => {
@@ -27,5 +32,25 @@ describe('chartPath (fire growth graph)', () => {
     const c = chartPath([{ t: 0, v: 0 }, { t: 10, v: 10 }])!;
     expect(c.max).toBeCloseTo(11);
     expect(c.line).toBe('0.0,140.0 600.0,12.7');
+  });
+});
+
+describe('FloorPlansComponent editing', () => {
+  it('resizes from the cyan corner right after drawing, without switching to Select', () => {
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: MonitoringApiService, useValue: {} }, { provide: SignalRService, useValue: {} },
+        { provide: ToastService, useValue: {} }, { provide: ConfirmService, useValue: {} },
+      ],
+    });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const c = TestBed.runInInjectionContext(() => new FloorPlansComponent()) as any;
+    c.form.patchValue({ widthMeters: 30, heightMeters: 20 });
+    const at = (kind: PlanPointer['kind'], x: number, y: number, handle = false) => c.onPointer({ kind, x, y, index: null, handle });
+    c.tool.set('Room');
+    at('down', 2, 2); at('move', 8, 6); at('up', 8, 6);
+    at('down', 8, 6, true); at('move', 12, 9); at('up', 12, 9);
+    expect(c.elements()).toHaveLength(1);
+    expect(c.elements()[0]).toMatchObject({ x: 2, y: 2, width: 10, height: 7 });
   });
 });

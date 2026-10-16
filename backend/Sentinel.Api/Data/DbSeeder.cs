@@ -69,30 +69,30 @@ public class DbSeeder(SentinelDbContext db, IPasswordHasher<AppUser> hasher, IOp
             logger.LogInformation("Created admin account {Email}", admin.Email);
     }
 
+    // Zones are named "Floor - Area" so an alert says where to go; cameras, sensors, sprinklers and plan danger zones must use the same name.
     private async Task EnsureDemoDevicesAsync(CancellationToken ct)
     {
         if (await db.CameraFeeds.AnyAsync(ct) || await db.SensorNodes.AnyAsync(ct) || await db.SmartSprinklers.AnyAsync(ct)) return;
 
         db.CameraFeeds.AddRange(
-            new CameraFeed { Id = "cam-lobby", Name = "Main Lobby", FeedType = FeedType.CCTV, LocationZone = "Zone A" },
-            new CameraFeed { Id = "cam-warehouse", Name = "Warehouse Floor", FeedType = FeedType.CCTV, LocationZone = "Zone B" },
-            new CameraFeed { Id = "cam-server", Name = "Server Hall", FeedType = FeedType.CCTV, LocationZone = "Zone C" },
-            new CameraFeed { Id = "drone-01", Name = "Perimeter Drone 01", FeedType = FeedType.Drone, LocationZone = "Zone B" });
+            new CameraFeed { Id = "cam-lobby", Name = "Main Lobby", FeedType = FeedType.CCTV, LocationZone = "Ground Floor - Lobby" },
+            new CameraFeed { Id = "cam-warehouse", Name = "Warehouse Floor", FeedType = FeedType.CCTV, LocationZone = "Ground Floor - Warehouse" },
+            new CameraFeed { Id = "cam-server", Name = "Server Hall", FeedType = FeedType.CCTV, LocationZone = "First Floor - Server Hall" },
+            new CameraFeed { Id = "drone-01", Name = "Perimeter Drone 01", FeedType = FeedType.Drone, LocationZone = "Ground Floor - Warehouse" });
 
-        foreach (var zone in new[] { "Zone A", "Zone B", "Zone C" })
+        foreach (var (zone, suffix) in new[] { ("Ground Floor - Lobby", "a"), ("Ground Floor - Warehouse", "b"), ("First Floor - Server Hall", "c") })
         {
-            var suffix = zone[^1..].ToLowerInvariant();
             db.SensorNodes.AddRange(
                 new SensorNode { Id = $"smoke-{suffix}1", Type = SensorType.Smoke, Threshold = SmokeThresholdPpm, CurrentValue = 18, LocationZone = zone },
                 new SensorNode { Id = $"temp-{suffix}1", Type = SensorType.Temperature, Threshold = TemperatureThresholdC, CurrentValue = 22, LocationZone = zone });
         }
 
         db.SmartSprinklers.AddRange(
-            new SmartSprinkler { Id = "spr-a1", Zone = "Zone A" },
-            new SmartSprinkler { Id = "spr-a2", Zone = "Zone A" },
-            new SmartSprinkler { Id = "spr-b1", Zone = "Zone B" },
-            new SmartSprinkler { Id = "spr-b2", Zone = "Zone B" },
-            new SmartSprinkler { Id = "spr-c1", Zone = "Zone C" });
+            new SmartSprinkler { Id = "spr-a1", Zone = "Ground Floor - Lobby" },
+            new SmartSprinkler { Id = "spr-a2", Zone = "Ground Floor - Lobby" },
+            new SmartSprinkler { Id = "spr-b1", Zone = "Ground Floor - Warehouse" },
+            new SmartSprinkler { Id = "spr-b2", Zone = "Ground Floor - Warehouse" },
+            new SmartSprinkler { Id = "spr-c1", Zone = "First Floor - Server Hall" });
 
         await db.SaveChangesAsync(ct);
         logger.LogInformation("Seeded demo data: 4 cameras, 6 sensors, 5 sprinklers");

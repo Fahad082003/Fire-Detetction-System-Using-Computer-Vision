@@ -8,6 +8,8 @@ public static class AuthPolicies
     public const string Device = "Device";
     /// <summary>Either of the above (read endpoints the simulator needs, IoT simulation endpoints, hub connection).</summary>
     public const string OperatorOrDevice = "OperatorOrDevice";
+    /// <summary>Logged-in dashboard user with role Admin: device setup (cameras).</summary>
+    public const string Admin = "Admin";
 
     public const string DeviceScheme = "DeviceKey";
     public const string DeviceRole = "Device";

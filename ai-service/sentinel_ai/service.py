@@ -23,6 +23,7 @@ from .pipeline import CameraPipeline
 log = logging.getLogger("sentinel_ai")
 MAX_IMAGE_BYTES = 8 * 1024 * 1024
 CAMERA_ID = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
+CAMERA_SYNC_SECONDS = 60  # how often the camera list is re-read from the API
 
 
 def mask(source: str) -> str:
@@ -149,6 +150,30 @@ class CameraWorker(threading.Thread):
             log.warning("%s: %s", self.cam["cameraId"], self.error)
 
 
+def api_cameras(api: str, key: str) -> dict[str, str]:
+    """Cameras added in the dashboard (Devices page): id -> stream link. Cameras without a link are simulated feeds."""
+    req = urllib.request.Request(f"{api.rstrip('/')}/api/cameras", headers={"X-Device-Key": key})
+    with urllib.request.urlopen(req, timeout=10) as r:
+        cams = json.loads(r.read())
+    return {c["id"]: c["streamUrl"] for c in cams if c.get("streamUrl") and CAMERA_ID.match(str(c.get("id", "")))}
+
+
+def sync_cameras(workers: list, managed: dict, wanted: dict, make_worker) -> None:
+    """Start a worker per new camera; stop workers whose camera was removed or whose link changed.
+    `managed` holds only the workers started here (cameras from config.json are never touched)."""
+    for cam_id, w in list(managed.items()):
+        if wanted.get(cam_id) != w.cam["source"]:
+            w.stop_event.set()
+            workers.remove(w)
+            del managed[cam_id]
+    for cam_id, url in wanted.items():
+        if cam_id not in managed:
+            w = make_worker({"cameraId": cam_id, "source": url, "fps": 2})  # 2 fps: a walking person keeps one track id
+            managed[cam_id] = w
+            workers.append(w)
+            w.start()
+
+
 def make_handler(engine: Engine, cameras: list):
     class Handler(BaseHTTPRequestHandler):
         def _json(self, code: int, body: dict):
@@ -209,6 +234,22 @@ def serve(config: dict, models_dir: Path):
     server = ThreadingHTTPServer((host, int(port)), make_handler(engine, cameras))
     for w in cameras:
         w.start()
+    if key:  # cameras added in the dashboard need no entry in config.json
+        fixed = {w.cam["cameraId"] for w in cameras}
+        managed: dict = {}
+
+        def keep_in_sync():
+            while True:
+                try:
+                    wanted = {i: u for i, u in api_cameras(api, key).items() if i not in fixed}
+                    sync_cameras(cameras, managed, wanted, lambda cam: CameraWorker(engine, cam, api, key))
+                except (urllib.error.URLError, OSError, ValueError) as e:
+                    log.warning("camera list from the API is unavailable: %s", e)
+                time.sleep(CAMERA_SYNC_SECONDS)
+
+        threading.Thread(target=keep_in_sync, daemon=True, name="camera-sync").start()
+    else:
+        log.info("SENTINEL_DEVICE_KEY not set: only cameras from config.json run (dashboard cameras need the key)")
     log.info("sentinel-ai %s on http://%s:%s, models loaded: %s, missing: %s, cameras: %d",
              VERSION, host, port, [d.name for d in engine.detectors], engine.missing, len(cameras))
     try:

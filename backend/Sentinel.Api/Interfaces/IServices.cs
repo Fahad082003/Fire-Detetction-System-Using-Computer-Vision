@@ -5,7 +5,11 @@ namespace Sentinel.Api.Interfaces;
 
 public interface ICameraService
 {
-    Task<IReadOnlyList<CameraFeedDto>> GetAllAsync(CancellationToken ct = default);
+    Task<IReadOnlyList<CameraFeedDto>> GetAllAsync(CancellationToken ct = default, bool revealCredentials = false);
+    Task<CameraFeedDto> CreateAsync(SaveCameraRequest request, CancellationToken ct = default);
+    Task<CameraFeedDto> UpdateAsync(string id, SaveCameraRequest request, CancellationToken ct = default);
+    /// <summary>Incidents keep their history; their camera link becomes empty.</summary>
+    Task DeleteAsync(string id, CancellationToken ct = default);
     Task<CameraFeed> GetEntityAsync(string id, CancellationToken ct = default);
     /// <summary>Saves (or with null clears) the camera ↔ floor-plan calibration.</summary>
     Task<CameraFeedDto> SaveCalibrationAsync(string id, CameraCalibrationDto? calibration, CancellationToken ct = default);

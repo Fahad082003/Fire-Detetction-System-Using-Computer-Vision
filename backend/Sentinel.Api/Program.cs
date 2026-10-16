@@ -144,6 +144,9 @@ builder.Services.AddAuthorization(o =>
     o.AddPolicy(AuthPolicies.Operator, p => p
         .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
         .RequireRole(nameof(UserRole.Admin), nameof(UserRole.Operator)));
+    o.AddPolicy(AuthPolicies.Admin, p => p
+        .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
+        .RequireRole(nameof(UserRole.Admin)));
     o.AddPolicy(AuthPolicies.Device, p => p
         .AddAuthenticationSchemes(AuthPolicies.DeviceScheme)
         .RequireRole(AuthPolicies.DeviceRole));

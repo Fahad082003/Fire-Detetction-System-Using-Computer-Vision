@@ -56,7 +56,7 @@ public class ApiIntegrationTests(SentinelApiFactory factory) : IClassFixture<Sen
         Assert.Contains(incidents!, i => i.SensorId == "temp-a1" && i.Severity == Severity.Critical);
 
         var sprinklers = await device.GetFromJsonAsync<List<SmartSprinklerDto>>("/api/iot/sprinklers", Json);
-        Assert.All(sprinklers!.Where(s => s.Zone == "Zone A"), s => Assert.True(s.IsActive));
+        Assert.All(sprinklers!.Where(s => s.Zone == "Ground Floor - Lobby"), s => Assert.True(s.IsActive));
     }
 
     [Fact]
@@ -108,10 +108,10 @@ public class ApiIntegrationTests(SentinelApiFactory factory) : IClassFixture<Sen
     public async Task Manual_dispatch_requires_operator_and_can_be_resolved()
     {
         Assert.Equal(HttpStatusCode.Unauthorized,
-            (await factory.DeviceClient().PostAsJsonAsync("/api/incidents/dispatch", new { zone = "Zone A" })).StatusCode);
+            (await factory.DeviceClient().PostAsJsonAsync("/api/incidents/dispatch", new { zone = "Ground Floor - Lobby" })).StatusCode);
 
         var op = await factory.OperatorClientAsync();
-        var resp = await op.PostAsJsonAsync("/api/incidents/dispatch", new { zone = "Zone A", message = "Evacuate via east exit" });
+        var resp = await op.PostAsJsonAsync("/api/incidents/dispatch", new { zone = "Ground Floor - Lobby", message = "Evacuate via east exit" });
         Assert.Equal(HttpStatusCode.Created, resp.StatusCode);
         var incident = await resp.Content.ReadFromJsonAsync<IncidentAlertDto>(Json);
         Assert.Equal(IncidentSource.Manual, incident!.Source);
@@ -120,7 +120,7 @@ public class ApiIntegrationTests(SentinelApiFactory factory) : IClassFixture<Sen
         Assert.True(resolved!.IsResolved);
         Assert.Equal(HttpStatusCode.BadRequest, (await op.PostAsJsonAsync("/api/incidents/dispatch", new { zone = "" })).StatusCode);
         // A number is not a severity: 9 would rank above Critical yet skip the Critical emergency check.
-        Assert.Equal(HttpStatusCode.BadRequest, (await op.PostAsJsonAsync("/api/incidents/dispatch", new { zone = "Zone A", severity = 9 })).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await op.PostAsJsonAsync("/api/incidents/dispatch", new { zone = "Ground Floor - Lobby", severity = 9 })).StatusCode);
     }
 
     [Fact]

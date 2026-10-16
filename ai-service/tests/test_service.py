@@ -14,7 +14,7 @@ import numpy as np
 
 from sentinel_ai.detector import ModelError, YoloxDetector
 from sentinel_ai.pipeline import CameraPipeline, fire_severity
-from sentinel_ai.service import CameraWorker, Engine, make_handler, mask
+from sentinel_ai.service import CameraWorker, Engine, make_handler, mask, sync_cameras
 from sentinel_ai.tracker import IouTracker
 
 N = 52 * 52 + 26 * 26 + 13 * 13  # YOLOX anchors for a 416x416 input
@@ -220,6 +220,51 @@ class ServiceTests(unittest.TestCase):
             w.run()  # file source without loop: returns when the clip ends
             self.assertEqual(Flaky.calls, 3)  # kept going after the failing frame
             self.assertEqual(w.state, "finished")
+
+
+class CameraSyncTests(unittest.TestCase):
+    def test_starts_new_cameras_and_stops_removed_or_changed_ones(self):
+        class FakeWorker:
+            def __init__(self, cam):
+                self.cam, self.started, self.stop_event = cam, False, threading.Event()
+
+            def start(self):
+                self.started = True
+
+        workers, managed = [], {}
+        sync_cameras(workers, managed, {"cam-a": "rtsp://a", "cam-b": "rtsp://b"}, FakeWorker)
+        a, b = managed["cam-a"], managed["cam-b"]
+        self.assertTrue(a.started and b.started)
+        sync_cameras(workers, managed, {"cam-a": "rtsp://a", "cam-b": "rtsp://b2"}, FakeWorker)  # b's link changed
+        self.assertIs(managed["cam-a"], a)  # unchanged camera keeps running
+        self.assertTrue(b.stop_event.is_set())
+        self.assertEqual(managed["cam-b"].cam["source"], "rtsp://b2")
+        sync_cameras(workers, managed, {}, FakeWorker)  # all removed in the dashboard
+        self.assertEqual((workers, managed), ([], {}))
+
+
+class TestCameraTests(unittest.TestCase):
+    def test_video_file_is_served_as_mjpeg_that_opencv_can_read(self):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("mjpeg_camera", Path(__file__).parents[1] / "tools" / "mjpeg_camera.py")
+        mjpeg_camera = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mjpeg_camera)
+        with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmp:  # the camera thread keeps the file open
+            video = str(Path(tmp) / "clip.avi")
+            out = cv2.VideoWriter(video, cv2.VideoWriter_fourcc(*"MJPG"), 10, (64, 48))
+            for i in range(10):
+                out.write(np.full((48, 64, 3), i * 20, np.uint8))
+            out.release()
+            server = mjpeg_camera.serve(video, port=0)
+            threading.Thread(target=server.serve_forever, daemon=True).start()
+            try:
+                cap = cv2.VideoCapture(f"http://127.0.0.1:{server.server_address[1]}/video")  # what the AI service does
+                ok, frame = cap.read()
+                cap.release()
+            finally:
+                server.shutdown()
+        self.assertTrue(ok)
+        self.assertEqual(frame.shape, (48, 64, 3))
 
 
 if __name__ == "__main__":

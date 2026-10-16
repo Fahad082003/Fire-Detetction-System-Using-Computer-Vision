@@ -286,7 +286,16 @@ py -3.13 -m venv .venv
 </ul>
 <p><strong>Test khatam hone ke baad</strong> <code>#</code> hata dein taake asli alerts dobara chalein.</p>
 <hr /></section><p class="part-label">B · Roz ka istemaal</p><section class="chapter" data-ch="5"><h1 id="ch5">5. Roz Ka Kaam: System Chalana</h1>
-<p>Har hissa <strong>alag PowerShell window</strong> mein chalta hai. Windows band na karein jab tak system istemaal ho raha ho.</p>
+<h3 id="ch5-sab-se-aasan-ek-click">Sab se aasan: ek click</h3>
+<pre><code class="language-powershell">cd C:\Users\m_fahad\Desktop\Project
+.\start.ps1
+</code></pre>
+<p>Teen windows khud khul jati hain (API, Dashboard, AI service). ~30 second baad browser mein <strong>http://localhost:4200</strong> kholein. Aag ka demo bhi chahiye to <code>.\start.ps1 -Simulator</code>.</p>
+<blockquote>
+<p>Script block ho to: <code>powershell -ExecutionPolicy Bypass -File .\start.ps1</code>. Band karne ke liye har window band kar dein.</p>
+</blockquote>
+<h3 id="ch5-ya-haath-se-har-hissa-alag-window-mein">Ya haath se (har hissa alag window mein)</h3>
+<p>Windows band na karein jab tak system istemaal ho raha ho.</p>
 <h3 id="ch5-window-1-backend-api">Window 1: Backend (API)</h3>
 <pre><code class="language-powershell">cd C:\Users\m_fahad\Desktop\Project\backend
 dotnet run --project Sentinel.Api --launch-profile http
@@ -487,7 +496,7 @@ git push
 <li>Nayi PowerShell window (Window 4):</li>
 </ol>
 <pre><code class="language-powershell">cd C:\Users\m_fahad\Desktop\Project\backend
-dotnet run --project Sentinel.Simulator -- --device-key &lt;yahan Device__ApiKey&gt; --ignite &quot;Zone B&quot;
+dotnet run --project Sentinel.Simulator -- --device-key &lt;yahan Device__ApiKey&gt; --ignite &quot;Ground Floor - Warehouse&quot;
 </code></pre>
 <ol start="4">
 <li>Browser mein Dashboard dekhein.</li>
@@ -495,18 +504,18 @@ dotnet run --project Sentinel.Simulator -- --device-key &lt;yahan Device__ApiKey
 <p><strong>✅ Kya dikhna chahiye (1–2 minute mein):</strong></p>
 <ul>
 <li class="task"><input type="checkbox" data-task="1" aria-label="Ho gaya"> Cameras par boxes hilte hue. <strong>SIM DATA</strong> chip.</li>
-<li class="task"><input type="checkbox" data-task="2" aria-label="Ho gaya"> <strong>Warehouse Floor</strong> (Zone B) camera par laal aag ka dabba aur laal danger zone, hari "assembly point".</li>
+<li class="task"><input type="checkbox" data-task="2" aria-label="Ho gaya"> <strong>Warehouse Floor</strong> (Ground Floor - Warehouse) camera par laal aag ka dabba aur laal danger zone, hari "assembly point".</li>
 <li class="task"><input type="checkbox" data-task="3" aria-label="Ho gaya"> Upar pill laal: <strong>CRITICAL ALERT</strong>. Alarm <strong>lagatar</strong> bajta hai (Resolve karne ya 🔊 dabane tak).</li>
-<li class="task"><input type="checkbox" data-task="4" aria-label="Ho gaya"> <strong>Alert Logs</strong> mein naya incident, Location "Zone B", Severity High/Critical.</li>
+<li class="task"><input type="checkbox" data-task="4" aria-label="Ho gaya"> <strong>Alert Logs</strong> mein naya incident, Location "Ground Floor - Warehouse", Severity High/Critical.</li>
 <li class="task"><input type="checkbox" data-task="5" aria-label="Ho gaya"> <strong>Live Event Log</strong> mein lines: incident khula, SMS "skipped", email (API window mein print).</li>
-<li class="task"><input type="checkbox" data-task="6" aria-label="Ho gaya"> Zone B ke garmi/dhuwan gauges barhte hue.</li>
-<li class="task"><input type="checkbox" data-task="7" aria-label="Ho gaya"> Zone B ke <strong>Auto</strong> sprinklers <strong>khud chal jaate hain</strong> ("spraying"). Demo (Development) setting mein simulated data par bhi chalte hain; asli hardware nahi, sirf database.</li>
+<li class="task"><input type="checkbox" data-task="6" aria-label="Ho gaya"> Ground Floor - Warehouse ke garmi/dhuwan gauges barhte hue.</li>
+<li class="task"><input type="checkbox" data-task="7" aria-label="Ho gaya"> Ground Floor - Warehouse ke <strong>Auto</strong> sprinklers <strong>khud chal jaate hain</strong> ("spraying"). Demo (Development) setting mein simulated data par bhi chalte hain; asli hardware nahi, sirf database.</li>
 </ul>
 <p><strong>Band karna:</strong> Window 4 mein <strong>Ctrl + C</strong>.</p>
 <p><strong>Camera lost check (simulator band karne ke baad):</strong></p>
 <ul>
 <li class="task"><input type="checkbox" data-task="8" aria-label="Ho gaya"> ~10–12 second baad <strong>Alert Logs</strong> mein har camera ke liye ek incident, Source <strong>Camera lost</strong>: "Camera lost: no frames from … for 10 s".</li>
-<li class="task"><input type="checkbox" data-task="9" aria-label="Ho gaya"> Zone B ke cameras (jahan aag thi) <strong>High</strong>, baqi <strong>Medium</strong>.</li>
+<li class="task"><input type="checkbox" data-task="9" aria-label="Ho gaya"> Ground Floor - Warehouse ke cameras (jahan aag thi) <strong>High</strong>, baqi <strong>Medium</strong>.</li>
 <li class="task"><input type="checkbox" data-task="10" aria-label="Ho gaya"> Simulator dobara chalayein: Live Event Log mein "Camera … is sending frames again". Phir purane "Camera lost" incidents <strong>Resolve</strong> kar dein.</li>
 </ul>
 <p><strong>Simulator ke options:</strong></p>
@@ -520,7 +529,7 @@ dotnet run --project Sentinel.Simulator -- --device-key &lt;yahan Device__ApiKey
 </thead>
 <tbody>
 <tr>
-<td><code>--ignite "Zone A"</code></td>
+<td><code>--ignite "Ground Floor - Lobby"</code></td>
 <td>Us zone mein foran aag (kai dafa likh sakte hain)</td>
 <td>—</td>
 </tr>
@@ -613,7 +622,7 @@ dotnet run --project Sentinel.Simulator -- --device-key &lt;yahan Device__ApiKey
 <p><strong>Qadam B: garmi bhejna</strong></p>
 <ol>
 <li><strong>IoT → POST /api/iot/sensors/{id}/readings</strong> → <strong>Try it out</strong>.</li>
-<li><code>id</code> = <strong><code>temp-b1</code></strong> (Zone B ka temperature sensor; threshold 57°C).</li>
+<li><code>id</code> = <strong><code>temp-b1</code></strong> (Ground Floor - Warehouse ka temperature sensor; threshold 57°C).</li>
 <li>Body mein ek ek karke ye values bhejein, har dafa <strong>Execute</strong>, aur Dashboard dekhein:</li>
 </ol>
 <div class="table-wrap"><table>
@@ -637,7 +646,7 @@ dotnet run --project Sentinel.Simulator -- --device-key &lt;yahan Device__ApiKey
 </tr>
 <tr>
 <td><code>{ "value": 60 }</code></td>
-<td>✅ <strong>High</strong> incident + Zone B ke <strong>Auto</strong> sprinklers ON</td>
+<td>✅ <strong>High</strong> incident + Ground Floor - Warehouse ke <strong>Auto</strong> sprinklers ON</td>
 <td>≥ 57</td>
 </tr>
 <tr>
@@ -658,17 +667,17 @@ dotnet run --project Sentinel.Simulator -- --device-key &lt;yahan Device__ApiKey
 </thead>
 <tbody>
 <tr>
-<td>Zone A</td>
+<td>Ground Floor - Lobby</td>
 <td><code>smoke-a1</code></td>
 <td><code>temp-a1</code></td>
 </tr>
 <tr>
-<td>Zone B</td>
+<td>Ground Floor - Warehouse</td>
 <td><code>smoke-b1</code></td>
 <td><code>temp-b1</code></td>
 </tr>
 <tr>
-<td>Zone C</td>
+<td>First Floor - Server Hall</td>
 <td><code>smoke-c1</code></td>
 <td><code>temp-c1</code></td>
 </tr>
@@ -722,9 +731,9 @@ dotnet run --project Sentinel.Simulator -- --device-key &lt;yahan Device__ApiKey
 <ol>
 <li>Upar laal <strong>Emergency Dispatch</strong>.</li>
 <li>Form:<ul>
-<li><strong>Zone:</strong> jaise <code>Zone B</code></li>
+<li><strong>Zone:</strong> jaise <code>Ground Floor - Warehouse</code></li>
 <li><strong>Severity:</strong> Low / Medium / High / Critical</li>
-<li><strong>Message:</strong> jaise "Test: Zone B khaali karein" (500 huroof tak)</li>
+<li><strong>Message:</strong> jaise "Test: Ground Floor - Warehouse khaali karein" (500 huroof tak)</li>
 <li><strong>Activate all sprinklers in this zone:</strong> tick sirf agar sprinklers chalane hon</li>
 </ul>
 </li>
@@ -789,7 +798,7 @@ dotnet run --project Sentinel.Simulator -- --device-key &lt;yahan Device__ApiKey
 </table></div>
 <ol start="5">
 <li><strong>Select / Move</strong> se kisi cheez par click → daen panel mein naam, size badlein. Delete key = mitana.</li>
-<li>Danger zone chunein → <strong>Linked camera/sensor zone</strong> = <code>Zone B</code> (Zone B mein incident khula ho to ye khud active).</li>
+<li>Danger zone chunein → <strong>Linked camera/sensor zone</strong> mein list se <code>Ground Floor - Warehouse</code> chunein (likhne ki zaroorat nahi, spelling galat nahi hogi) (Ground Floor - Warehouse mein incident khula ho to ye khud active).</li>
 <li><strong>Save</strong>. ✅ "Floor plan saved" message, title se "unsaved" hat jaye.</li>
 </ol>
 <p><img alt="Floor Plan editor" src="images/floorplan-editor.png" /></p>
@@ -802,8 +811,8 @@ dotnet run --project Sentinel.Simulator -- --device-key &lt;yahan Device__ApiKey
 </ol>
 <h3 id="ch13-c-aag-mein-raasta-badalna">C. Aag mein raasta badalna</h3>
 <ol>
-<li>Zone B ke danger zone ke paas wala raasta dekh lein.</li>
-<li>Test 1 (simulator <code>--ignite "Zone B"</code>) ya Test 3 (<code>temp-b1</code> = 75) chalayein.</li>
+<li>Ground Floor - Warehouse ke danger zone ke paas wala raasta dekh lein.</li>
+<li>Test 1 (simulator <code>--ignite "Ground Floor - Warehouse"</code>) ya Test 3 (<code>temp-b1</code> = 75) chalayein.</li>
 <li>✅ Danger zone laal/active, aur raasta <strong>khud badal</strong> kar doosre exit ki taraf, danger se kam az kam 1 m door.</li>
 <li>Koi raasta na bache to ✅ saaf message: "No safe route…"</li>
 </ol>
@@ -825,8 +834,8 @@ dotnet run --project Sentinel.Simulator -- --device-key &lt;yahan Device__ApiKey
 <h3 id="ch13-d-aag-kahan-phailegi-risk-heatmap">D. Aag kahan phailegi (risk heatmap)</h3>
 <p><strong>Maqsad:</strong> aag lagne par dekhna ki system bataye <strong>agle kaun se kamre khatre mein hain</strong>.</p>
 <ol>
-<li>Naqshe mein kam az kam 2 kamre, unke beech deewar aur ek <strong>darwaza</strong> hon. Danger zone ka <strong>Linked zone</strong> = <code>Zone B</code> (A hisse wala naqsha).</li>
-<li>Zone B mein incident kholein: <strong>Emergency Dispatch</strong> (Zone B), ya simulator <code>--ignite "Zone B"</code>.</li>
+<li>Naqshe mein kam az kam 2 kamre, unke beech deewar aur ek <strong>darwaza</strong> hon. Danger zone ka <strong>Linked zone</strong> = <code>Ground Floor - Warehouse</code> (A hisse wala naqsha).</li>
+<li>Ground Floor - Warehouse mein incident kholein: <strong>Emergency Dispatch</strong> (Ground Floor - Warehouse), ya simulator <code>--ignite "Ground Floor - Warehouse"</code>.</li>
 <li>Dashboard → <strong>Evacuation Route</strong> → wohi naqsha.</li>
 </ol>
 <p><strong>✅ Kya dikhna chahiye:</strong></p>
@@ -912,6 +921,23 @@ dotnet run --project Sentinel.Simulator -- --device-key &lt;yahan Device__ApiKey
 <p><img alt="Incident History" src="images/incident-history.png" /></p>
 <hr /></section><section class="chapter" data-ch="15"><h1 id="ch15">15. Test 8: AI Ko Video Se Camera Ki Tarah Chalana</h1>
 <p><strong>Maqsad:</strong> AI ko lagatar frames dena, jaise asli camera, aur dekhna ke wo khud incident banata hai.</p>
+<h3 id="ch15-sab-se-aasan-devices-page-se-admin">Sab se aasan: Devices page se (Admin)</h3>
+<ol>
+<li>Menu → <strong>Devices</strong> → <strong>+ Camera</strong>.</li>
+<li>Id <code>cam-gate</code>, Name "Main Gate", Zone list se chunein, <strong>Stream link</strong> mein camera ka <code>rtsp://…</code> (ya <code>http://…</code> video), format <strong>Simulated</strong> → <strong>Save</strong>.</li>
+<li>AI service <code>.\start.ps1</code> se chal rahi ho to <strong>1 minute ke andar</strong> ye camera khud uthati hai.</li>
+</ol>
+<p><strong>✅ Kya dikhna chahiye:</strong></p>
+<ul>
+<li class="task"><input type="checkbox" data-task="24" aria-label="Ho gaya"> Dashboard par "Main Gate (Ground Floor - Gate)" tile.</li>
+<li class="task"><input type="checkbox" data-task="25" aria-label="Ho gaya"> AI page → Camera sources mein <code>cam-gate · stream · running</code>.</li>
+<li class="task"><input type="checkbox" data-task="26" aria-label="Ho gaya"> Aag dikhe to Alert Logs mein "Main Gate" ka incident.</li>
+<li class="task"><input type="checkbox" data-task="27" aria-label="Ho gaya"> Camera delete karein to ~1 minute mein AI page se bhi hat jaye.</li>
+</ul>
+<blockquote>
+<p>Dashboard par link <code>rtsp://***@…</code> dikhta hai: password sirf AI service ko jata hai.</p>
+</blockquote>
+<h3 id="ch15-ya-config-json-se-video-file-ke-liye">Ya <code>config.json</code> se (video file ke liye)</h3>
 <p><strong>Qadam:</strong></p>
 <ol>
 <li>Aag ki ek <strong>video file</strong> (MP4/AVI) computer par rakhein.</li>
@@ -935,10 +961,10 @@ $env:SENTINEL_DEVICE_KEY = &quot;&lt;yahan Device__ApiKey&gt;&quot;
 </code></pre>
 <p><strong>✅ Kya dikhna chahiye:</strong></p>
 <ul>
-<li class="task"><input type="checkbox" data-task="24" aria-label="Ho gaya"> AI page → Camera sources: <code>cam-warehouse · file · SIMULATED / TEST INPUT · running · sent …</code></li>
-<li class="task"><input type="checkbox" data-task="25" aria-label="Ho gaya"> Dashboard ke Warehouse camera par AI ke boxes.</li>
-<li class="task"><input type="checkbox" data-task="26" aria-label="Ho gaya"> Aag <strong>3 frames</strong> tak lagatar dikhe to incident, <strong>SIMULATED DATA</strong> label ke saath.</li>
-<li class="task"><input type="checkbox" data-task="27" aria-label="Ho gaya"> Demo setting mein Auto sprinklers khud chal jaate hain (simulated data par bhi).</li>
+<li class="task"><input type="checkbox" data-task="28" aria-label="Ho gaya"> AI page → Camera sources: <code>cam-warehouse · file · SIMULATED / TEST INPUT · running · sent …</code></li>
+<li class="task"><input type="checkbox" data-task="29" aria-label="Ho gaya"> Dashboard ke Warehouse camera par AI ke boxes.</li>
+<li class="task"><input type="checkbox" data-task="30" aria-label="Ho gaya"> Aag <strong>3 frames</strong> tak lagatar dikhe to incident, <strong>SIMULATED DATA</strong> label ke saath.</li>
+<li class="task"><input type="checkbox" data-task="31" aria-label="Ho gaya"> Demo setting mein Auto sprinklers khud chal jaate hain (simulated data par bhi).</li>
 </ul>
 <p><strong>Yaad rakhein:</strong></p>
 <ul>
@@ -960,14 +986,14 @@ dotnet run --project Sentinel.Api -- generate-vapid-keys
 <hr /></section><p class="part-label">D · Masle, hifazat aur checklist</p><section class="chapter" data-ch="17"><h1 id="ch17">17. Automatic Tests (Ek Click Mein Sab Check)</h1>
 <p>Ye tests code khud check karte hain. Har command ke aakhir mein <strong>failed: 0</strong> hona chahiye.</p>
 <pre><code class="language-powershell">cd C:\Users\m_fahad\Desktop\Project\backend
-dotnet test                                   # ✅ Passed: 61
+dotnet test                                   # ✅ Passed: 62
 
 cd C:\Users\m_fahad\Desktop\Project\frontend
-ng test --watch=false                         # ✅ Tests 26 passed
+ng test --watch=false                         # ✅ Tests 29 passed
 ng build                                      # ✅ &quot;Application bundle generation complete&quot;
 
 cd C:\Users\m_fahad\Desktop\Project\ai-service
-.\.venv\Scripts\python -m unittest discover -s tests    # ✅ Ran 15 tests ... OK
+.\.venv\Scripts\python -m unittest discover -s tests    # ✅ Ran 17 tests ... OK
 </code></pre>
 <p><strong>AI ki accuracy dobara napna</strong> (D-Fire test folder ka path chahiye, ~20 minute):</p>
 <pre><code class="language-powershell">.\.venv\Scripts\python tools\evaluate.py --data &lt;D-Fire\test folder&gt; --classes 0=Smoke,1=Fire --sweep 0.25,0.3,0.35,0.4,0.5 --out reports\meri-jaanch
@@ -1169,14 +1195,14 @@ cd C:\Users\m_fahad\Desktop\Project\ai-service
 </tr>
 <tr>
 <td>6</td>
-<td>Simulator: Zone B mein aag, CRITICAL, incident, alarm lagatar, Zone B sprinklers khud chale</td>
+<td>Simulator: Ground Floor - Warehouse mein aag, CRITICAL, incident, alarm lagatar, Ground Floor - Warehouse sprinklers khud chale</td>
 <td>8</td>
 <td></td>
 <td></td>
 </tr>
 <tr>
 <td>6b</td>
-<td>Simulator band: ~10 sec baad "Camera lost" (Zone B High)</td>
+<td>Simulator band: ~10 sec baad "Camera lost" (Ground Floor - Warehouse High)</td>
 <td>8</td>
 <td></td>
 <td></td>
@@ -1274,7 +1300,7 @@ cd C:\Users\m_fahad\Desktop\Project\ai-service
 </tr>
 <tr>
 <td>18</td>
-<td>Automatic tests: 61 + 26 + 15 pass</td>
+<td>Automatic tests: 62 + 29 + 17 pass</td>
 <td>17</td>
 <td></td>
 <td></td>
@@ -1290,6 +1316,20 @@ cd C:\Users\m_fahad\Desktop\Project\ai-service
 <td>20</td>
 <td><code>save.ps1</code> → push → doosre PC par pull → <code>load.ps1</code></td>
 <td>5</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>21</td>
+<td><code>start.ps1</code> se teeno windows khulin</td>
+<td>5</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>22</td>
+<td>Devices page: camera add, edit, delete (Admin)</td>
+<td>15</td>
 <td></td>
 <td></td>
 </tr>

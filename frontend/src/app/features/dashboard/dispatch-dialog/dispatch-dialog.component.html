@@ -22,7 +22,7 @@
 
     <label class="field">
       <span>Message ({{ form.controls.message.value.length }}/500)</span>
-      <textarea class="input resize-y" rows="3" formControlName="message" placeholder="e.g. Evacuate Zone B via the east stairwell."></textarea>
+      <textarea class="input resize-y" rows="3" formControlName="message" placeholder="e.g. Evacuate the warehouse via the east stairwell."></textarea>
       @if (form.controls.message.invalid) { <span class="text-red-400">Maximum 500 characters.</span> }
     </label>
 

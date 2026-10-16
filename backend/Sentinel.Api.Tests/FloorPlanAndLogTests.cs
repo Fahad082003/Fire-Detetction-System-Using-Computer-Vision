@@ -21,8 +21,8 @@ public class FloorPlanAndLogTests(SentinelApiFactory factory) : IClassFixture<Se
             new { type = "Exit", name = "East", x = 19, y = 4, width = 1, height = 2 },
             new { type = "Exit", name = "West", x = 0, y = 4, width = 1, height = 2 },
             new { type = "SafeZone", name = "Assembly point", x = 0, y = 7, width = 3, height = 3 },
-            // Not marked active: it becomes active only while Zone C has an open incident.
-            new { type = "DangerZone", name = "Boiler room", x = dangerX, y = 4, width = 1, height = 2, zone = "Zone C" },
+            // Not marked active: it becomes active only while First Floor - Server Hall has an open incident.
+            new { type = "DangerZone", name = "Boiler room", x = dangerX, y = 4, width = 1, height = 2, zone = "First Floor - Server Hall" },
         },
     };
 
@@ -54,8 +54,8 @@ public class FloorPlanAndLogTests(SentinelApiFactory factory) : IClassFixture<Se
         Assert.Equal(Math.Round(r1.DistanceMeters / 1.2, 1), r1.EstimatedSeconds);
         Assert.Empty(r1.ActiveDangerZones);
 
-        // An open incident in Zone C activates the linked danger zone → route switches to West.
-        (await op.PostAsJsonAsync("/api/incidents/dispatch", new { zone = "Zone C", message = "test" })).EnsureSuccessStatusCode();
+        // An open incident in First Floor - Server Hall activates the linked danger zone → route switches to West.
+        (await op.PostAsJsonAsync("/api/incidents/dispatch", new { zone = "First Floor - Server Hall", message = "test" })).EnsureSuccessStatusCode();
         var r2 = await Route(op, plan.Id, 16, 5);
         Assert.True(r2.Found);
         Assert.Equal("West", r2.ExitName);

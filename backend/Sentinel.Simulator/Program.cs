@@ -4,7 +4,7 @@
 //   * Sprinkler relays   -> REST GET  /api/iot/sprinklers (active relays suppress the simulated fire)
 //
 // Usage:
-//   dotnet run --project Sentinel.Simulator -- --device-key <key> --ignite "Zone B"
+//   dotnet run --project Sentinel.Simulator -- --device-key <key> --ignite "Ground Floor - Warehouse"
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;

@@ -22,6 +22,8 @@ export interface CameraFeed {
   status: CameraStatus; locationZone: string; updatedAt: string;
   calibration?: CameraCalibration | null;
 }
+/** Admin: add/edit a camera (POST /api/cameras, PUT /api/cameras/{id}). */
+export interface SaveCamera { id: string; name: string; feedType: FeedType; streamUrl: string; streamFormat: StreamFormat; locationZone: string; }
 /** The same 4 floor points in the camera frame (pixels, like detection boxes) and on the floor plan (meters). */
 export interface CameraCalibration { floorPlanId: number; imagePoints: [number, number][]; planPoints: [number, number][]; }
 

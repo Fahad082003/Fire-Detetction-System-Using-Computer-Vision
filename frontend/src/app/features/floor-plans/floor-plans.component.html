@@ -97,7 +97,8 @@
           }
           @if (e.type === 'DangerZone') {
             <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="accent-red-500" [checked]="e.isActive" (change)="check('isActive', $event)" /> Active now (manual)</label>
-            <label class="field"><span>Linked camera/sensor zone</span><input class="input" [value]="e.zone ?? ''" (change)="text('zone', $event)" placeholder="e.g. Zone B" maxlength="64" /></label>
+            <label class="field"><span>Linked camera/sensor zone</span><input class="input" list="plan-zone-list" [value]="e.zone ?? ''" (change)="text('zone', $event)" placeholder="e.g. Ground Floor - Warehouse" maxlength="64" />
+              <datalist id="plan-zone-list">@for (z of live.zones(); track z) { <option [value]="z"></option> }</datalist></label>
             <p class="text-[11px] text-slate-500">Becomes active automatically while that zone has an open incident.</p>
           }
           <button type="button" class="btn btn-sm btn-ghost text-red-400" (click)="deleteSelected()">Delete element</button>

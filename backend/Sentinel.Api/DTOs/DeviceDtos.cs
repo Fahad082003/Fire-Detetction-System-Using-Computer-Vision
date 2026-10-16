@@ -13,6 +13,18 @@ public record CameraFeedDto(
 /// </summary>
 public record CameraCalibrationDto(int FloorPlanId, double[][] ImagePoints, double[][] PlanPoints);
 
+/// <summary>Admin: add or edit a camera. Id only on create (it is what the AI service posts as cameraId).</summary>
+public class SaveCameraRequest
+{
+    public string? Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public FeedType FeedType { get; set; } = FeedType.CCTV;
+    /// <summary>rtsp:// / http(s):// link, or empty for a simulated feed. A masked link (rtsp://***@…) keeps the saved one.</summary>
+    public string? StreamUrl { get; set; }
+    public StreamFormat StreamFormat { get; set; } = StreamFormat.Simulated;
+    public string LocationZone { get; set; } = string.Empty;
+}
+
 public record SensorNodeDto(
     string Id, SensorType Type, double CurrentValue, double Threshold, double CriticalThreshold,
     string LocationZone, string Unit, SensorState State, DateTime? LastReadingAt,

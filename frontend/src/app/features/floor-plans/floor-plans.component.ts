@@ -203,7 +203,8 @@ export class FloorPlansComponent implements OnInit, OnDestroy {
       return;
     }
     const tool = this.tool();
-    if (tool === 'select') return this.onSelectPointer(p);
+    // The cyan corner resizes with any tool: right after drawing, the draw tool is still active.
+    if (tool === 'select' || (p.kind === 'down' && p.handle) || this.drag?.mode === 'resize') return this.onSelectPointer(p);
     if (tool === 'pan') return;
     if (p.kind === 'down') { this.drag = { mode: 'draw', start: p, offset: { x: 0, y: 0 } }; return; }
     if (!this.drag || this.drag.mode !== 'draw') return;

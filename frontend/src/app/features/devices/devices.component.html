@@ -1,0 +1,64 @@
+<main class="grid items-start gap-3.5 p-3 md:p-5 xl:grid-cols-[minmax(0,1fr)_360px]">
+  <section class="panel min-w-0" aria-labelledby="cams-title">
+    <header class="panel-head">
+      <h2 id="cams-title" class="panel-title">Cameras</h2>
+      @if (isAdmin()) { <button type="button" class="btn btn-sm btn-success" (click)="add()">+ Camera</button> }
+    </header>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-sm">
+        <thead class="text-xs text-slate-500">
+          <tr><th class="px-3 py-2">Id</th><th class="px-3 py-2">Name</th><th class="px-3 py-2">Type</th><th class="px-3 py-2">Zone</th><th class="px-3 py-2">Stream</th><th class="px-3 py-2"></th></tr>
+        </thead>
+        <tbody>
+          @for (c of live.cameras(); track c.id) {
+            <tr class="border-t border-ink-700 align-top">
+              <td class="px-3 py-2 font-mono text-xs">{{ c.id }}</td>
+              <td class="px-3 py-2 font-semibold">{{ c.name }}</td>
+              <td class="px-3 py-2">{{ c.feedType }}</td>
+              <td class="px-3 py-2">{{ c.locationZone }}</td>
+              <td class="px-3 py-2 text-xs text-slate-400">{{ c.streamFormat }}@if (c.streamUrl) { · <span class="font-mono">{{ c.streamUrl }}</span>}</td>
+              <td class="whitespace-nowrap px-3 py-2 text-right">
+                @if (isAdmin()) {
+                  <button type="button" class="btn btn-sm" (click)="edit(c)">Edit</button>
+                  <button type="button" class="btn btn-sm btn-ghost text-red-400" (click)="remove(c)">Delete</button>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="6" class="px-3 py-6 text-center text-slate-500">No camera yet. Press <b>+ Camera</b>.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    @if (!isAdmin()) { <p class="p-3 text-xs text-amber-300">Only an Admin can add, edit or delete cameras.</p> }
+  </section>
+
+  @if (editing() !== null) {
+    <form class="panel flex flex-col gap-3 p-4" (submit)="$event.preventDefault(); save()" aria-label="Camera form">
+      <h3 class="panel-title">{{ editing() === '' ? 'Add camera' : 'Edit ' + editing() }}</h3>
+      <label class="field"><span>Id (letters, digits, - or _; cannot change later)</span>
+        <input class="input font-mono" [value]="form().id" (input)="set('id', $event)" [disabled]="editing() !== ''" placeholder="e.g. cam-gate" maxlength="64" required /></label>
+      <label class="field"><span>Name</span>
+        <input class="input" [value]="form().name" (input)="set('name', $event)" placeholder="e.g. Main Gate" maxlength="120" required /></label>
+      <label class="field"><span>Type</span>
+        <select class="input" [value]="form().feedType" (change)="set('feedType', $event)">
+          @for (t of feedTypes; track t) { <option [value]="t">{{ t }}</option> }
+        </select></label>
+      <label class="field"><span>Zone: "Floor - Area" (pick one, or type a new one once)</span>
+        <input class="input" list="zone-list" [value]="form().locationZone" (input)="set('locationZone', $event)" placeholder="e.g. First Floor - Kitchen" maxlength="64" required />
+        <datalist id="zone-list">@for (z of live.zones(); track z) { <option [value]="z"></option> }</datalist></label>
+      <label class="field"><span>Stream link (empty = simulated feed)</span>
+        <input class="input font-mono text-xs" [value]="form().streamUrl" (input)="set('streamUrl', $event)" placeholder="rtsp://user:pass@192.168.1.20/live" maxlength="500" /></label>
+      <label class="field"><span>Browser video format</span>
+        <select class="input" [value]="form().streamFormat" (change)="set('streamFormat', $event)">
+          @for (f of formats; track f) { <option [value]="f">{{ f }}</option> }
+        </select></label>
+      <p class="text-[11px] text-slate-500">RTSP cameras: keep <b>Simulated</b> (browsers cannot play RTSP; the tile shows the AI boxes).
+        The AI service reads the stream link by itself within a minute. A link shown as <code>rtsp://***@…</code> keeps its saved password.</p>
+      <div class="flex gap-2">
+        <button type="submit" class="btn btn-sm btn-success" [disabled]="busy()">Save</button>
+        <button type="button" class="btn btn-sm btn-ghost" (click)="editing.set(null)">Cancel</button>
+      </div>
+    </form>
+  }
+</main>

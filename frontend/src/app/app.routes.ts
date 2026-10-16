@@ -28,6 +28,11 @@ export const routes: Routes = [
         loadComponent: () => import('./features/ai/ai-analysis.component').then((m) => m.AiAnalysisComponent),
         title: 'AI Analysis · FireVision AI',
       },
+      {
+        path: 'devices',
+        loadComponent: () => import('./features/devices/devices.component').then((m) => m.DevicesComponent),
+        title: 'Devices · FireVision AI',
+      },
     ],
   },
   { path: '**', redirectTo: '' },
