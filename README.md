@@ -1,6 +1,6 @@
-# Sentinel — Emergency Monitoring Command Center
+# FireVision AI — Emergency Monitoring Command Center
 
-Real-time fire/threat monitoring. Its own AI service (or any producer that posts the same JSON) sends bounding boxes, danger zones and fire severity, and Sentinel draws them live over CCTV and drone feeds. It also:
+Real-time fire/threat monitoring. Its own AI service (or any producer that posts the same JSON) sends bounding boxes, danger zones and fire severity, and FireVision AI draws them live over CCTV and drone feeds. It also:
 - opens and escalates incidents, and sends SMS, email and web-push alerts;
 - switches on smart sprinklers automatically;
 - raises a **camera lost** alert when a camera goes silent;
@@ -92,13 +92,13 @@ cd ai-service; .\.venv\Scripts\python -m unittest discover -s tests   # AI servi
 
 ## Documentation
 
-**[docs/SENTINEL_GUIDE_ROMAN_URDU_v5.pdf](docs/SENTINEL_GUIDE_ROMAN_URDU_v5.pdf)** is the full project guide in Roman Urdu. The same guide is also a browsable page, **[docs/SENTINEL_GUIDE_ROMAN_URDU_v5.html](docs/SENTINEL_GUIDE_ROMAN_URDU_v5.html)**, with a chapter sidebar, search and dark mode. Open it from the `docs` folder so the screenshots load. It covers:
+**[docs/FIREVISION_AI_GUIDE_ROMAN_URDU_v5.pdf](docs/FIREVISION_AI_GUIDE_ROMAN_URDU_v5.pdf)** is the full project guide in Roman Urdu. The same guide is also a browsable page, **[docs/FIREVISION_AI_GUIDE_ROMAN_URDU_v5.html](docs/FIREVISION_AI_GUIDE_ROMAN_URDU_v5.html)**, with a chapter sidebar, search and dark mode. Open it from the `docs` folder so the screenshots load. It covers:
 - The whole flow from camera to dashboard, alerts, sensors, sprinklers, floor plans and evacuation.
 - The database, security, the API and SignalR.
 - The AI models: where each model came from, the D-Fire dataset and its image counts, the 80-epoch Kaggle training, and the measured accuracy.
 - The end-to-end test, how to run everything, requirement status and the work that remains.
 
-**[docs/SENTINEL_USER_GUIDE_ROMAN_URDU.pdf](docs/SENTINEL_USER_GUIDE_ROMAN_URDU.pdf)** is a step-by-step guide for non-technical users. It is also a browsable page, **[docs/SENTINEL_USER_GUIDE_ROMAN_URDU.html](docs/SENTINEL_USER_GUIDE_ROMAN_URDU.html)**, where the test checkboxes can be ticked and the page remembers them. It covers:
+**[docs/FIREVISION_AI_USER_GUIDE_ROMAN_URDU.pdf](docs/FIREVISION_AI_USER_GUIDE_ROMAN_URDU.pdf)** is a step-by-step guide for non-technical users. It is also a browsable page, **[docs/FIREVISION_AI_USER_GUIDE_ROMAN_URDU.html](docs/FIREVISION_AI_USER_GUIDE_ROMAN_URDU.html)**, where the test checkboxes can be ticked and the page remembers them. It covers:
 - Installing, starting and logging in.
 - What every part of the dashboard does.
 - Nine hands-on tests, each with the expected result.

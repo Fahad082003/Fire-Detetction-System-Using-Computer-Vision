@@ -19,7 +19,7 @@ public class SensorService(
     IRealtimeNotifier realtime,
     ILogger<SensorService> logger) : ISensorService
 {
-    private const double MinValue = -100, MaxValue = 100_000;
+    private const double MinValue = -100, MaxValue = 1_000_000; // 1 000 000 ppm = 100 %, the physical maximum
     private readonly AlertOptions _opt = options.Value;
 
     public async Task<IReadOnlyList<SensorNodeDto>> GetAllAsync(CancellationToken ct = default) =>
@@ -76,7 +76,7 @@ public class SensorService(
             }
             catch (Exception ex) when (ex is NotFoundException or AppValidationException)
             {
-                errors.Add(new TelemetryError(r.SensorId, ex.Message));
+                errors.Add(new TelemetryError(r.SensorId, ex is AppValidationException v ? string.Join(" ", v.Errors.Values.SelectMany(e => e)) : ex.Message));
             }
         }
         return new BulkTelemetryResult(updated, errors);

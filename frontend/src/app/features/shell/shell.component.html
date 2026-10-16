@@ -10,7 +10,7 @@
       <path d="M8 17h4l2-5 3 9 2-4h5" class="fill-none stroke-slate-100" stroke-linecap="round" />
     </svg>
     <div class="min-w-0">
-      <div class="text-sm font-extrabold tracking-[0.22em]">SENTINEL</div>
+      <div class="text-sm font-extrabold tracking-[0.22em]">FIREVISION AI</div>
       <div class="hidden truncate text-xs text-slate-500 sm:block">Emergency Command Center</div>
     </div>
   </div>
@@ -32,7 +32,7 @@
     <span class="flex items-center gap-1.5 text-xs text-slate-400" title="SignalR realtime link">
       <span class="h-2 w-2 rounded-full {{ connection().dot }}"></span>{{ connection().label }}
     </span>
-    <time class="hidden w-[70px] text-right font-mono text-sm text-slate-300 lg:block">{{ live.now() | date: 'HH:mm:ss' }}</time>
+    <time class="hidden w-[96px] text-right font-mono text-sm text-slate-300 lg:block" title="Current local time">{{ live.now() | date: 'hh:mm:ss a' }}</time>
 
     <button type="button" class="btn btn-ghost w-9 px-0" (click)="alarm.toggleMute()"
             [attr.aria-pressed]="alarm.muted()" [title]="alarm.muted() ? 'Audible alarm muted' : 'Audible alarm on'">

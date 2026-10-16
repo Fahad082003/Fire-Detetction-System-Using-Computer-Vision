@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sentinel User Guide</title>
+<title>FireVision AI User Guide</title>
 <style>
 :root {
   --bg: #f7f8fa; --panel: #ffffff; --text: #1e293b; --muted: #64748b; --line: #e2e8f0;
@@ -97,7 +97,7 @@ li.task:has(input:checked) { color: var(--muted); text-decoration: line-through;
 <body>
 <header class="top">
   <button class="icon" id="menu" aria-label="Fehrist dikhayein">☰</button>
-  <span class="brand">SENTINEL</span>
+  <span class="brand">FIREVISION AI</span>
   <span class="sub">User Guide · Istemaal aur Testing · Roman Urdu</span>
   <span class="spacer"></span>
   <input id="q" type="search" placeholder="Search… (jaise: login, sprinkler, calibration)" aria-label="Guide mein search">
@@ -107,7 +107,7 @@ li.task:has(input:checked) { color: var(--muted); text-decoration: line-through;
   <nav class="toc" aria-label="Fehrist"><ul><li class="part">A · Shuru karne se pehle</li><li><a href="#ch1" data-ch="1">1. Ye Guide Kis Ke Liye Hai?</a></li><li><a href="#ch2" data-ch="2">2. Pehli Dafa: Zaroori Software Install Karna</a></li><li><a href="#ch3" data-ch="3">3. Pehli Dafa: Project Ka Setup</a></li><li><a href="#ch4" data-ch="4">4. Safe Test Mode (Test Se Pehle Zaroor)</a></li><li class="part">B · Roz ka istemaal</li><li><a href="#ch5" data-ch="5">5. Roz Ka Kaam: System Chalana</a></li><li><a href="#ch6" data-ch="6">6. Login Karna</a></li><li><a href="#ch7" data-ch="7">7. Dashboard Ka Tour (Har Hissa Kya Hai)</a></li><li class="part">C · Har feature ka test</li><li><a href="#ch8" data-ch="8">8. Test 1: Aag Ka Demo (Simulator)</a></li><li><a href="#ch9" data-ch="9">9. Test 2: AI Ko Photo Dikhana (AI Page)</a></li><li><a href="#ch10" data-ch="10">10. Test 3: Sensor Ko Garam Karna (Swagger)</a></li><li><a href="#ch11" data-ch="11">11. Test 4: Sprinklers</a></li><li><a href="#ch12" data-ch="12">12. Test 5: Emergency Dispatch Aur Resolve</a></li><li><a href="#ch13" data-ch="13">13. Test 6: Naqsha Banana Aur Evacuation Raasta</a></li><li><a href="#ch14" data-ch="14">14. Test 7: Incident History Aur Logs</a></li><li><a href="#ch15" data-ch="15">15. Test 8: AI Ko Video Se Camera Ki Tarah Chalana</a></li><li><a href="#ch16" data-ch="16">16. Test 9: Browser Notifications</a></li><li class="part">D · Masle, hifazat aur checklist</li><li><a href="#ch17" data-ch="17">17. Automatic Tests (Ek Click Mein Sab Check)</a></li><li><a href="#ch18" data-ch="18">18. Masle Aur Un Ka Hal</a></li><li><a href="#ch19" data-ch="19">19. Kya Kabhi Na Karein</a></li><li><a href="#ch20" data-ch="20">20. Test Checklist (Print Karke Tick Karein)</a></li></ul></nav>
   <main>
     <div class="hero">
-      <h1>SENTINEL</h1>
+      <h1>FIREVISION AI</h1>
       <p>Aam istemaal karne wale ke liye qadam ba qadam: install, roz chalana, login, dashboard ka har hissa, aur har feature ka test, ke screen par kya dikhna chahiye. Test ki boxes yahin tick karein: tick is browser mein yaad rehti hai.</p>
       <div class="stats"><div><b>3 windows</b>API · Dashboard · AI service</div><div><b>9 tests</b>Aag demo se camera calibration tak</div><div><b>Safe Test Mode</b>Test mein asli SMS/Email band</div><div><b>Checklist</b>Tick karein, progress upar dikhe</div></div>
       <div id="progress" class="progress hidden"><span></span><i><b></b></i><button class="icon" id="reset">Ticks saaf karein</button></div>
@@ -115,14 +115,14 @@ li.task:has(input:checked) { color: var(--muted); text-decoration: line-through;
     <p class="part-label">A · Shuru karne se pehle</p><section class="chapter" data-ch="1"><h1 id="ch1">1. Ye Guide Kis Ke Liye Hai?</h1>
 <p>Ye guide <strong>aam istemaal karne wale</strong> ke liye hai, programmer hona zaroori nahi. Is mein qadam ba qadam likha hai:</p>
 <ol>
-<li>Sentinel ko pehli dafa computer par kaise <strong>install</strong> karein.</li>
+<li>FireVision AI ko pehli dafa computer par kaise <strong>install</strong> karein.</li>
 <li>Roz kaise <strong>chalayein</strong> (start) aur band karein.</li>
 <li>Website (dashboard) ka <strong>har hissa</strong> kya karta hai.</li>
 <li>Har feature ko <strong>khud test</strong> kaise karein, aur test ke baad screen par <strong>kya dikhna chahiye</strong>.</li>
 <li>Masla aaye to <strong>kya karein</strong>.</li>
 </ol>
-<h3 id="ch1-sentinel-ek-line-mein">Sentinel ek line mein</h3>
-<p>Sentinel building ka <strong>"smart chowkidar"</strong> hai. Camera mein AI aag, dhuwan aur insaan pehchaanta hai. Sensors garmi aur dhuwan napte hain. Khatra ho to screen par alarm aata hai, SMS/Email/Push jaate hain, sprinklers chal sakte hain, aur naqshe par <strong>mehfooz raasta</strong> dikhta hai.</p>
+<h3 id="ch1-firevision-ai-ek-line-mein">FireVision AI ek line mein</h3>
+<p>FireVision AI building ka <strong>"smart chowkidar"</strong> hai. Camera mein AI aag, dhuwan aur insaan pehchaanta hai. Sensors garmi aur dhuwan napte hain. Khatra ho to screen par alarm aata hai, SMS/Email/Push jaate hain, sprinklers chal sakte hain, aur naqshe par <strong>mehfooz raasta</strong> dikhta hai.</p>
 <h3 id="ch1-guide-kaise-parhein">Guide kaise parhein</h3>
 <ul>
 <li><code>Is tarah ke dabbe</code> mein jo likha hai, wo <strong>computer mein type</strong> karna hai (ya copy-paste).</li>
@@ -358,11 +358,11 @@ git push
 </tr>
 <tr>
 <td><strong>Ghari</strong></td>
-<td>Abhi ka waqt</td>
+<td>Abhi ka asli waqt, AM/PM ke saath (Windows jaisa)</td>
 </tr>
 <tr>
 <td><strong>🔊 button</strong></td>
-<td>Alarm ki awaaz band/chalu</td>
+<td>Alarm ki awaaz band/chalu. Koi bhi incident khula ho to alarm <strong>lagatar</strong> bajta hai, jab tak incident <strong>Resolve</strong> na karein ya ye button na dabayein</td>
 </tr>
 <tr>
 <td><strong>Enable Alerts</strong></td>
@@ -496,16 +496,16 @@ dotnet run --project Sentinel.Simulator -- --device-key &lt;yahan Device__ApiKey
 <ul>
 <li class="task"><input type="checkbox" data-task="1" aria-label="Ho gaya"> Cameras par boxes hilte hue. <strong>SIM DATA</strong> chip.</li>
 <li class="task"><input type="checkbox" data-task="2" aria-label="Ho gaya"> <strong>Warehouse Floor</strong> (Zone B) camera par laal aag ka dabba aur laal danger zone, hari "assembly point".</li>
-<li class="task"><input type="checkbox" data-task="3" aria-label="Ho gaya"> Upar pill laal: <strong>CRITICAL ALERT</strong>. Alarm ki awaaz.</li>
+<li class="task"><input type="checkbox" data-task="3" aria-label="Ho gaya"> Upar pill laal: <strong>CRITICAL ALERT</strong>. Alarm <strong>lagatar</strong> bajta hai (Resolve karne ya 🔊 dabane tak).</li>
 <li class="task"><input type="checkbox" data-task="4" aria-label="Ho gaya"> <strong>Alert Logs</strong> mein naya incident, Location "Zone B", Severity High/Critical.</li>
 <li class="task"><input type="checkbox" data-task="5" aria-label="Ho gaya"> <strong>Live Event Log</strong> mein lines: incident khula, SMS "skipped", email (API window mein print).</li>
 <li class="task"><input type="checkbox" data-task="6" aria-label="Ho gaya"> Zone B ke garmi/dhuwan gauges barhte hue.</li>
-<li class="task"><input type="checkbox" data-task="7" aria-label="Ho gaya"> Simulated data ki wajah se sprinklers <strong>khud nahi</strong> chalte (camera aur simulator ke sensors dono): Live Event Log mein "sprinkler auto-activation skipped… SIMULATED", aur sensor incidents par <strong>[SIMULATED DATA]</strong>.</li>
+<li class="task"><input type="checkbox" data-task="7" aria-label="Ho gaya"> Zone B ke <strong>Auto</strong> sprinklers <strong>khud chal jaate hain</strong> ("spraying"). Demo (Development) setting mein simulated data par bhi chalte hain; asli hardware nahi, sirf database.</li>
 </ul>
 <p><strong>Band karna:</strong> Window 4 mein <strong>Ctrl + C</strong>.</p>
 <p><strong>Camera lost check (simulator band karne ke baad):</strong></p>
 <ul>
-<li class="task"><input type="checkbox" data-task="8" aria-label="Ho gaya"> ~30 second baad <strong>Alert Logs</strong> mein har camera ke liye ek incident, Source <strong>Camera lost</strong>: "Camera lost: no frames from … for 31 s".</li>
+<li class="task"><input type="checkbox" data-task="8" aria-label="Ho gaya"> ~10–12 second baad <strong>Alert Logs</strong> mein har camera ke liye ek incident, Source <strong>Camera lost</strong>: "Camera lost: no frames from … for 10 s".</li>
 <li class="task"><input type="checkbox" data-task="9" aria-label="Ho gaya"> Zone B ke cameras (jahan aag thi) <strong>High</strong>, baqi <strong>Medium</strong>.</li>
 <li class="task"><input type="checkbox" data-task="10" aria-label="Ho gaya"> Simulator dobara chalayein: Live Event Log mein "Camera … is sending frames again". Phir purane "Camera lost" incidents <strong>Resolve</strong> kar dein.</li>
 </ul>
@@ -938,7 +938,7 @@ $env:SENTINEL_DEVICE_KEY = &quot;&lt;yahan Device__ApiKey&gt;&quot;
 <li class="task"><input type="checkbox" data-task="24" aria-label="Ho gaya"> AI page → Camera sources: <code>cam-warehouse · file · SIMULATED / TEST INPUT · running · sent …</code></li>
 <li class="task"><input type="checkbox" data-task="25" aria-label="Ho gaya"> Dashboard ke Warehouse camera par AI ke boxes.</li>
 <li class="task"><input type="checkbox" data-task="26" aria-label="Ho gaya"> Aag <strong>3 frames</strong> tak lagatar dikhe to incident, <strong>SIMULATED DATA</strong> label ke saath.</li>
-<li class="task"><input type="checkbox" data-task="27" aria-label="Ho gaya"> Sprinklers <strong>khud nahi</strong> chalte (simulated).</li>
+<li class="task"><input type="checkbox" data-task="27" aria-label="Ho gaya"> Demo setting mein Auto sprinklers khud chal jaate hain (simulated data par bhi).</li>
 </ul>
 <p><strong>Yaad rakhein:</strong></p>
 <ul>
@@ -951,7 +951,7 @@ $env:SENTINEL_DEVICE_KEY = &quot;&lt;yahan Device__ApiKey&gt;&quot;
 <ol>
 <li>Upar <strong>Enable Alerts</strong> dabayein → browser poochhe to <strong>Allow</strong>.</li>
 <li>Test 1 ya Test 5 chalayein.</li>
-<li>✅ Windows ke kone mein Sentinel ka notification aaye (dashboard ka tab band ho tab bhi, jab tak browser background mein chal raha ho).</li>
+<li>✅ Windows ke kone mein FireVision AI ka notification aaye (dashboard ka tab band ho tab bhi, jab tak browser background mein chal raha ho).</li>
 </ol>
 <p>Ye sirf tab kaam karta hai jab <code>.env</code> mein <code>Notifications__WebPush__…</code> keys bhari hon. Keys banane ki command:</p>
 <pre><code class="language-powershell">cd C:\Users\m_fahad\Desktop\Project\backend
@@ -960,7 +960,7 @@ dotnet run --project Sentinel.Api -- generate-vapid-keys
 <hr /></section><p class="part-label">D · Masle, hifazat aur checklist</p><section class="chapter" data-ch="17"><h1 id="ch17">17. Automatic Tests (Ek Click Mein Sab Check)</h1>
 <p>Ye tests code khud check karte hain. Har command ke aakhir mein <strong>failed: 0</strong> hona chahiye.</p>
 <pre><code class="language-powershell">cd C:\Users\m_fahad\Desktop\Project\backend
-dotnet test                                   # ✅ Passed: 60
+dotnet test                                   # ✅ Passed: 61
 
 cd C:\Users\m_fahad\Desktop\Project\frontend
 ng test --watch=false                         # ✅ Tests 26 passed
@@ -1169,14 +1169,14 @@ cd C:\Users\m_fahad\Desktop\Project\ai-service
 </tr>
 <tr>
 <td>6</td>
-<td>Simulator: Zone B mein aag, CRITICAL, incident, sprinklers khud nahi chale</td>
+<td>Simulator: Zone B mein aag, CRITICAL, incident, alarm lagatar, Zone B sprinklers khud chale</td>
 <td>8</td>
 <td></td>
 <td></td>
 </tr>
 <tr>
 <td>6b</td>
-<td>Simulator band: 30 sec baad "Camera lost" (Zone B High)</td>
+<td>Simulator band: ~10 sec baad "Camera lost" (Zone B High)</td>
 <td>8</td>
 <td></td>
 <td></td>
@@ -1274,7 +1274,7 @@ cd C:\Users\m_fahad\Desktop\Project\ai-service
 </tr>
 <tr>
 <td>18</td>
-<td>Automatic tests: 60 + 26 + 15 pass</td>
+<td>Automatic tests: 61 + 26 + 15 pass</td>
 <td>17</td>
 <td></td>
 <td></td>

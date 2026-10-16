@@ -29,6 +29,21 @@ public class CameraLostAndSimulatedTests(SentinelApiFactory factory) : IClassFix
     }
 
     [Fact]
+    public async Task Extreme_smoke_reading_raises_a_critical_alert_instead_of_being_rejected()
+    {
+        // Bug: values above 100 000 ppm were dropped, so the worst smoke produced no alert at all.
+        var device = factory.DeviceClient();
+        (await device.PostAsJsonAsync("/api/iot/telemetry", new { readings = new[] { new { sensorId = "smoke-a1", value = 250_000.0 } } })).EnsureSuccessStatusCode();
+        var op = await factory.OperatorClientAsync();
+        var incident = (await op.GetFromJsonAsync<List<IncidentAlertDto>>("/api/incidents", Json))!.Single(i => i.SensorId == "smoke-a1");
+        Assert.Equal(Severity.Critical, incident.Severity);
+
+        // Beyond the physical maximum it is still rejected, now with a reason the operator can read.
+        var bad = await device.PostAsJsonAsync("/api/iot/telemetry", new { readings = new[] { new { sensorId = "smoke-a1", value = 2_000_000.0 } } });
+        Assert.Contains("must be between", await bad.Content.ReadAsStringAsync());
+    }
+
+    [Fact]
     public async Task Silent_camera_raises_one_camera_lost_alert_high_while_its_zone_burns()
     {
         var device = factory.DeviceClient();
@@ -38,7 +53,7 @@ public class CameraLostAndSimulatedTests(SentinelApiFactory factory) : IClassFix
         (await device.PostAsJsonAsync("/api/detections", new { cameraId = "cam-lobby", frameWidth = 1280, frameHeight = 720, detections = Array.Empty<object>() })).EnsureSuccessStatusCode();
 
         var watchdog = factory.Services.GetRequiredService<CameraWatchdog>();
-        await watchdog.CheckAsync(DateTime.UtcNow.AddSeconds(10));                          // not silent long enough
+        await watchdog.CheckAsync(DateTime.UtcNow.AddSeconds(5));                           // not silent long enough
         Assert.Empty(await CameraLost());
 
         await watchdog.CheckAsync(DateTime.UtcNow.AddSeconds(31));

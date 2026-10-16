@@ -40,7 +40,7 @@
             [class]="camera().feedType === 'Drone' ? 'bg-purple-500/20 text-purple-300' : 'bg-blue-500/20 text-blue-300'">
         {{ camera().feedType.toUpperCase() }}
       </span>
-      <span class="truncate">{{ camera().name }}</span>
+      <span class="truncate">{{ camera().name }} <span class="text-slate-300">({{ camera().locationZone }})</span></span>
       <span class="ml-auto flex items-center gap-1.5 font-mono text-[10px] tracking-[0.14em]" [class]="stale() ? 'text-slate-500' : 'text-red-300'">
         <span class="h-1.5 w-1.5 rounded-full" [class]="stale() ? 'bg-slate-500' : 'bg-red-500 animate-blink'"></span>
         {{ stale() ? 'NO AI DATA' : 'LIVE' }}
@@ -58,6 +58,5 @@
       @if (stats()?.smokeDetected) { <span class="chip chip-fire">SMOKE</span> }
       <span class="chip" [class.chip-fire]="stats()?.fireDetected" title="Fire severity = share of the image covered by fire boxes, not a calibrated physical size">FIRE <b>{{ stats()?.fireDetected ? (stats()?.fireSeverity ?? 'YES') : '—' }}</b></span>
     </div>
-    <div class="pointer-events-none absolute bottom-2.5 right-2.5 font-mono text-[10px] uppercase tracking-wider text-slate-400">{{ camera().locationZone }}</div>
   </div>
 </article>

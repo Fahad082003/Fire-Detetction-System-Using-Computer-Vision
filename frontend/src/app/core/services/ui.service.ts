@@ -41,7 +41,8 @@ export class ConfirmService {
 @Injectable({ providedIn: 'root' })
 export class AlarmService {
   private ctx: AudioContext | null = null;
-  private lastPlayed = 0;
+  private loop: ReturnType<typeof setInterval> | null = null;
+  private critical = false;
   readonly muted = signal(this.readMuted());
 
   constructor() {
@@ -54,13 +55,24 @@ export class AlarmService {
     try { localStorage.setItem('sentinel.muted', this.muted() ? '1' : '0'); } catch { /* ignore */ }
   }
 
-  play(critical: boolean): void {
+  /** Rings every 2.5 s until stop(): an open incident stays audible until someone responds to it. */
+  start(critical: boolean): void {
+    this.critical = critical;
+    if (this.loop) return;
+    this.beep();
+    this.loop = setInterval(() => this.beep(), 2500);
+  }
+
+  stop(): void {
+    if (this.loop) clearInterval(this.loop);
+    this.loop = null;
+  }
+
+  private beep(): void {
     if (this.muted()) return;
-    const now = performance.now();
-    if (now - this.lastPlayed < 4000) return;
     const ctx = this.ensureContext();
     if (!ctx || ctx.state !== 'running') return;
-    this.lastPlayed = now;
+    const critical = this.critical;
 
     const [hi, lo, beeps] = critical ? [988, 740, 4] : [784, 587, 2];
     const t0 = ctx.currentTime + 0.02;
@@ -71,7 +83,7 @@ export class AlarmService {
       osc.type = 'square';
       osc.frequency.setValueAtTime(i % 2 ? lo : hi, t);
       gain.gain.setValueAtTime(0.0001, t);
-      gain.gain.exponentialRampToValueAtTime(0.08, t + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.4, t + 0.02);
       gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
       osc.connect(gain).connect(ctx.destination);
       osc.start(t);

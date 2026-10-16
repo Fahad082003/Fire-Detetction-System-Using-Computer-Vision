@@ -6,7 +6,7 @@ export const routes: Routes = [
     path: 'login',
     canActivate: [guestGuard],
     loadComponent: () => import('./features/login/login.component').then((m) => m.LoginComponent),
-    title: 'Sign in · Sentinel',
+    title: 'Sign in · FireVision AI',
   },
   {
     path: '',
@@ -16,17 +16,17 @@ export const routes: Routes = [
       {
         path: '',
         loadComponent: () => import('./features/dashboard/dashboard.component').then((m) => m.DashboardComponent),
-        title: 'Command Center · Sentinel',
+        title: 'Command Center · FireVision AI',
       },
       {
         path: 'floor-plans',
         loadComponent: () => import('./features/floor-plans/floor-plans.component').then((m) => m.FloorPlansComponent),
-        title: 'Floor Plans · Sentinel',
+        title: 'Floor Plans · FireVision AI',
       },
       {
         path: 'ai',
         loadComponent: () => import('./features/ai/ai-analysis.component').then((m) => m.AiAnalysisComponent),
-        title: 'AI Analysis · Sentinel',
+        title: 'AI Analysis · FireVision AI',
       },
     ],
   },

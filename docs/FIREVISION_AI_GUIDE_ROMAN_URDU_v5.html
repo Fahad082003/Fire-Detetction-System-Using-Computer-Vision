@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sentinel Project Guide</title>
+<title>FireVision AI Project Guide</title>
 <style>
 :root {
   --bg: #f7f8fa; --panel: #ffffff; --text: #1e293b; --muted: #64748b; --line: #e2e8f0;
@@ -97,23 +97,23 @@ li.task:has(input:checked) { color: var(--muted); text-decoration: line-through;
 <body>
 <header class="top">
   <button class="icon" id="menu" aria-label="Fehrist dikhayein">☰</button>
-  <span class="brand">SENTINEL</span>
+  <span class="brand">FIREVISION AI</span>
   <span class="sub">Project Guide v5 · Roman Urdu</span>
   <span class="spacer"></span>
   <input id="q" type="search" placeholder="Search… (jaise: epochs, sprinkler, D-Fire)" aria-label="Guide mein search">
   <button class="icon" id="theme" aria-label="Dark ya light mode">◐</button>
 </header>
 <div class="layout">
-  <nav class="toc" aria-label="Fehrist"><ul><li class="part">A · Taaruf aur poora flow</li><li><a href="#ch1" data-ch="1">1. Sentinel Kya Hai?</a></li><li><a href="#ch2" data-ch="2">2. Poora System Ek Nazar Mein</a></li><li><a href="#ch3" data-ch="3">3. Poora Flow: Camera Se Screen Tak</a></li><li class="part">B · Backend</li><li><a href="#ch4" data-ch="4">4. Alert Engine: Incident Kaise Banta Hai</a></li><li><a href="#ch5" data-ch="5">5. Sensors Aur Smart Sprinklers</a></li><li><a href="#ch6" data-ch="6">6. Notifications (SMS, Email, Push)</a></li><li><a href="#ch7" data-ch="7">7. Danger Zone, Safe Zone Aur Insaan Ki Hifazat</a></li><li><a href="#ch8" data-ch="8">8. Fire Growth History Aur Logs</a></li><li><a href="#ch9" data-ch="9">9. Floor Plans, Evacuation Raasta Aur Waqt</a></li><li><a href="#ch10" data-ch="10">10. Database (SQL Server: SentinelDb)</a></li><li><a href="#ch11" data-ch="11">11. Hifazat (Security)</a></li><li class="part">C · Dashboard</li><li><a href="#ch12" data-ch="12">12. Dashboard (Website) Ki Screens</a></li><li class="part">D · AI models</li><li><a href="#ch13" data-ch="13">13. AI Service: Kya Hai Aur Kaise Kaam Karta Hai</a></li><li><a href="#ch14" data-ch="14">14. AI Model 1: Person (Insaan) Model</a></li><li><a href="#ch15" data-ch="15">15. AI Model 2: Fire/Smoke (Aag/Dhuwan) Model: Kya Aur Kahan Se</a></li><li><a href="#ch16" data-ch="16">16. Dataset: D-Fire (Kahan Se, Kitni Images)</a></li><li><a href="#ch17" data-ch="17">17. Training: Kahan, Kaise, Kitne Epochs</a></li><li><a href="#ch18" data-ch="18">18. Accuracy: Asli Numbers</a></li><li><a href="#ch19" data-ch="19">19. End-to-End Test: Poora System Ek Saath</a></li><li><a href="#ch20" data-ch="20">20. AI Page (Dashboard Par)</a></li><li class="part">E · Chalana aur reference</li><li><a href="#ch21" data-ch="21">21. Chalane Ka Tareeqa (Setup)</a></li><li><a href="#ch22" data-ch="22">22. Tests</a></li><li><a href="#ch23" data-ch="23">23. API Aur SignalR Ki Poori List</a></li><li><a href="#ch24" data-ch="24">24. Ahem Files</a></li><li class="part">F · Status aur baqi kaam</li><li><a href="#ch25" data-ch="25">25. Requirements Ka Status</a></li><li><a href="#ch26" data-ch="26">26. Kya Reh Gaya (Functionality)</a></li></ul></nav>
+  <nav class="toc" aria-label="Fehrist"><ul><li class="part">A · Taaruf aur poora flow</li><li><a href="#ch1" data-ch="1">1. FireVision AI Kya Hai?</a></li><li><a href="#ch2" data-ch="2">2. Poora System Ek Nazar Mein</a></li><li><a href="#ch3" data-ch="3">3. Poora Flow: Camera Se Screen Tak</a></li><li class="part">B · Backend</li><li><a href="#ch4" data-ch="4">4. Alert Engine: Incident Kaise Banta Hai</a></li><li><a href="#ch5" data-ch="5">5. Sensors Aur Smart Sprinklers</a></li><li><a href="#ch6" data-ch="6">6. Notifications (SMS, Email, Push)</a></li><li><a href="#ch7" data-ch="7">7. Danger Zone, Safe Zone Aur Insaan Ki Hifazat</a></li><li><a href="#ch8" data-ch="8">8. Fire Growth History Aur Logs</a></li><li><a href="#ch9" data-ch="9">9. Floor Plans, Evacuation Raasta Aur Waqt</a></li><li><a href="#ch10" data-ch="10">10. Database (SQL Server: SentinelDb)</a></li><li><a href="#ch11" data-ch="11">11. Hifazat (Security)</a></li><li class="part">C · Dashboard</li><li><a href="#ch12" data-ch="12">12. Dashboard (Website) Ki Screens</a></li><li class="part">D · AI models</li><li><a href="#ch13" data-ch="13">13. AI Service: Kya Hai Aur Kaise Kaam Karta Hai</a></li><li><a href="#ch14" data-ch="14">14. AI Model 1: Person (Insaan) Model</a></li><li><a href="#ch15" data-ch="15">15. AI Model 2: Fire/Smoke (Aag/Dhuwan) Model: Kya Aur Kahan Se</a></li><li><a href="#ch16" data-ch="16">16. Dataset: D-Fire (Kahan Se, Kitni Images)</a></li><li><a href="#ch17" data-ch="17">17. Training: Kahan, Kaise, Kitne Epochs</a></li><li><a href="#ch18" data-ch="18">18. Accuracy: Asli Numbers</a></li><li><a href="#ch19" data-ch="19">19. End-to-End Test: Poora System Ek Saath</a></li><li><a href="#ch20" data-ch="20">20. AI Page (Dashboard Par)</a></li><li class="part">E · Chalana aur reference</li><li><a href="#ch21" data-ch="21">21. Chalane Ka Tareeqa (Setup)</a></li><li><a href="#ch22" data-ch="22">22. Tests</a></li><li><a href="#ch23" data-ch="23">23. API Aur SignalR Ki Poori List</a></li><li><a href="#ch24" data-ch="24">24. Ahem Files</a></li><li class="part">F · Status aur baqi kaam</li><li><a href="#ch25" data-ch="25">25. Requirements Ka Status</a></li><li><a href="#ch26" data-ch="26">26. Kya Reh Gaya (Functionality)</a></li></ul></nav>
   <main>
     <div class="hero">
-      <h1>SENTINEL</h1>
+      <h1>FIREVISION AI</h1>
       <p>Fire &amp; Emergency Monitoring System: poore project ka flow shuru se aakhir tak (camera → AI → API → database → dashboard), aur AI models ki har detail: model kahan se aaya, dataset kaun sa, kitni tasveerein, kitne epochs, aur asli accuracy.</p>
       <div class="stats"><div><b>YOLOX-Tiny</b>Person + Fire/Smoke models</div><div><b>21,527</b>D-Fire tasveerein (CC0)</div><div><b>80 epochs</b>Kaggle T4, ~4 h 39 min</div><div><b>93% / 92%</b>Aag / dhuwan pakda (test)</div></div>
       <div id="progress" class="progress hidden"><span></span><i><b></b></i><button class="icon" id="reset">Ticks saaf karein</button></div>
     </div>
-    <p class="part-label">A · Taaruf aur poora flow</p><section class="chapter" data-ch="1"><h1 id="ch1">1. Sentinel Kya Hai?</h1>
-<p><strong>Ek line mein:</strong> Sentinel ek <strong>fire-safety control room software</strong> hai. Ye building ke cameras (CCTV aur drone), dhuwen/garmi ke sensors aur smart sprinklers ko ek screen par jorta hai. <strong>AI</strong> camera mein aag, dhuwan aur insaan pehchaanta hai. Khatra ho to system khud:</p>
+    <p class="part-label">A · Taaruf aur poora flow</p><section class="chapter" data-ch="1"><h1 id="ch1">1. FireVision AI Kya Hai?</h1>
+<p><strong>Ek line mein:</strong> FireVision AI ek <strong>fire-safety control room software</strong> hai. Ye building ke cameras (CCTV aur drone), dhuwen/garmi ke sensors aur smart sprinklers ko ek screen par jorta hai. <strong>AI</strong> camera mein aag, dhuwan aur insaan pehchaanta hai. Khatra ho to system khud:</p>
 <ul>
 <li>screen par <strong>alarm</strong> aur alert dikhata hai,</li>
 <li><strong>SMS, Email aur browser Push</strong> notification bhejta hai,</li>
@@ -122,12 +122,12 @@ li.task:has(input:checked) { color: var(--muted); text-decoration: line-through;
 <li>building ke <strong>naqshe par mehfooz raasta</strong> aur bahar nikalne ka andazan waqt batata hai.</li>
 </ul>
 <h3 id="ch1-asal-zindagi-ki-misaal">Asal zindagi ki misaal</h3>
-<p>Ek factory ka security room sochiye: deewar par TV screens, aur ek guard jo sab dekh raha hai. Sentinel us guard ka computer version hai:</p>
+<p>Ek factory ka security room sochiye: deewar par TV screens, aur ek guard jo sab dekh raha hai. FireVision AI us guard ka computer version hai:</p>
 <div class="table-wrap"><table>
 <thead>
 <tr>
 <th>Asal duniya</th>
-<th>Sentinel mein</th>
+<th>FireVision AI mein</th>
 </tr>
 </thead>
 <tbody>
@@ -368,7 +368,7 @@ li.task:has(input:checked) { color: var(--muted); text-decoration: line-through;
 <p>Emergency par do kaam <strong>khud</strong> hote hain:</p>
 <ol>
 <li><strong>SMS + Email + Push</strong> notification queue mein.</li>
-<li>Us zone ke <strong>Auto mode</strong> sprinklers ON. Lekin agar data <strong>SIMULATED</strong> hai to sprinkler <strong>nahi</strong> chalte (<code>Alerts:AutoSprinklerOnSimulatedData = false</code>), sirf log likha jata hai.</li>
+<li>Us zone ke <strong>Auto mode</strong> sprinklers ON. <strong>SIMULATED</strong> data par ye setting <code>Alerts:AutoSprinklerOnSimulatedData</code> decide karti hai: <strong>Development (demo) mein <code>true</code></strong> (simulated sprinklers chalte hain, taake demo mein dikhe), production default <code>false</code> (sirf log likha jata hai).</li>
 </ol>
 <h3 id="ch4-duplicate-se-bachao">Duplicate se bachao</h3>
 <div class="table-wrap"><table>
@@ -408,7 +408,7 @@ li.task:has(input:checked) { color: var(--muted); text-decoration: line-through;
 </tbody>
 </table></div>
 <h3 id="ch4-camera-lost-camera-chup-ho-jaye">Camera lost (camera chup ho jaye)</h3>
-<p>Aag mein bijli jaye ya cable kate to camera frames bhejna band kar deta hai. <code>CameraWatchdog</code> har 5 second mein dekhta hai:</p>
+<p>Aag mein bijli jaye ya cable kate to camera frames bhejna band kar deta hai. <code>CameraWatchdog</code> har 2 second mein dekhta hai:</p>
 <div class="table-wrap"><table>
 <thead>
 <tr>
@@ -418,7 +418,7 @@ li.task:has(input:checked) { color: var(--muted); text-decoration: line-through;
 </thead>
 <tbody>
 <tr>
-<td>Jo camera frames bhej raha tha, <strong>30 second</strong> se chup</td>
+<td>Jo camera frames bhej raha tha, <strong>10 second</strong> se chup</td>
 <td>"Camera lost" incident (source <strong>Camera lost</strong>): <strong>Medium</strong></td>
 </tr>
 <tr>
@@ -437,7 +437,7 @@ li.task:has(input:checked) { color: var(--muted); text-decoration: line-through;
 </table></div>
 <ul>
 <li>Har chup rehne par <strong>ek</strong> alert, aur dobara chup ho to wohi khula incident update hota hai.</li>
-<li>Setting: <code>Alerts:CameraLostSeconds = 30</code>. Code: <code>Services/CameraWatchdog.cs</code>, <code>AlertEngine.CameraLostAsync</code>.</li>
+<li>Setting: <code>Alerts:CameraLostSeconds = 10</code> (alert taqreeban 10–12 second mein). Code: <code>Services/CameraWatchdog.cs</code>, <code>AlertEngine.CameraLostAsync</code>.</li>
 <li>Ye <strong>High</strong> hai, emergency nahi, is liye SMS khud nahi jata. Operator dashboard par dekhta hai.</li>
 <li>Had: last-frame ka waqt API ki memory mein rehta hai. API restart ke baad camera ka pehla frame aane tak use watch nahi kiya jata.</li>
 </ul>
@@ -477,7 +477,8 @@ li.task:has(input:checked) { color: var(--muted); text-decoration: line-through;
 </table></div>
 <ul>
 <li>Readings <code>SensorReadings</code> table mein, <strong>48 ghante</strong> se purani khud delete.</li>
-<li><strong>Test data:</strong> telemetry batch mein <code>"simulated": true</code> ho (simulator yehi bhejta hai) to incident par <strong>[SIMULATED DATA]</strong> likha aata hai aur sprinklers <strong>khud nahi</strong> chalte (<code>Alerts:AutoSprinklerOnSimulatedData = false</code>).</li>
+<li><strong>Test data:</strong> telemetry batch mein <code>"simulated": true</code> ho (simulator yehi bhejta hai) to incident par <strong>[SIMULATED DATA]</strong> likha aata hai aur sprinklers wohi setting maante hain (<code>Alerts:AutoSprinklerOnSimulatedData</code>: demo mein <code>true</code>, production mein <code>false</code>).</li>
+<li>Reading ki had: -100 se <strong>1,000,000</strong> (1,000,000 ppm = 100%, physical maximum). Pehle 100,000 se upar ki reading chup-chaap rad ho jati thi; ab wo Critical alert banati hai.</li>
 <li>Dashboard par gauge aur chhota graph (sparkline), aakhri 60 readings.</li>
 </ul>
 <h3 id="ch5-smart-sprinklers">Smart sprinklers</h3>
@@ -904,7 +905,7 @@ SmartSprinklers          Users ──1──* PushSubscriptions
 </table></div>
 <hr /></section><p class="part-label">C · Dashboard</p><section class="chapter" data-ch="12"><h1 id="ch12">12. Dashboard (Website) Ki Screens</h1>
 <p><img alt="Login" src="images/login.png" /></p>
-<p><strong>Top bar:</strong> system ka haal, Live/Offline, ghari, awaaz band, <strong>Enable Alerts</strong> (browser push), <strong>Emergency Dispatch</strong>, Logout. Menu: <strong>Dashboard · Floor Plans · AI</strong>.</p>
+<p><strong>Top bar:</strong> system ka haal, Live/Offline, ghari (asli waqt, AM/PM), awaaz band (koi incident khula ho to alarm <strong>lagatar</strong> bajta hai jab tak Resolve na ho), <strong>Enable Alerts</strong> (browser push), <strong>Emergency Dispatch</strong>, Logout. Menu: <strong>Dashboard · Floor Plans · AI</strong>.</p>
 <p><img alt="Dashboard: aag ka manzar" src="images/dashboard-fire.png" /></p>
 <div class="table-wrap"><table>
 <thead>
@@ -1381,7 +1382,7 @@ SmartSprinklers          Users ──1──* PushSubscriptions
 <tbody>
 <tr>
 <td><strong>Jagah</strong></td>
-<td><strong>Kaggle</strong> (Google ki free cloud), notebook "Sentinel", Version 1 ("Save &amp; Run All")</td>
+<td><strong>Kaggle</strong> (Google ki free cloud), notebook "FireVision AI", Version 1 ("Save &amp; Run All")</td>
 </tr>
 <tr>
 <td><strong>GPU</strong></td>
@@ -1815,7 +1816,7 @@ git pull
 <tbody>
 <tr>
 <td>Backend (xUnit)</td>
-<td><strong>60</strong></td>
+<td><strong>61</strong></td>
 <td>Fire risk prediction, alert rules, API + SignalR integration, evacuation router, floor plans + logs, camera calibration, camera lost, simulated sensors, AI client</td>
 </tr>
 <tr>
@@ -2270,7 +2271,7 @@ cd ai-service; .\.venv\Scripts\python tools\evaluate.py --data &lt;D-Fire\test&g
 <tr>
 <td>1</td>
 <td><strong>Camera lost alert</strong></td>
-<td>✅ Ban gaya: 30 sec chup = alert, zone mein aag ho to High</td>
+<td>✅ Ban gaya: 10 sec chup = alert, zone mein aag ho to High</td>
 <td>Asli camera ki bijli kaat kar test</td>
 </tr>
 <tr>

@@ -156,7 +156,7 @@ builder.Services.AddAuthorization(o =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(o =>
 {
-    o.SwaggerDoc("v1", new OpenApiInfo { Title = "Sentinel Emergency Monitoring API", Version = "v1" });
+    o.SwaggerDoc("v1", new OpenApiInfo { Title = "FireVision AI Emergency Monitoring API", Version = "v1" });
     o.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Type = SecuritySchemeType.Http, Scheme = "bearer", BearerFormat = "JWT",
@@ -178,7 +178,7 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(o => o.DocumentTitle = "Sentinel API");
+    app.UseSwaggerUI(o => o.DocumentTitle = "FireVision AI API");
 }
 else
 {

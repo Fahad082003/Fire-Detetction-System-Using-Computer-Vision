@@ -1,4 +1,4 @@
-/* Sentinel service worker — shows Web Push incident alerts even when the dashboard tab is closed. */
+/* FireVision AI service worker — shows Web Push incident alerts even when the dashboard tab is closed. */
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
 
@@ -9,7 +9,7 @@ self.addEventListener('push', (event) => {
   } catch {
     data = { body: event.data ? event.data.text() : '' };
   }
-  event.waitUntil(self.registration.showNotification(data.title || 'Sentinel alert', {
+  event.waitUntil(self.registration.showNotification(data.title || 'FireVision AI alert', {
     body: data.body || 'A new incident requires attention.',
     tag: data.tag || 'sentinel-alert',
     renotify: true,

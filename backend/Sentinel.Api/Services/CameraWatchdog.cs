@@ -40,7 +40,7 @@ public class CameraWatchdog(IServiceScopeFactory scopes, IRealtimeNotifier realt
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(5));
+        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(2));
         while (await timer.WaitForNextTickAsync(stoppingToken))
         {
             try { await CheckAsync(DateTime.UtcNow, stoppingToken); }

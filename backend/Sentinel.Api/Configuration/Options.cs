@@ -7,7 +7,7 @@ public class AlertOptions
     public int CooldownSeconds { get; set; } = 120;
     public int IncidentMergeWindowSeconds { get; set; } = 90;
     /// <summary>A camera that sent frames and then stays silent this long raises a "camera lost" alert.</summary>
-    public int CameraLostSeconds { get; set; } = 30;
+    public int CameraLostSeconds { get; set; } = 10;
     public int VisionEvaluationIntervalSeconds { get; set; } = 2;
     /// <summary>Let simulated/test AI frames (e.g. recorded video) switch sprinkler relays. Off: test input never actuates equipment.</summary>
     public bool AutoSprinklerOnSimulatedData { get; set; }
@@ -16,7 +16,7 @@ public class AlertOptions
     public double WarningRatio { get; set; } = 0.8;
     public int SensorHistoryPoints { get; set; } = 60;
     public int SensorHistoryRetentionHours { get; set; } = 48;
-    public string SiteName { get; set; } = "Sentinel HQ";
+    public string SiteName { get; set; } = "FireVision AI";
     public string DashboardUrl { get; set; } = "http://localhost:4200/";
 }
 

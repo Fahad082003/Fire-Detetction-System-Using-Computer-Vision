@@ -1,4 +1,4 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { HttpTransportType, HubConnection, HubConnectionBuilder, HubConnectionState, LogLevel } from '@microsoft/signalr';
 import { Subject } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -70,6 +70,12 @@ export class SignalRService {
 
   constructor() {
     setInterval(() => this.now.set(Date.now()), 1000);
+    // The alarm rings while any incident is open; resolving the last one (or the mute button) silences it.
+    effect(() => {
+      const open = this.openIncidents();
+      if (open.length) this.alarm.start(open.some((i) => i.severity === 'Critical'));
+      else this.alarm.stop();
+    });
     // Coalesce per-camera stats: frames arrive ~20/s in total, the UI only needs ~4 updates/s.
     setInterval(() => {
       if (!this.pendingStats.size) return;
@@ -207,7 +213,6 @@ export class SignalRService {
     const title = `${incident.severity.toUpperCase()} — Incident #${incident.id}`;
     if (SEVERITY_RANK[incident.severity] >= SEVERITY_RANK.High) {
       this.toast.show(title, incident.message, 'critical', 10000);
-      this.alarm.play(incident.severity === 'Critical');
       this.push.notifyLocal(incident);
     } else {
       this.toast.show(title, incident.message, 'warning');
