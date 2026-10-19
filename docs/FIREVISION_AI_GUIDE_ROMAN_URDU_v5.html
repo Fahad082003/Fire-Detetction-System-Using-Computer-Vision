@@ -1727,7 +1727,62 @@ python export_onnx.py --exp yolox_tiny_dfire.py --ckpt best_ckpt.pth --out ..\mo
 <li>Nakli andhera sirf aisa camera dikhata hai jis ka exposure bohat kam ho. Is liye camera ka exposure <strong>automatic</strong> rakhein.</li>
 <li>Andhere mein ghalat alarm nahi barhe.</li>
 <li>Agla saboot: <strong>asli</strong> dhund, bhaap aur IR footage. Thresholds ya model nahi badle.</li>
-</ul></section><section class="chapter" data-ch="19"><h1 id="ch19">19. End-to-End Test: Poora System Ek Saath</h1>
+</ul>
+<h3 id="ch18-dhund-ka-ilaj-aazmaya-tasveer-saaf-karke-ai-ko-dena-experime">Dhund ka ilaj aazmaya: tasveer saaf karke AI ko dena (experiment)</h3>
+<p><code>tools/enhance.py</code> se AI ko tasveer dene se pehle uska contrast badhaya. Do tareeqe aazmaye: <strong>CLAHE</strong> aur <strong>Stretch</strong>.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Tasveer</th>
+<th>Tareeqa</th>
+<th>Aag pakdi</th>
+<th>Dhuwan pakda</th>
+<th>Ghalat alarm</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Dhund</td>
+<td>koi nahi</td>
+<td>73%</td>
+<td>69%</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Dhund</td>
+<td><strong>Stretch</strong></td>
+<td><strong>93%</strong></td>
+<td><strong>92%</strong></td>
+<td>thora</td>
+</tr>
+<tr>
+<td>Dhund</td>
+<td>CLAHE</td>
+<td>75%</td>
+<td>82%</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Saaf</td>
+<td>Stretch</td>
+<td>93%</td>
+<td>92%</td>
+<td>aag ke ghalat alarm 4 se 8 (729 mein)</td>
+</tr>
+<tr>
+<td>Saaf</td>
+<td>CLAHE</td>
+<td>93%</td>
+<td>90%</td>
+<td>dhuwan ke ghalat alarm <strong>dugne</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Kaise samjhein:</strong>
+- <strong>CLAHE</strong> rad: saaf tasveeron par ghalat dhuwan alarm dugne kar deta hai.
+- <strong>Stretch</strong> nakli dhund mein lagbhag poora faida deta hai. Lekin humari nakli dhund har jagah barabar hai, aur stretch theek usi ko ulat deta hai. Asli dhund (door ziada, qareeb kam) mein itna faida shayad na ho.
+- Saaf tasveeron par stretch ka chhota nuqsan: aag ke ghalat alarm thore barhe aur dabbe kam tight.
+- <strong>Faisla:</strong> abhi live system mein <strong>band</strong>. Pehle asli dhund ya bhaap ki footage par test, phir sirf dhund wale cameras ke liye setting.</p></section><section class="chapter" data-ch="19"><h1 id="ch19">19. End-to-End Test: Poora System Ek Saath</h1>
 <p><strong>Maqsad:</strong> model akela nahi, <strong>poora system</strong> check karna: AI service → API → database → SignalR → dashboard.</p>
 <p><strong>Hifazat:</strong></p>
 <ul>
@@ -1987,8 +2042,8 @@ git pull
 </tr>
 <tr>
 <td>AI service (unittest)</td>
-<td><strong>24</strong></td>
-<td>NaN/Infinity dabbe rad, aag ka area union (overlap do baar nahi), deleted camera 404 par band, AP/mAP ka hisaab, COCO converter, andhera/dhund tool, Test camera (MJPEG), Cameras API se sync, Box decode, NMS, kharab/badli model file rad, tracking, 3-frame confirmation, severity, adhoori settings, kharab frame ke baad camera chalta rahe, API contract, service errors, video = SIMULATED (mock: sirf logic, accuracy nahi)</td>
+<td><strong>25</strong></td>
+<td>Contrast enhancement tool, NaN/Infinity dabbe rad, aag ka area union (overlap do baar nahi), deleted camera 404 par band, AP/mAP ka hisaab, COCO converter, andhera/dhund tool, Test camera (MJPEG), Cameras API se sync, Box decode, NMS, kharab/badli model file rad, tracking, 3-frame confirmation, severity, adhoori settings, kharab frame ke baad camera chalta rahe, API contract, service errors, video = SIMULATED (mock: sirf logic, accuracy nahi)</td>
 </tr>
 <tr>
 <td>Browser (Playwright, Edge)</td>
@@ -2629,6 +2684,11 @@ cd ai-service; .\.venv\Scripts\python tools\evaluate.py --data &lt;D-Fire\test&g
 <td><code>python tools\degrade.py --data &lt;folder&gt; --out &lt;naya&gt; --kinds dark,fog --sample 1000</code></td>
 </tr>
 <tr>
+<td><code>enhance.py</code></td>
+<td>Experiment: AI se pehle tasveer ka contrast badhana (CLAHE ya stretch), dhund ka ilaj naapne ke liye. Live system mein <strong>istemaal nahi</strong> hota</td>
+<td><code>python tools\enhance.py --data &lt;folder&gt; --out &lt;naya&gt; --method stretch</code></td>
+</tr>
+<tr>
 <td><code>coco_to_yolo.py</code></td>
 <td>COCO dataset (khaali scenes ke saath) ko <code>evaluate.py</code> ke format mein badalta hai, insaan model ka ghalat alarm naapne ke liye</td>
 <td><code>python tools\coco_to_yolo.py --annotations instances_val2017.json --root &lt;folder&gt;</code></td>
@@ -2666,7 +2726,7 @@ cd ai-service; .\.venv\Scripts\python tools\evaluate.py --data &lt;D-Fire\test&g
 <td><code>cd frontend; ng test --watch=false</code></td>
 </tr>
 <tr>
-<td>AI tests (24)</td>
+<td>AI tests (25)</td>
 <td>Detector, tracking, severity, tools</td>
 <td><code>cd ai-service; .\.venv\Scripts\python -m unittest discover -s tests</code></td>
 </tr>

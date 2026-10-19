@@ -364,6 +364,22 @@ class DegradeTests(unittest.TestCase):
         np.testing.assert_array_equal(mod.degrade(img, [], rng), img)                    # none = unchanged
 
 
+class EnhanceTests(unittest.TestCase):
+    def test_both_methods_restore_contrast_of_a_hazy_image(self):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("enhance", Path(__file__).parents[1] / "tools" / "enhance.py")
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        ramp = np.linspace(140, 180, 64, dtype=np.float32)  # a scene squeezed into 40 grey levels, as haze does
+        hazy = np.repeat(np.tile(ramp, (64, 1))[:, :, None], 3, axis=2).astype(np.uint8)
+        for method in ("clahe", "stretch"):
+            out = mod.enhance(hazy, method)
+            self.assertEqual(out.shape, hazy.shape)
+            self.assertGreater(out.std(), hazy.std() * 1.1, method)  # values spread further apart = more contrast (CLAHE is the gentle one)
+        with self.assertRaises(ValueError):
+            mod.enhance(hazy, "magic")
+
+
 class TestCameraTests(unittest.TestCase):
     def test_video_file_is_served_as_mjpeg_that_opencv_can_read(self):
         import importlib.util
