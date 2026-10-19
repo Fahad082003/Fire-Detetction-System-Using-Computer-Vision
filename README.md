@@ -121,3 +121,5 @@ Results and the full audit are in [ai-service/reports](ai-service/reports/README
 - Troubleshooting and a printable checklist.
 
 **[docs/FIREVISION_AI_FEATURES_GUIDE_ROMAN_URDU.html](docs/FIREVISION_AI_FEATURES_GUIDE_ROMAN_URDU.html)** explains how to use each feature: where to click, what to fill in and what you should see. It covers adding cameras, drawing a floor plan, calibration, evacuation routes, the risk heatmap, alerts, sprinklers, dispatch, the simulator and moving the database between PCs.
+
+**[docs/FIREVISION_AI_HARDWARE_GUIDE_ROMAN_URDU.html](docs/FIREVISION_AI_HARDWARE_GUIDE_ROMAN_URDU.html)** explains how to connect real hardware: IP cameras over RTSP (with an RTSP-to-MJPEG converter for the browser), ESP32 smoke and temperature sensors through `/api/iot/telemetry`, sprinkler relays that poll `/api/iot/sprinklers`, Twilio SMS, SMTP email and Web Push keys. It covers every setting, where to get it, and how to check it.

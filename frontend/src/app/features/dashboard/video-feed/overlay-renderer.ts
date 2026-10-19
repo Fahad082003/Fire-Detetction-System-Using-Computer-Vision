@@ -14,7 +14,7 @@ export const OVERLAY_COLORS = {
 } as const;
 const ZONE_RGB: Record<DangerZone['level'], string> = { Warning: '245,158,11', Danger: '239,68,68', Critical: '220,38,38', Safe: '34,197,94' };
 const LABEL_FONT = '600 11px "JetBrains Mono", Consolas, monospace';
-const EXPIRE_MS = 4500;
+const EXPIRE_MS = 6000; // boxes fade out between STALE_MS and this
 const EASING_RATE = 14;
 
 export interface Rect { x: number; y: number; w: number; h: number; }

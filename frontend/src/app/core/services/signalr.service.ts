@@ -23,7 +23,9 @@ export interface FrameStats {
 export const HISTORY_POINTS = 60;
 const MAX_INCIDENTS = 200;
 const MAX_ACTIVITY = 250;
-export const FRAME_STALE_MS = 1500;
+// The real AI service sends ~2 frames/s for one camera and ~0.6/s each for three (measured), slower on a busy CPU:
+// 1.5 s marked live cameras "NO AI DATA". The backend raises "camera lost" only after 10 s.
+export const FRAME_STALE_MS = 4000;
 
 /**
  * Owns the SignalR connection to /hubs/monitoring and the live dashboard state.
