@@ -57,6 +57,38 @@ def match(preds, gts, iou_thr):
     return tp, len(preds) - tp, len(gts) - tp
 
 
+AP_IOUS = [round(0.5 + 0.05 * i, 2) for i in range(10)]  # COCO: 0.50, 0.55, ... 0.95
+
+
+def match_flags(preds, gts, iou_thr) -> list[bool]:
+    """Same greedy matching as match(), but one flag per prediction (highest confidence first): True = true positive."""
+    used, flags = set(), []
+    for p in sorted(preds, key=lambda d: -d.confidence):
+        best, bi = 0.0, -1
+        for i, g in enumerate(gts):
+            if i not in used and (v := iou(p.box, g)) > best:
+                best, bi = v, i
+        flags.append(best >= iou_thr)
+        if flags[-1]:
+            used.add(bi)
+    return flags
+
+
+def average_precision(scored: list[tuple[float, bool]], n_gt: int) -> float | None:
+    """COCO-style AP: 101-point interpolated area under the precision-recall curve (all object sizes, no crowd regions)."""
+    if not n_gt:
+        return None
+    scored = sorted(scored, key=lambda x: -x[0])
+    tp = np.cumsum([f for _, f in scored], dtype=float)
+    fp = np.cumsum([not f for _, f in scored], dtype=float)
+    recall = tp / n_gt if len(scored) else np.zeros(0)
+    precision = tp / np.maximum(tp + fp, 1e-9) if len(scored) else np.zeros(0)
+    precision = np.maximum.accumulate(precision[::-1])[::-1]  # precision envelope
+    points = [precision[np.searchsorted(recall, r, side="left")] if r <= (recall[-1] if len(recall) else -1) else 0.0
+              for r in np.linspace(0, 1, 101)]
+    return round(float(np.mean(points)), 4)
+
+
 def prf(tp, fp, fn):
     p = tp / (tp + fp) if tp + fp else None
     r = tp / (tp + fn) if tp + fn else None
@@ -73,24 +105,31 @@ def main():
     ap.add_argument("--sweep", default="", help="extra confidence thresholds to report, e.g. 0.25,0.35")
     ap.add_argument("--limit", type=int, default=0, help="evaluate only the first N images (0 = all)")
     ap.add_argument("--images-list", type=Path, help="text file of image file names: evaluate only this slice (e.g. night.txt)")
+    ap.add_argument("--ap-floor", type=float, default=0.01, help="lowest confidence kept for the AP/mAP precision-recall curve")
     ap.add_argument("--out", type=Path, required=True)
     a = ap.parse_args()
 
     class_map = {int(k): v for k, v in (kv.split("=") for kv in a.classes.split(","))}
     wanted = set(class_map.values())
-    detectors = []
+    detectors, load_ms = [], {}
     for spec in load_manifest(a.models):
         if wanted & set(spec["categories"].values()):
+            t0 = time.perf_counter()
             try:
                 detectors.append(YoloxDetector(spec, a.models))
             except ModelError as e:
                 sys.exit(f"cannot evaluate: {e}")
+            load_ms[spec["name"]] = round((time.perf_counter() - t0) * 1000, 1)
     if not detectors:
         sys.exit(f"no model in the manifest produces {wanted}")
     base = {d.name: d.threshold for d in detectors}
     sweep = sorted({float(t) for t in a.sweep.split(",") if t} | set(base.values()))
-    for d in detectors:  # infer once at the lowest threshold, filter per threshold afterwards
-        d.threshold = min(sweep)
+    for d in detectors:  # infer once at the AP floor, filter per threshold afterwards (greedy NMS, no top-k: same boxes)
+        d.threshold = min(min(sweep), a.ap_floor)
+    ap_scored = {c: {t: [] for t in AP_IOUS} for c in wanted}
+    n_gt = {c: 0 for c in wanted}
+    a.out.mkdir(parents=True, exist_ok=True)
+    pred_log = (a.out / "predictions.jsonl").open("w", encoding="utf-8")
 
     images = sorted(p for p in (a.data / "images").iterdir() if p.suffix.lower() in IMAGE_EXT)
     if a.images_list:
@@ -114,6 +153,15 @@ def main():
         t0 = time.perf_counter()
         preds = [p for d in detectors for p in d.detect(img) if p.category in wanted]
         latency.append((time.perf_counter() - t0) * 1000)
+        for c in wanted:
+            pc = sorted((p for p in preds if p.category == c), key=lambda d: -d.confidence)
+            gc = [g for cat, g in gts if cat == c]
+            n_gt[c] += len(gc)
+            for t in AP_IOUS:
+                ap_scored[c][t].extend(zip((p.confidence for p in pc), match_flags(pc, gc, t)))
+        pred_log.write(json.dumps({"image": path.name, "gt": [[cat, [round(v, 1) for v in g]] for cat, g in gts],
+                                   "pred": [[p.category, p.confidence, list(p.box)] for p in preds if p.confidence >= min(sweep)],
+                                   "ms": round(latency[-1], 1)}) + "\n")
         cats = {cat for cat, _ in gts}
         tags = ["negative"] if not gts else []
         if "Smoke" in cats and "Fire" not in cats:
@@ -141,11 +189,21 @@ def main():
                     if fp:
                         failures["false_positives"].append(f"{path.name} ({c}: {fp} extra, max conf {max(p.confidence for p in pc):.2f})")
 
+    pred_log.close()
+    ap = {c: {str(t): average_precision(ap_scored[c][t], n_gt[c]) for t in AP_IOUS} for c in wanted}
     report = {
         "dataset": str(a.data), "slice": a.images_list.name if a.images_list else None, "images": len(latency), "iouThreshold": a.iou, "models": {d.name: d.file for d in detectors},
         "configuredThresholds": base,
+        "modelLoadMs": load_ms,
+        "modelFileBytes": {d.name: (a.models / d.file).stat().st_size for d in detectors},
+        "averagePrecision": {"_meaning": f"COCO-style 101-point AP per IoU threshold from predictions >= {a.ap_floor}; "
+                                         "mAP50 = AP at IoU 0.50, mAP50_95 = mean over IoU 0.50..0.95. All object sizes, no crowd regions.",
+                             **{c: {"groundTruthBoxes": n_gt[c], "AP50": ap[c]["0.5"],
+                                    "AP50_95": round(statistics.mean(v for v in ap[c].values() if v is not None), 4) if n_gt[c] else None,
+                                    "byIoU": ap[c]} for c in wanted}},
         "latencyMs": {"mean": round(statistics.mean(latency), 1), "p50": round(float(np.percentile(latency, 50)), 1),
-                      "p95": round(float(np.percentile(latency, 95)), 1)} if latency else None,
+                      "p95": round(float(np.percentile(latency, 95)), 1), "p99": round(float(np.percentile(latency, 99)), 1),
+                      "first": round(latency[0], 1), "imagesPerSecond": round(1000 / statistics.mean(latency), 2)} if latency else None,
         "byThreshold": {str(t): {c: {**prf(*counts[t][c]), "imageLevel": {
             **img_conf[t][c],
             "falsePositiveRate": round(img_conf[t][c]["fp"] / (img_conf[t][c]["fp"] + img_conf[t][c]["tn"]), 4)
@@ -157,9 +215,8 @@ def main():
         "skippedDegenerateLabels": SKIPPED_LABELS,
         "failures": {k: v[:200] for k, v in failures.items()},
     }
-    a.out.mkdir(parents=True, exist_ok=True)
     (a.out / "report.json").write_text(json.dumps(report, indent=2))
-    print(json.dumps({k: report[k] for k in ("images", "latencyMs", "byThreshold", "slices")}, indent=2))
+    print(json.dumps({k: report[k] for k in ("images", "latencyMs", "averagePrecision", "byThreshold", "slices")}, indent=2))
     print(f"full report: {a.out / 'report.json'}")
 
 

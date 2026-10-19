@@ -1,5 +1,7 @@
 # Evaluation reports (measured, not estimated)
 
+**Latest: [2026-10-19 full AI and end-to-end audit](2026-10-19-AUDIT.md)**. It adds AP50 and AP50:95, p99 latency, per-image predictions (predictions.jsonl), 95% confidence intervals, live failure probes, a 1- and 3-camera load test, and a dependency scan. Section I adds a **synthetic** darkness/fog stress test.
+
 ## 2026-10-13: person model `yolox_tiny.onnx` (official YOLOX COCO weights, sha256 427cc366…) on Penn-Fudan
 - **Data:** Penn-Fudan Pedestrian Database (https://www.cis.upenn.edu/~jshi/ped_html/), 170 images, 423 labelled pedestrians.
   - Every image contains people, so there are **no negative images** and the false-positive rate on empty scenes was **not measured**.

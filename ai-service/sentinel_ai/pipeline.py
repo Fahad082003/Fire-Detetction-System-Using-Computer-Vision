@@ -24,6 +24,14 @@ def fire_severity(area_percent: float, thresholds: dict) -> str:
     return "Low"
 
 
+def fire_area_percent(boxes, fw: int, fh: int) -> float:
+    """Union of the fire boxes as % of the frame: overlapping or duplicate boxes are counted once, parts outside the frame not at all."""
+    mask = np.zeros((fh, fw), bool)
+    for x, y, w, h in boxes:
+        mask[max(0, int(y)):max(0, min(fh, int(np.ceil(y + h)))), max(0, int(x)):max(0, min(fw, int(np.ceil(x + w))))] = True
+    return float(mask.mean() * 100)
+
+
 class CameraPipeline:
     def __init__(self, detectors: list[YoloxDetector], camera_id: str, simulated: bool,
                  settings: dict | None = None, zones: list | None = None, missing: list[str] | None = None):
@@ -48,7 +56,7 @@ class CameraPipeline:
         reported = [d for d in dets if d.category == "Human" or d.hits >= need]
 
         fire = [d for d in reported if d.category == "Fire"]
-        area = min(100.0, sum(d.box[2] * d.box[3] for d in fire) / (fw * fh) * 100)
+        area = fire_area_percent([d.box for d in fire], fw, fh)
         severity = fire_severity(area, self.s["severity_area_percent"]) if fire else None
         for d in reported:
             d.explanation = self._explain(d, fw, fh, temporal, need)

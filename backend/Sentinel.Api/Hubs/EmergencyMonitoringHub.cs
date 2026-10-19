@@ -48,6 +48,10 @@ public class EmergencyMonitoringHub(
         {
             return HubResult.Fail(ex.Message, ex.Errors);
         }
+        catch (NotFoundException ex) // deleted camera
+        {
+            return HubResult.Fail(ex.Message);
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "PublishDetection failed for camera {Camera}", payload?.CameraId);

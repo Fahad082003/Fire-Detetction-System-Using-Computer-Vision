@@ -90,7 +90,19 @@ cd backend;  dotnet test                  # unit tests + API/SignalR integration
 cd frontend; ng test --watch=false        # Vitest unit tests
 cd frontend; ng build                     # production build
 cd ai-service; .\.venv\Scripts\python -m unittest discover -s tests   # AI service (mock-based)
+cd frontend; npm run e2e                  # browser tests in Edge, all API calls mocked (see below)
 ```
+
+On 2026-10-19 these passed: backend 64, frontend 29, AI service 24, browser 5.
+- The browser tests (`frontend/e2e`, Playwright with the installed Edge) answer every request to `localhost:5291` inside the browser.
+- While they run, a tripwire listens on port 5291 and fails the run if anything connects. So they never touch a real API or database.
+
+Model evaluation tools live in `ai-service/tools`:
+- `evaluate.py`: precision, recall, F1, AP50 and AP50:95, and latency, measured on a labelled set.
+- `degrade.py`: synthetic darkness and fog.
+- `coco_to_yolo.py`: COCO labels in the format `evaluate.py` reads.
+
+Results and the full audit are in [ai-service/reports](ai-service/reports/README.md). The project guide, chapter 27, lists every tool and its command.
 
 ## Documentation
 

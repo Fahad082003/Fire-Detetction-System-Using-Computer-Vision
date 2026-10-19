@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Sentinel.Api.DTOs;
 using Sentinel.Api.Security;
 using Sentinel.Api.Services;
@@ -17,5 +18,6 @@ public class AiController(AiInferenceClient ai) : ApiControllerBase
     /// <summary>Multipart field "file": PNG/JPG, max 5 MB. 503 = service/model unavailable, 504 = timeout, 502 = malformed result.</summary>
     [HttpPost("analyze")]
     [RequestSizeLimit(6 * 1024 * 1024)]
+    [EnableRateLimiting("ai-analyze")] // 429 when exceeded (RateLimits:AiAnalyze, default 10 per minute per user)
     public async Task<AiAnalysisDto> Analyze(IFormFile? file, CancellationToken ct) => await ai.AnalyzeAsync(file, ct);
 }

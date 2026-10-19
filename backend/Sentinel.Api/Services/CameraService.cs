@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Sentinel.Api.Data;
 using Sentinel.Api.DTOs;
 using Sentinel.Api.Interfaces;
@@ -8,8 +9,16 @@ using Sentinel.Api.Models;
 
 namespace Sentinel.Api.Services;
 
-public class CameraService(SentinelDbContext db) : ICameraService
+public class CameraService(SentinelDbContext db, IMemoryCache cache) : ICameraService
 {
+    /// <summary>
+    /// A deleted camera's id is remembered for a while so its late frames (the AI drops it only at its next sync) are refused
+    /// instead of opening "Unassigned" incidents. Ids that were never registered still alert (fail-safe).
+    /// shortcut: in memory only, so an API restart forgets it; the AI's 60 s camera sync is then the fallback.
+    /// </summary>
+    public static readonly TimeSpan DeletedCameraMemory = TimeSpan.FromMinutes(10);
+    public static string DeletedKey(string id) => $"camera-deleted:{id}";
+
     private static readonly System.Text.RegularExpressions.Regex CameraId = new("^[A-Za-z0-9_-]{1,64}$");
     private static readonly System.Text.RegularExpressions.Regex ZoneName = new(@"^\S.* - \S.*$");
 
@@ -27,6 +36,7 @@ public class CameraService(SentinelDbContext db) : ICameraService
         Apply(camera, request);
         db.CameraFeeds.Add(camera);
         await db.SaveChangesAsync(ct);
+        cache.Remove(DeletedKey(id)); // re-added under the same id: accept its frames again
         return camera.ToDto();
     }
 
@@ -46,6 +56,7 @@ public class CameraService(SentinelDbContext db) : ICameraService
         var camera = await db.CameraFeeds.FirstOrDefaultAsync(c => c.Id == id, ct) ?? throw new NotFoundException($"Camera '{id}' not found.");
         db.CameraFeeds.Remove(camera);
         await db.SaveChangesAsync(ct);
+        cache.Set(DeletedKey(id), true, DeletedCameraMemory);
     }
 
     private static void Apply(CameraFeed camera, SaveCameraRequest r)

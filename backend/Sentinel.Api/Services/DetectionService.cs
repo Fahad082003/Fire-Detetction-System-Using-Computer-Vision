@@ -1,15 +1,19 @@
+using Microsoft.Extensions.Caching.Memory;
 using Sentinel.Api.DTOs;
 using Sentinel.Api.Interfaces;
+using Sentinel.Api.Middleware;
 using Sentinel.Api.Validators;
 
 namespace Sentinel.Api.Services;
 
 /// <summary>Entry point for AI inference frames (REST and SignalR share this).</summary>
-public class DetectionService(IAlertEngine alerts, IRealtimeNotifier realtime, CameraWatchdog watchdog) : IDetectionService
+public class DetectionService(IAlertEngine alerts, IRealtimeNotifier realtime, CameraWatchdog watchdog, IMemoryCache cache) : IDetectionService
 {
     public async Task<(DetectionFrameDto Frame, int? IncidentId)> ProcessAsync(DetectionPayloadDto payload, CancellationToken ct = default)
     {
         var frame = DetectionPayloadValidator.Validate(payload);
+        if (cache.TryGetValue(CameraService.DeletedKey(frame.CameraId), out _)) // 404 tells the AI service to stop this camera
+            throw new NotFoundException($"Camera '{frame.CameraId}' was deleted; frame ignored.");
         watchdog.FrameReceived(frame.CameraId);
 
         // 1) Overlay first: dashboards draw boxes at stream rate, before any database work.

@@ -28,6 +28,7 @@ public class SentinelApiFactory : WebApplicationFactory<Program>
         builder.UseSetting("Device:ApiKey", DeviceKey);
         builder.UseSetting("Jwt:SigningKey", "unit-test-signing-key-0123456789-abcdefghijklmnop");
         builder.UseSetting("Seed:DemoData", "true");
+        builder.UseSetting("RateLimits:AiAnalyze:PermitLimit", "1000"); // only AiRateLimitTests exercises the limit
         builder.UseSetting("Seed:AdminEmail", AdminEmail);
         builder.UseSetting("Seed:AdminPassword", AdminPassword);
         builder.UseSetting("FloorPlans:ImageDirectory", Path.Combine(Path.GetTempPath(), "sentinel-tests", Guid.NewGuid().ToString("N")));

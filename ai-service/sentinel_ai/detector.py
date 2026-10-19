@@ -100,7 +100,9 @@ class YoloxDetector:
         scores = pred[:, 4:5] * pred[:, 5:]
         cls = scores.argmax(1)
         conf = scores[np.arange(len(cls)), cls]
-        keep = np.isin(cls, list(self.categories)) & (conf >= self.threshold)
+        # NaN/Inf rows must be dropped here: max(0, nan) / min(w, nan) would otherwise clip them into full-frame boxes.
+        valid = np.isfinite(pred[:, :4]).all(1) & np.isfinite(conf) & (pred[:, 2] > 0) & (pred[:, 3] > 0)
+        keep = valid & np.isin(cls, list(self.categories)) & (conf >= self.threshold)
         if not keep.any():
             return []
         boxes, conf, cls = pred[keep, :4] / r, conf[keep], cls[keep]

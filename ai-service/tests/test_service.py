@@ -13,7 +13,7 @@ import cv2
 import numpy as np
 
 from sentinel_ai.detector import ModelError, YoloxDetector
-from sentinel_ai.pipeline import CameraPipeline, fire_severity
+from sentinel_ai.pipeline import CameraPipeline, fire_area_percent, fire_severity
 from sentinel_ai.service import CameraWorker, Engine, make_handler, mask, sync_cameras
 from sentinel_ai.tracker import IouTracker
 
@@ -73,6 +73,20 @@ class DetectorTests(unittest.TestCase):
         d = detector(SPEC_FIRE, [(100, 100, 60, 60, 0.9, 1), (104, 100, 60, 60, 0.8, 1), (112, 100, 60, 60, 0.7, 0)])
         dets = d.detect(np.zeros((416, 416, 3), np.uint8))
         self.assertEqual(sorted(x.category for x in dets), ["Fire", "Smoke"])
+
+    def test_non_finite_or_empty_boxes_and_scores_are_dropped(self):
+        frame = raw([(40, 40, 30, 30, 0.9, 1), (120, 40, 30, 30, 0.9, 1), (200, 40, 30, 30, 0.9, 1),
+                     (280, 40, 30, 30, 0.9, 1), (360, 40, 30, 30, 0.9, 1), (40, 200, 30, 30, 0.9, 1)])
+        row = lambda cx, cy: int(cy // 8) * 52 + int(cx // 8)  # noqa: E731
+        frame[0, row(40, 40), 0] = np.nan       # NaN coordinate
+        frame[0, row(120, 40), 2] = np.inf      # infinite width
+        frame[0, row(200, 40), 4] = np.inf      # infinite objectness -> infinite confidence
+        frame[0, row(280, 40), 6] = np.nan      # NaN class score
+        frame[0, row(360, 40), 3] = -np.inf     # exp(-inf) = zero height
+        d = YoloxDetector(SPEC_FIRE, Path("."), session=FakeSession([frame]))
+        [det] = d.detect(np.zeros((416, 416, 3), np.uint8))  # only the healthy box at (40, 200) survives
+        np.testing.assert_allclose(det.box, (25, 185, 30, 30), atol=0.2)
+        self.assertTrue(np.isfinite(det.confidence))
 
     def test_malformed_output_raises_model_error(self):
         bad = YoloxDetector(SPEC_PERSON, Path("."), session=FakeSession([np.zeros((1, 10, 6), np.float32)]))
@@ -142,6 +156,16 @@ class PipelineTests(unittest.TestCase):
         t = {"Medium": 2.0, "High": 10.0, "Critical": 25.0}
         self.assertEqual([fire_severity(a, t) for a in (0.5, 2, 9.9, 10, 30)], ["Low", "Medium", "Medium", "High", "Critical"])
 
+    def test_fire_area_is_the_union_of_boxes_inside_the_frame(self):
+        box = (100, 100, 100, 100)
+        self.assertAlmostEqual(fire_area_percent([box], 1000, 1000), 1.0)
+        self.assertAlmostEqual(fire_area_percent([box, box], 1000, 1000), 1.0)                    # duplicate counted once (sum gave 2.0)
+        self.assertAlmostEqual(fire_area_percent([box, (150, 100, 100, 100)], 1000, 1000), 1.5)   # 50% overlap
+        self.assertAlmostEqual(fire_area_percent([(-50, 0, 100, 100)], 1000, 1000), 0.5)           # half outside the frame
+        self.assertAlmostEqual(fire_area_percent([(990, 990, 100, 100)], 1000, 1000), 0.01)         # only 10x10 inside
+        self.assertAlmostEqual(fire_area_percent([box], 500, 500), 4.0)                             # same box, smaller frame
+        self.assertEqual(fire_area_percent([], 640, 480), 0.0)
+
     def test_partial_nested_settings_keep_the_other_defaults(self):
         pipe = CameraPipeline([], "cam-1", True, {"severity_area_percent": {"High": 8.0}})
         self.assertEqual(pipe.s["severity_area_percent"], {"Medium": 2.0, "High": 8.0, "Critical": 25.0})
@@ -199,6 +223,52 @@ class ServiceTests(unittest.TestCase):
             self.assertTrue(w.simulated)
         self.assertEqual(mask("rtsp://admin:secret@10.0.0.5/live"), "rtsp://***@10.0.0.5/live")
 
+    def test_deleted_dashboard_camera_stops_on_404_but_config_camera_keeps_running(self):
+        from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+        class Gone(BaseHTTPRequestHandler):
+            def do_POST(self):
+                self.rfile.read(int(self.headers.get("Content-Length") or 0))
+                self.send_response(404)
+                self.end_headers()
+                self.wfile.write(b'{"detail": "Camera was deleted"}')
+
+            def log_message(self, *a):
+                pass
+
+        api = ThreadingHTTPServer(("127.0.0.1", 0), Gone)
+        threading.Thread(target=api.serve_forever, daemon=True).start()
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                e = self.engine(tmp, lambda spec, d: detector(spec, []))
+                url = f"http://127.0.0.1:{api.server_address[1]}"
+                dashboard = CameraWorker(e, {"cameraId": "cam-1", "source": "rtsp://x/1", "managed": True}, url, "k")
+                config = CameraWorker(e, {"cameraId": "cam-2", "source": "rtsp://x/2"}, url, "k")
+                dashboard.post({"cameraId": "cam-1"})
+                config.post({"cameraId": "cam-2"})
+        finally:
+            api.shutdown()
+        self.assertTrue(dashboard.stop_event.is_set())
+        self.assertEqual(dashboard.state, "stopped")
+        self.assertFalse(config.stop_event.is_set())  # config.json cameras are the user's own choice: never stopped by the API
+
+    def test_a_worker_stopped_mid_stream_reports_stopped_not_reconnecting(self):
+        with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmp:
+            video = str(Path(tmp) / "clip.avi")
+            out = cv2.VideoWriter(video, cv2.VideoWriter_fourcc(*"MJPG"), 50, (64, 48))
+            for _ in range(5):
+                out.write(np.zeros((48, 64, 3), np.uint8))
+            out.release()
+            e = self.engine(tmp, lambda spec, d: detector(spec, []))
+            w = CameraWorker(e, {"cameraId": "cam-1", "source": video, "fps": 50, "loop": True}, "http://api", "k")
+
+            def deleted(_payload):  # what post() does on a 404 for a dashboard camera
+                w.state = "stopped"
+                w.stop_event.set()
+            w.post = deleted
+            w.run()
+        self.assertEqual(w.state, "stopped")
+
     def test_camera_worker_survives_a_failing_frame(self):
         class Flaky:  # first inference raises, the rest find nothing
             name, file, calls = "fire_smoke", "f.onnx", 0
@@ -239,8 +309,59 @@ class CameraSyncTests(unittest.TestCase):
         self.assertIs(managed["cam-a"], a)  # unchanged camera keeps running
         self.assertTrue(b.stop_event.is_set())
         self.assertEqual(managed["cam-b"].cam["source"], "rtsp://b2")
+        a.stop_event.set()  # stopped after a 404, but the camera is in the list again (re-added): restarted
+        sync_cameras(workers, managed, {"cam-a": "rtsp://a", "cam-b": "rtsp://b2"}, FakeWorker)
+        self.assertIsNot(managed["cam-a"], a)
+        self.assertTrue(managed["cam-a"].started and managed["cam-a"].cam["managed"])
         sync_cameras(workers, managed, {}, FakeWorker)  # all removed in the dashboard
         self.assertEqual((workers, managed), ([], {}))
+
+
+class AveragePrecisionTests(unittest.TestCase):
+    def test_coco_101_point_ap_on_a_hand_computed_example(self):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("evaluate", Path(__file__).parents[1] / "tools" / "evaluate.py")
+        ev = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(ev)
+        self.assertEqual(ev.average_precision([(0.9, True), (0.8, True)], 2), 1.0)
+        self.assertEqual(ev.average_precision([(0.9, False)], 2), 0.0)
+        # TP, FP, TP of 2 boxes: precision envelope 1.0 up to recall 0.5 (51 points), then 2/3 (50 points)
+        self.assertAlmostEqual(ev.average_precision([(0.7, True), (0.9, True), (0.8, False)], 2), (51 + 50 * 2 / 3) / 101, places=4)
+        self.assertIsNone(ev.average_precision([], 0))
+
+
+class CocoToYoloTests(unittest.TestCase):
+    def test_person_boxes_become_normalised_yolo_lines_and_empty_images_become_negatives(self):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("coco_to_yolo", Path(__file__).parents[1] / "tools" / "coco_to_yolo.py")
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        coco = {"categories": [{"id": 1, "name": "person"}, {"id": 3, "name": "car"}],
+                "images": [{"id": 7, "file_name": "a.jpg", "width": 200, "height": 100},
+                           {"id": 8, "file_name": "b.jpg", "width": 100, "height": 100}],
+                "annotations": [{"image_id": 7, "category_id": 1, "bbox": [50, 25, 100, 50], "iscrowd": 0},
+                                {"image_id": 7, "category_id": 1, "bbox": [0, 0, 200, 100], "iscrowd": 1},
+                                {"image_id": 7, "category_id": 3, "bbox": [0, 0, 10, 10], "iscrowd": 0},
+                                {"image_id": 8, "category_id": 3, "bbox": [0, 0, 10, 10], "iscrowd": 0}]}
+        labels, crowd = mod.convert(coco)
+        self.assertEqual(labels, {"a.jpg": ["0 0.500000 0.500000 0.500000 0.500000"], "b.jpg": []})
+        self.assertEqual(crowd, 1)
+
+
+class DegradeTests(unittest.TestCase):
+    def test_dark_lowers_brightness_and_fog_lowers_contrast(self):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("degrade", Path(__file__).parents[1] / "tools" / "degrade.py")
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        img = np.zeros((40, 40, 3), np.uint8)
+        img[:, 20:] = 200  # half black, half bright
+        rng = np.random.default_rng(0)
+        dark, fog = mod.degrade(img, ["dark"], rng), mod.degrade(img, ["fog"], rng)
+        self.assertLess(dark.mean(), img.mean() * 0.4)
+        self.assertLess(int(fog[:, 20:].mean()) - int(fog[:, :20].mean()), 0.5 * 200)  # contrast shrinks
+        self.assertGreater(fog[:, :20].mean(), 100)                                      # black turns grey
+        np.testing.assert_array_equal(mod.degrade(img, [], rng), img)                    # none = unchanged
 
 
 class TestCameraTests(unittest.TestCase):

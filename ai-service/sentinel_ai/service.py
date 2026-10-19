@@ -128,6 +128,8 @@ class CameraWorker(threading.Thread):
                 if self.kind == "file":
                     self.stop_event.wait(max(0.0, due - time.monotonic()))
             cap.release()
+            if self.stop_event.is_set():
+                return  # stopped (sync or a 404): keep that state in /health instead of "reconnecting"
             if self.kind == "file" and not self.cam.get("loop", False):
                 self.state = "finished"
                 return
@@ -144,6 +146,9 @@ class CameraWorker(threading.Thread):
             self.failed += 1
             self.error = f"API HTTP {e.code}: {e.read(300).decode(errors='replace')}"
             log.warning("%s: %s", self.cam["cameraId"], self.error)
+            if e.code == 404 and self.cam.get("managed"):  # deleted in the dashboard: stop now, not at the next sync
+                self.state = "stopped"
+                self.stop_event.set()
         except (urllib.error.URLError, TimeoutError, OSError) as e:
             self.failed += 1
             self.error = f"API unreachable: {e}"
@@ -162,13 +167,13 @@ def sync_cameras(workers: list, managed: dict, wanted: dict, make_worker) -> Non
     """Start a worker per new camera; stop workers whose camera was removed or whose link changed.
     `managed` holds only the workers started here (cameras from config.json are never touched)."""
     for cam_id, w in list(managed.items()):
-        if wanted.get(cam_id) != w.cam["source"]:
+        if wanted.get(cam_id) != w.cam["source"] or w.stop_event.is_set():  # stopped by a 404: restart if it is wanted again
             w.stop_event.set()
             workers.remove(w)
             del managed[cam_id]
     for cam_id, url in wanted.items():
         if cam_id not in managed:
-            w = make_worker({"cameraId": cam_id, "source": url, "fps": 2})  # 2 fps: a walking person keeps one track id
+            w = make_worker({"cameraId": cam_id, "source": url, "fps": 2, "managed": True})  # 2 fps: a walking person keeps one track id
             managed[cam_id] = w
             workers.append(w)
             w.start()

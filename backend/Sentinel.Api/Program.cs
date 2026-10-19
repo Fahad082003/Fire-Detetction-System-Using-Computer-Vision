@@ -110,6 +110,15 @@ builder.Services.AddRateLimiter(o =>
     o.AddPolicy("login", ctx => RateLimitPartition.GetFixedWindowLimiter(
         ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
         _ => new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(1) }));
+    // Test-image analysis queues on the single-threaded AI service; live cameras post to /api/detections and are not limited.
+    var analyze = config.GetSection("RateLimits:AiAnalyze");
+    o.AddPolicy("ai-analyze", ctx => RateLimitPartition.GetFixedWindowLimiter(
+        ctx.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = analyze.GetValue("PermitLimit", 10),
+            Window = TimeSpan.FromSeconds(analyze.GetValue("WindowSeconds", 60)),
+        }));
 });
 
 // ---------------------------------------------------------------- authentication / authorization
@@ -189,8 +198,8 @@ else
     app.UseHttpsRedirection();
 }
 app.UseCors("Frontend");
-app.UseRateLimiter();
 app.UseAuthentication();
+app.UseRateLimiter(); // after authentication: the ai-analyze limit is per user
 app.UseAuthorization();
 
 app.MapControllers();

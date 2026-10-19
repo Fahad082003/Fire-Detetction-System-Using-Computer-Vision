@@ -104,7 +104,7 @@ li.task:has(input:checked) { color: var(--muted); text-decoration: line-through;
   <button class="icon" id="theme" aria-label="Dark ya light mode">◐</button>
 </header>
 <div class="layout">
-  <nav class="toc" aria-label="Fehrist"><ul><li class="part">A · Shuru</li><li><a href="#ch1" data-ch="1">1. Ye Guide Kya Hai?</a></li><li><a href="#ch2" data-ch="2">2. Shuru Karna</a></li><li><a href="#ch3" data-ch="3">3. Dashboard: Har Hissa Kahan Hai</a></li><li class="part">B · Setup: cameras, naqsha, calibration</li><li><a href="#ch4" data-ch="4">4. Apne Cameras Daalna (Devices, Admin)</a></li><li><a href="#ch5" data-ch="5">5. Naqsha (Floor Plan) Banana</a></li><li><a href="#ch6" data-ch="6">6. Camera Ko Naqshe Se Jorna (Calibration)</a></li><li class="part">C · Roz ka istemaal</li><li><a href="#ch7" data-ch="7">7. Evacuation Raasta Dekhna</a></li><li><a href="#ch8" data-ch="8">8. Aag Ka Risk (Agle Kaun Se Kamre)</a></li><li><a href="#ch9" data-ch="9">9. Live Cameras Aur AI</a></li><li><a href="#ch10" data-ch="10">10. AI Page: Photo Par AI Chalana</a></li><li><a href="#ch11" data-ch="11">11. Alerts, Alarm Aur Incidents</a></li><li><a href="#ch12" data-ch="12">12. Emergency Dispatch (Haath Se Alert)</a></li><li><a href="#ch13" data-ch="13">13. Sensors Aur Sprinklers</a></li><li><a href="#ch14" data-ch="14">14. Incident History Aur Logs</a></li><li><a href="#ch15" data-ch="15">15. Browser Notifications</a></li><li><a href="#ch16" data-ch="16">16. Camera Lost</a></li><li class="part">D · Demo, database aur yaad rakhne wali baatein</li><li><a href="#ch17" data-ch="17">17. Demo Chalana (Simulator Aur Live Camera)</a></li><li><a href="#ch18" data-ch="18">18. Database Doosre PC Par Le Jana</a></li><li><a href="#ch19" data-ch="19">19. Yaad Rakhne Wali Baatein</a></li></ul></nav>
+  <nav class="toc" aria-label="Fehrist"><ul><li class="part">A · Shuru</li><li><a href="#ch1" data-ch="1">1. Ye Guide Kya Hai?</a></li><li><a href="#ch2" data-ch="2">2. Shuru Karna</a></li><li><a href="#ch3" data-ch="3">3. Dashboard: Har Hissa Kahan Hai</a></li><li class="part">B · Setup: cameras, naqsha, calibration</li><li><a href="#ch4" data-ch="4">4. Apne Cameras Daalna (Devices, Admin)</a></li><li><a href="#ch5" data-ch="5">5. Naqsha (Floor Plan) Banana</a></li><li><a href="#ch6" data-ch="6">6. Camera Ko Naqshe Se Jorna (Calibration)</a></li><li class="part">C · Roz ka istemaal</li><li><a href="#ch7" data-ch="7">7. Evacuation Raasta Dekhna</a></li><li><a href="#ch8" data-ch="8">8. Aag Ka Risk (Agle Kaun Se Kamre)</a></li><li><a href="#ch9" data-ch="9">9. Live Cameras Aur AI</a></li><li><a href="#ch10" data-ch="10">10. AI Page: Photo Par AI Chalana</a></li><li><a href="#ch11" data-ch="11">11. Alerts, Alarm Aur Incidents</a></li><li><a href="#ch12" data-ch="12">12. Emergency Dispatch (Haath Se Alert)</a></li><li><a href="#ch13" data-ch="13">13. Sensors Aur Sprinklers</a></li><li><a href="#ch14" data-ch="14">14. Incident History Aur Logs</a></li><li><a href="#ch15" data-ch="15">15. Browser Notifications</a></li><li><a href="#ch16" data-ch="16">16. Camera Lost</a></li><li class="part">D · Demo, database, yaad rakhne wali baatein aur tools</li><li><a href="#ch17" data-ch="17">17. Demo Chalana (Simulator Aur Live Camera)</a></li><li><a href="#ch18" data-ch="18">18. Database Doosre PC Par Le Jana</a></li><li><a href="#ch19" data-ch="19">19. Yaad Rakhne Wali Baatein</a></li><li><a href="#ch20" data-ch="20">20. Tools: Kab Kaunsa Chalayein</a></li></ul></nav>
   <main>
     <div class="hero">
       <h1>FIREVISION AI</h1>
@@ -646,7 +646,7 @@ li.task:has(input:checked) { color: var(--muted); text-decoration: line-through;
 <li>Us zone mein aag ka incident khula ho to <strong>High</strong>, warna <strong>Medium</strong>.</li>
 <li>Camera wapas aaye to Live Event Log: "Camera … is sending frames again". Phir incident <strong>Resolve</strong> kar dein.</li>
 </ul>
-<hr /></section><p class="part-label">D · Demo, database aur yaad rakhne wali baatein</p><section class="chapter" data-ch="17"><h1 id="ch17">17. Demo Chalana (Simulator Aur Live Camera)</h1>
+<hr /></section><p class="part-label">D · Demo, database, yaad rakhne wali baatein aur tools</p><section class="chapter" data-ch="17"><h1 id="ch17">17. Demo Chalana (Simulator Aur Live Camera)</h1>
 <p>Asli aag ke baghair demo:</p>
 <pre><code class="language-powershell">.\start.ps1 -Simulator
 </code></pre>
@@ -837,7 +837,64 @@ dotnet run --project Sentinel.Simulator -- --device-key &lt;.env ka Device__ApiK
 <td>Asli sprinkler/alarm bina ijazat jorna</td>
 </tr>
 </tbody>
-</table></div></section>
+</table></div></section><section class="chapter" data-ch="20"><h1 id="ch20">20. Tools: Kab Kaunsa Chalayein</h1>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Aap ko kya karna hai</th>
+<th>Tool</th>
+<th>Command</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Sab kuch chalana</td>
+<td><code>start.ps1</code></td>
+<td><code>.\start.ps1</code></td>
+</tr>
+<tr>
+<td>Aag ka nakli demo</td>
+<td>Simulator</td>
+<td><code>.\start.ps1 -Simulator</code></td>
+</tr>
+<tr>
+<td>Laptop webcam ko camera banana</td>
+<td><code>mjpeg_camera.py</code></td>
+<td><code>cd ai-service; .\.venv\Scripts\python tools\mjpeg_camera.py 0</code></td>
+</tr>
+<tr>
+<td>Ek command mein poora test</td>
+<td><code>live_test.py</code></td>
+<td><code>cd ai-service; .\.venv\Scripts\python tools\live_test.py</code></td>
+</tr>
+<tr>
+<td>Database doosre PC par</td>
+<td><code>save.ps1</code> / <code>load.ps1</code></td>
+<td>chapter 18</td>
+</tr>
+<tr>
+<td>Purane zone naam badalna</td>
+<td><code>rename-zones.sql</code></td>
+<td><code>sqlcmd -S localhost -E -C -d SentinelDb -i database\rename-zones.sql</code></td>
+</tr>
+<tr>
+<td>AI ki accuracy naapna</td>
+<td><code>evaluate.py</code></td>
+<td>Project guide, chapter 27</td>
+</tr>
+<tr>
+<td>Andhera/dhund mein AI kaisi hai</td>
+<td><code>degrade.py</code> + <code>evaluate.py</code></td>
+<td>Project guide, chapter 27</td>
+</tr>
+<tr>
+<td>Browser mein screens check</td>
+<td>Playwright</td>
+<td><code>cd frontend; npm run e2e</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>Har tool ki poori tafseel: <strong>Project guide v5, chapter 27</strong>.</p></section>
     <p id="noresult" class="hidden">Kuch nahi mila. Doosra lafz try karein.</p>
   </main>
 </div>
