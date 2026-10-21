@@ -8,6 +8,8 @@ public class AlertOptions
     public int IncidentMergeWindowSeconds { get; set; } = 90;
     /// <summary>A camera that sent frames and then stays silent this long raises a "camera lost" alert.</summary>
     public int CameraLostSeconds { get; set; } = 10;
+    /// <summary>After an API (re)start, a camera with a stream link that sends nothing for this long is reported lost. 60 s = the AI service's camera sync.</summary>
+    public int CameraStartupGraceSeconds { get; set; } = 60;
     public int VisionEvaluationIntervalSeconds { get; set; } = 2;
     /// <summary>Let simulated/test AI frames (e.g. recorded video) switch sprinkler relays. Off: test input never actuates equipment.</summary>
     public bool AutoSprinklerOnSimulatedData { get; set; }

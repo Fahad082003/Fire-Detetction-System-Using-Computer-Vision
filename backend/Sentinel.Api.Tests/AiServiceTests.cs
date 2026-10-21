@@ -188,6 +188,20 @@ public class AiServiceTests(FakeAiFactory factory) : IClassFixture<FakeAiFactory
         Assert.Equal(expectActive, await db.SmartSprinklers.AnyAsync(s => s.Zone == zone && s.IsActive));
     }
 
+    [Theory]
+    [InlineData("\"NaN\"", "[1, 2, 3, 4]", false)]          // NaN confidence sent as a string
+    [InlineData("\"Infinity\"", "[1, 2, 3, 4]", false)]
+    [InlineData("0.9", "[-5000, 9000, 10, 10]", false)]     // wholly outside the 640x480 frame
+    [InlineData("0.9", "[640, 10, 10, 10]", false)]         // starts at the right edge: no overlap
+    [InlineData("0.9", "[-5, -5, 10, 10]", true)]           // partly inside: a real (clipped) sighting
+    [InlineData("0.9", "[630, 470, 50, 50]", true)]
+    public async Task Detections_need_a_finite_confidence_and_a_box_that_touches_the_frame(string confidence, string bbox, bool accepted)
+    {
+        var json = $"{{\"cameraId\":\"cam-lobby\",\"frameWidth\":640,\"frameHeight\":480,\"detections\":[{{\"category\":\"Human\",\"confidence\":{confidence},\"bbox\":{bbox}}}]}}";
+        var resp = await factory.DeviceClient().PostAsync("/api/detections", new StringContent(json, Encoding.UTF8, "application/json"));
+        Assert.Equal(accepted ? HttpStatusCode.Accepted : HttpStatusCode.BadRequest, resp.StatusCode);
+    }
+
     [Fact]
     public async Task Overlong_explanation_is_rejected()
     {

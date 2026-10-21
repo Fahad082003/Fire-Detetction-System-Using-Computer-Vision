@@ -110,3 +110,114 @@ test('alerts: incidents from the realtime snapshot are listed with severity, pla
   await expect(resolved).toContainText('First Floor - Server Hall (sensor smoke-c1)');
   await expect(resolved).toContainText('Resolved');
 });
+
+test('status banner: no incidents with the AI offline is "degraded", never "all systems nominal"', async ({ page }) => {
+  await signIn(page);
+  let online = false;
+  const now = new Date().toISOString();
+  await mockApi(page, {
+    'GET /api/ai/status': (route) => route.fulfill({ json: online
+      ? { configured: true, online: true, error: null, service: { status: 'ok', version: '1.0.0', capabilities: ['Fire', 'Human', 'Smoke'],
+          models: [model('person', true), model('fire_smoke', true)], inference: { count: 0, avgMs: null, lastMs: null }, cameras: [] } }
+      : { configured: true, online: false, error: 'AI service unreachable', service: null } }),
+  }, { cameras: [], sensors: [], sprinklers: [], incidents: [], serverTime: now, system: { level: 'nominal', openIncidents: 0, activeSprinklers: 0 } });
+  await page.goto('/');
+  const banner = page.getByRole('status').filter({ hasText: /NOMINAL|DEGRADED/ });
+  await expect(banner).toHaveText('MONITORING DEGRADED · AI OFFLINE');
+
+  online = true;
+  await page.reload();
+  await expect(banner).toHaveText('ALL SYSTEMS NOMINAL');
+});
+
+test('status banner: a camera the AI cannot read makes monitoring "degraded" even without a camera-lost incident', async ({ page }) => {
+  await signIn(page);
+  const now = new Date().toISOString();
+  const camera = (state: string) => ({ cameraId: 'cam-kitchen', kind: 'stream', source: 'rtsp://***@10.0.0.20/live', simulated: false, state,
+    error: state === 'running' ? null : 'cannot open stream source', framesSent: 0, postFailures: 0 });
+  let state = 'error';
+  await mockApi(page, {
+    'GET /api/ai/status': (route) => route.fulfill({ json: { configured: true, online: true, error: null, service: { status: 'ok', version: '1.0.0',
+      capabilities: ['Fire', 'Human', 'Smoke'], models: [model('person', true), model('fire_smoke', true)], inference: { count: 0, avgMs: null, lastMs: null },
+      cameras: [camera(state)] } } }),
+  }, { cameras: [], sensors: [], sprinklers: [], incidents: [], serverTime: now, system: { level: 'nominal', openIncidents: 0, activeSprinklers: 0 } });
+  await page.goto('/');
+  const banner = page.getByRole('status').filter({ hasText: /NOMINAL|DEGRADED/ });
+  await expect(banner).toHaveText('MONITORING DEGRADED · CAMERA OFFLINE');
+
+  state = 'running';
+  await page.reload();
+  await expect(banner).toHaveText('ALL SYSTEMS NOMINAL');
+});
+
+test('status banner follows AI and camera health within one 10 s poll', async ({ page }) => {
+  await page.clock.install();
+  await signIn(page);
+  const now = new Date().toISOString();
+  type Health = { reply: 'ok' | 'http503' | 'modelMissing'; camera: string };
+  const h: Health = { reply: 'ok', camera: 'running' };
+  const camera = { cameraId: 'cam-kitchen', kind: 'stream', source: 'rtsp://***@10.0.0.20/live', simulated: false, error: null, framesSent: 1, postFailures: 0 };
+  await mockApi(page, {
+    'GET /api/ai/status': (route) => h.reply === 'http503'
+      ? route.fulfill({ status: 503, json: { title: 'unavailable' } })
+      : route.fulfill({ json: { configured: true, online: true, error: null, service: { status: h.reply === 'ok' ? 'ok' : 'degraded', version: '1.0.0',
+          capabilities: ['Fire'], models: [model('person', true), model('fire_smoke', h.reply === 'ok')], inference: { count: 0, avgMs: null, lastMs: null },
+          cameras: [{ ...camera, state: h.camera }] } } }),
+  }, { cameras: [], sensors: [], sprinklers: [], incidents: [], serverTime: now, system: { level: 'nominal', openIncidents: 0, activeSprinklers: 0 } });
+  await page.goto('/');
+  const banner = page.getByRole('status').filter({ hasText: /NOMINAL|DEGRADED/ });
+  await expect(banner).toHaveText('ALL SYSTEMS NOMINAL');
+
+  const nextPoll = async (state: Partial<Health>, text: string) => {
+    Object.assign(h, state);
+    await page.clock.runFor(10_500); // one 10 s poll plus scheduling tolerance
+    await expect(banner).toHaveText(text);
+  };
+  await nextPoll({ camera: 'error' }, 'MONITORING DEGRADED · CAMERA OFFLINE');
+  await nextPoll({ camera: 'reconnecting' }, 'MONITORING DEGRADED · CAMERA OFFLINE');
+  await nextPoll({ camera: 'running' }, 'ALL SYSTEMS NOMINAL');                   // healthy again after reconnect
+  await nextPoll({ camera: 'stopped' }, 'ALL SYSTEMS NOMINAL');                   // deleted on purpose: not a failure
+  await nextPoll({ reply: 'modelMissing', camera: 'running' }, 'MONITORING DEGRADED · AI MODEL MISSING');
+  await nextPoll({ reply: 'http503' }, 'MONITORING DEGRADED · AI STATUS UNKNOWN'); // health could not be read
+});
+
+const aiOk = { configured: true, online: true, error: null, service: { status: 'ok', version: '1.0.0', capabilities: ['Fire', 'Human', 'Smoke'],
+  models: [model('person', true), model('fire_smoke', true)], inference: { count: 0, avgMs: null, lastMs: null }, cameras: [] } };
+const aiDown = { configured: true, online: false, error: 'AI service unreachable', service: null };
+const kitchenCamera = { id: 'cam-k', name: 'Kitchen', feedType: 'CCTV', streamUrl: '', streamFormat: 'Simulated', status: 'Online',
+  locationZone: 'First Floor - Kitchen', updatedAt: new Date().toISOString() };
+const frame = (cameraId: string) => ({ cameraId, timestamp: new Date().toISOString(), frameWidth: 640, frameHeight: 480, normalized: false,
+  detections: [], dangerZones: [], heatmap: null, humanCoordinates: [], fireDetected: false, fireSeverity: null, humanCount: 0, dangerCount: 0,
+  simulated: false, smokeDetected: false, model: 'person fire_smoke' });
+
+test('IL-9: AI dies between polls -> "AI DATA STALE" within 9 s, then AI OFFLINE; an open incident keeps the reason visible', async ({ page }) => {
+  await page.clock.install();
+  await signIn(page);
+  let health: object = aiOk;
+  const now = new Date().toISOString();
+  const log = await mockApi(page, { 'GET /api/ai/status': (route) => route.fulfill({ json: health }) },
+    { cameras: [kitchenCamera], sensors: [], sprinklers: [], incidents: [], serverTime: now, system: { level: 'nominal', openIncidents: 0, activeSprinklers: 0 } });
+  await page.goto('/');
+  const banner = page.getByRole('status').filter({ hasText: /NOMINAL|DEGRADED|OPEN/ });
+  await expect(page.getByText('Live', { exact: true })).toBeVisible(); // the (mock) realtime link is up: frames sent now are received
+  for (let i = 0; i < 5; i++) { log.push('detection', frame('cam-k')); await page.clock.runFor(1_000); } // ~1 frame/s, like the live AI
+  await expect(banner).toHaveText('ALL SYSTEMS NOMINAL');
+
+  await page.clock.runFor(9_000);                       // frames stopped; the last poll still said "ok"
+  await expect(banner).toHaveText('MONITORING DEGRADED · AI DATA STALE');
+
+  health = aiDown;
+  await page.clock.runFor(10_500);                      // next poll
+  await expect(banner).toHaveText('MONITORING DEGRADED · AI OFFLINE');
+
+  log.push('incident', { action: 'created', incident: { id: 9, timestamp: now, updatedAt: now, cameraId: 'cam-k', cameraName: 'Kitchen', sensorId: null,
+    source: 'CameraLost', zone: 'First Floor - Kitchen', severity: 'Medium', fireDetected: false, fireSeverity: null, humanCount: 0, dangerCount: 0,
+    message: 'Camera lost: no frames from Kitchen for 10 s', isResolved: false, resolvedAt: null } });
+  await expect(banner).toHaveText(/^(ELEVATED RISK|CRITICAL ALERT) · 1 OPEN · AI OFFLINE\s*$/);   // real count + the reason, not hidden
+
+  health = aiOk;                                         // AI back: frames flow again (~1/s) through the next poll
+  for (let i = 0; i < 11; i++) { log.push('detection', frame('cam-k')); await page.clock.runFor(1_000); }
+  await expect(banner).toHaveText(/^(ELEVATED RISK|CRITICAL ALERT) · 1 OPEN\s*$/);              // healthy again; the incident stays open
+  await expect(page.getByRole('region', { name: 'Alert Logs' }).getByRole('row').filter({ hasText: 'Kitchen' })).toContainText('Open');
+});
+

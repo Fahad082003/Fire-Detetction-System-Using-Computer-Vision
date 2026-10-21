@@ -359,7 +359,7 @@ git push
 </tr>
 <tr>
 <td><strong>Beech ka pill</strong></td>
-<td>Hara "ALL SYSTEMS NOMINAL" = sab theek. Laal "CRITICAL ALERT" = khatra</td>
+<td>Hara <strong>"ALL SYSTEMS NOMINAL"</strong> = sab theek <strong>aur</strong> AI chal rahi hai. Peela <strong>"MONITORING DEGRADED · AI OFFLINE"</strong> (ya AI MODEL MISSING / CAMERA OFFLINE / AI DATA STALE / LIVE LINK DOWN; har 10 second, aur AI ke frames 8 second ruk jayein to foran). Incident khula ho to wajah saath likhi jati hai, jaise "ELEVATED RISK · 1 OPEN · AI OFFLINE" = koi incident nahi, lekin <strong>nigrani adhoori hai</strong>: is ka matlab "aag nahi" nahi, balke "dekha hi nahi ja raha". Peela "ELEVATED RISK" / laal "CRITICAL ALERT" = khule incidents</td>
 </tr>
 <tr>
 <td><strong>Live / Offline</strong></td>
@@ -986,12 +986,12 @@ dotnet run --project Sentinel.Api -- generate-vapid-keys
 <hr /></section><p class="part-label">D · Masle, hifazat aur checklist</p><section class="chapter" data-ch="17"><h1 id="ch17">17. Automatic Tests (Ek Click Mein Sab Check)</h1>
 <p>Ye tests code khud check karte hain. Har command ke aakhir mein <strong>failed: 0</strong> hona chahiye.</p>
 <pre><code class="language-powershell">cd C:\Users\m_fahad\Desktop\Project\backend
-dotnet test                                   # ✅ Passed: 64
+dotnet test                                   # ✅ Passed: 74
 
 cd C:\Users\m_fahad\Desktop\Project\frontend
-ng test --watch=false                         # ✅ Tests 31 passed
+ng test --watch=false                         # ✅ Tests 32 passed
 ng build                                      # ✅ &quot;Application bundle generation complete&quot;
-npm run e2e                                   # ✅ 5 passed (Edge browser, nakli API)
+npm run e2e                                   # ✅ 9 passed (Edge browser, nakli API)
 
 cd C:\Users\m_fahad\Desktop\Project\ai-service
 .\.venv\Scripts\python -m unittest discover -s tests    # ✅ Ran 25 tests ... OK
@@ -1301,7 +1301,7 @@ cd C:\Users\m_fahad\Desktop\Project\ai-service
 </tr>
 <tr>
 <td>18</td>
-<td>Automatic tests: 64 + 31 + 25, aur 5 browser tests pass</td>
+<td>Automatic tests: 74 + 32 + 25, aur 9 browser tests pass</td>
 <td>17</td>
 <td></td>
 <td></td>

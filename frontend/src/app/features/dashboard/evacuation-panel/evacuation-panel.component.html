@@ -55,7 +55,7 @@
               <span class="text-slate-500">(= distance ÷ {{ r.walkingSpeedMetersPerSecond }} m/s; an estimate, not a guaranteed time)</span>
             </p>
           } @else {
-            <p class="font-semibold text-red-400">{{ r.message }}</p>
+            <p class="font-semibold text-red-400" role="alert">⚠ {{ r.message }}</p>
           }
           @if (r.activeDangerZones.length) {
             <p class="mt-1 text-xs text-red-300">Avoided active danger zones: {{ r.activeDangerZones.join(', ') }}</p>

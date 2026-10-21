@@ -93,7 +93,7 @@ cd ai-service; .\.venv\Scripts\python -m unittest discover -s tests   # AI servi
 cd frontend; npm run e2e                  # browser tests in Edge, all API calls mocked (see below)
 ```
 
-On 2026-10-19 these passed: backend 64, frontend 31, AI service 25, browser 5.
+On 2026-10-21 these passed: backend 74, frontend 32, AI service 25, browser 9.
 - The browser tests (`frontend/e2e`, Playwright with the installed Edge) answer every request to `localhost:5291` inside the browser.
 - While they run, a tripwire listens on port 5291 and fails the run if anything connects. So they never touch a real API or database.
 

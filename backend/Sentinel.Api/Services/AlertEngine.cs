@@ -179,6 +179,7 @@ public class AlertEngine(
     {
         var camera = await db.CameraFeeds.FindAsync([cameraId], ct);
         if (camera is null) return;
+        camera.Status = CameraStatus.Offline; // saved with the incident below
         // Losing a camera matters most while there is a fire in its zone: that is when power cuts happen.
         var fireOpen = await db.IncidentAlerts.AnyAsync(i => !i.IsResolved && i.Zone == camera.LocationZone && i.FireDetected, ct);
         var (incident, action) = await UpsertIncidentAsync(new IncidentDraft(

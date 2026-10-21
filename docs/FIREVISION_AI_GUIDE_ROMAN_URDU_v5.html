@@ -905,7 +905,7 @@ SmartSprinklers          Users ──1──* PushSubscriptions
 </table></div>
 <hr /></section><p class="part-label">C · Dashboard</p><section class="chapter" data-ch="12"><h1 id="ch12">12. Dashboard (Website) Ki Screens</h1>
 <p><img alt="Login" src="images/login.png" /></p>
-<p><strong>Top bar:</strong> system ka haal, Live/Offline, ghari (asli waqt, AM/PM), awaaz band (koi incident khula ho to alarm <strong>lagatar</strong> bajta hai jab tak Resolve na ho), <strong>Enable Alerts</strong> (browser push), <strong>Emergency Dispatch</strong>, Logout. Menu: <strong>Dashboard · Floor Plans · AI</strong>.</p>
+<p><strong>Top bar:</strong> system ka haal (Hara <strong>"ALL SYSTEMS NOMINAL"</strong> = sab theek <strong>aur</strong> AI chal rahi hai. Peela <strong>"MONITORING DEGRADED · AI OFFLINE"</strong> (ya AI MODEL MISSING / CAMERA OFFLINE / AI DATA STALE / LIVE LINK DOWN; har 10 second, aur AI ke frames 8 second ruk jayein to foran). Incident khula ho to wajah saath likhi jati hai, jaise "ELEVATED RISK · 1 OPEN · AI OFFLINE" = koi incident nahi, lekin <strong>nigrani adhoori hai</strong>: is ka matlab "aag nahi" nahi, balke "dekha hi nahi ja raha". Peela "ELEVATED RISK" / laal "CRITICAL ALERT" = khule incidents), Live/Offline, ghari (asli waqt, AM/PM), awaaz band (koi incident khula ho to alarm <strong>lagatar</strong> bajta hai jab tak Resolve na ho), <strong>Enable Alerts</strong> (browser push), <strong>Emergency Dispatch</strong>, Logout. Menu: <strong>Dashboard · Floor Plans · AI</strong>.</p>
 <p><img alt="Dashboard: aag ka manzar" src="images/dashboard-fire.png" /></p>
 <div class="table-wrap"><table>
 <thead>
@@ -2032,13 +2032,13 @@ git pull
 <tbody>
 <tr>
 <td>Backend (xUnit)</td>
-<td><strong>64</strong></td>
-<td>Delete kiye camera ke purane frames rad, AI analyze ki rate limit, Camera management + password chhupana, Fire risk prediction, alert rules, API + SignalR integration, evacuation router, floor plans + logs, camera calibration, camera lost, simulated sensors, AI client</td>
+<td><strong>74</strong></td>
+<td>API restart ke baad band camera ka alarm (60 s grace), Camera ka Status (Online/Offline) asli frames se, NaN confidence aur frame se bahar ke dabbe rad, Delete kiye camera ke purane frames rad, AI analyze ki rate limit, Camera management + password chhupana, Fire risk prediction, alert rules, API + SignalR integration, evacuation router, floor plans + logs, camera calibration, camera lost, simulated sensors, AI client</td>
 </tr>
 <tr>
 <td>Frontend (Vitest)</td>
-<td><strong>31</strong></td>
-<td>Ek kamre ke kai cameras ke log ek dafa gine, Naqshe mein resize kona, Devices page, Fire risk list, login expiry, homography, calibrated camera ke nuqte, overlay drawing, floor plan editor, evacuation panel, AI page, formatting</td>
+<td><strong>32</strong></td>
+<td>Purana AI status jawab naye ko overwrite na kare, Ek kamre ke kai cameras ke log ek dafa gine, Naqshe mein resize kona, Devices page, Fire risk list, login expiry, homography, calibrated camera ke nuqte, overlay drawing, floor plan editor, evacuation panel, AI page, formatting</td>
 </tr>
 <tr>
 <td>AI service (unittest)</td>
@@ -2047,8 +2047,8 @@ git pull
 </tr>
 <tr>
 <td>Browser (Playwright, Edge)</td>
-<td><strong>5</strong></td>
-<td>Login, API band, AI status online/offline, upload error, alerts. <strong>Mock-based:</strong> asli API (5291) tak 0 connections (tripwire se saboot)</td>
+<td><strong>9</strong></td>
+<td>AI band ho to 9 s ke andar banner (AI DATA STALE), Banner camera offline aur 10 s poll, AI band ho to banner "MONITORING DEGRADED", Login, API band, AI status online/offline, upload error, alerts. <strong>Mock-based:</strong> asli API (5291) tak 0 connections (tripwire se saboot)</td>
 </tr>
 <tr>
 <td>Production build</td>
@@ -2716,12 +2716,12 @@ cd ai-service; .\.venv\Scripts\python tools\evaluate.py --data &lt;D-Fire\test&g
 </thead>
 <tbody>
 <tr>
-<td>Backend tests (64)</td>
+<td>Backend tests (74)</td>
 <td>API, alerts, sprinklers, naqsha, cameras, rate limit</td>
 <td><code>cd backend; dotnet test</code></td>
 </tr>
 <tr>
-<td>Frontend tests (31)</td>
+<td>Frontend tests (32)</td>
 <td>Screens ka logic</td>
 <td><code>cd frontend; ng test --watch=false</code></td>
 </tr>
@@ -2731,7 +2731,7 @@ cd ai-service; .\.venv\Scripts\python tools\evaluate.py --data &lt;D-Fire\test&g
 <td><code>cd ai-service; .\.venv\Scripts\python -m unittest discover -s tests</code></td>
 </tr>
 <tr>
-<td><strong>Browser tests (5)</strong></td>
+<td><strong>Browser tests (9)</strong></td>
 <td>Edge mein asli screens: login, AI status, upload error, alerts. Sab jawab <strong>nakli</strong> (mock); 5291 par tripwire saboot deta hai ke asli API tak kuch nahi gaya</td>
 <td><code>cd frontend; npm run e2e</code></td>
 </tr>

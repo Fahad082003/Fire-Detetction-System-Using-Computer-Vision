@@ -9,6 +9,13 @@ import { AlarmService } from '../../core/services/ui.service';
 import { AiStatus } from '../../shared/models/api.models';
 import { DispatchDialogComponent } from '../dashboard/dispatch-dialog/dispatch-dialog.component';
 
+/** AI health (models + per-camera stream state) is a cheap status call: 10 s keeps the banner within ~10 s of a camera failure. */
+export const AI_POLL_MS = 10_000;
+/** A camera whose AI frames stopped 8-120 s ago marks monitoring degraded before the next poll or the 10 s camera-lost alarm
+ * (normal gaps measured up to 5.4 s at 3-4 cameras). Longer silences are left to the AI poll and the alarm. */
+export const FRAMES_STALE_MS = 8_000;
+const FRAMES_FORGET_MS = 120_000;
+
 const LEVEL_STYLE = {
   nominal: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400',
   elevated: 'border-amber-500/40 bg-amber-500/10 text-amber-400',
@@ -29,6 +36,7 @@ export class ShellComponent implements OnInit, OnDestroy {
   protected readonly dispatchDialog = viewChild.required(DispatchDialogComponent);
   private readonly api = inject(MonitoringApiService);
   private aiTimer?: ReturnType<typeof setInterval>;
+  private aiPoll = 0;
 
   /** AI inference service health (null = status could not be read). Red = offline, amber = a model is missing. */
   protected readonly ai = signal<AiStatus | null>(null);
@@ -44,10 +52,29 @@ export class ShellComponent implements OnInit, OnDestroy {
     return missing.length ? `AI online, missing model(s): ${missing.join(', ')}` : 'AI online, all models loaded';
   });
 
-  protected readonly levelClass = computed(() => LEVEL_STYLE[this.live.level()]);
+  /** Why "all clear" cannot be trusted right now (no AI = no detections, which is not the same as no fire), or null. */
+  protected readonly degraded = computed(() => {
+    if (this.live.state() !== 'connected') return 'LIVE LINK DOWN';
+    const s = this.ai();
+    if (!s) return 'AI STATUS UNKNOWN';
+    if (!s.online) return 'AI OFFLINE';
+    if (s.service?.status !== 'ok') return 'AI MODEL MISSING';
+    // The API's "camera lost" alarm only watches cameras seen since it started; the AI service knows every stream it cannot read.
+    if (s.service.cameras.some((c) => c.state === 'error' || c.state === 'reconnecting')) return 'CAMERA OFFLINE';
+    // Between polls: AI frames that stopped arriving (e.g. the AI service just died) are known here first.
+    const now = this.live.now();
+    const cameras = new Set(this.live.cameras().map((c) => c.id));
+    return Object.values(this.live.frameStats()).some((f) => cameras.has(f.cameraId)
+      && now - f.receivedAt > FRAMES_STALE_MS && now - f.receivedAt < FRAMES_FORGET_MS) ? 'AI DATA STALE' : null;
+  });
+  protected readonly levelClass = computed(() =>
+    LEVEL_STYLE[this.live.level() === 'nominal' && this.degraded() ? 'elevated' : this.live.level()]);
   protected readonly levelLabel = computed(() => {
     const open = this.live.openIncidents().length;
-    return { nominal: 'ALL SYSTEMS NOMINAL', elevated: `ELEVATED RISK · ${open} OPEN`, critical: `CRITICAL ALERT · ${open} OPEN` }[this.live.level()];
+    const reason = this.degraded();
+    const also = reason ? ` · ${reason}` : ''; // open incidents stay first; the monitoring gap is still shown
+    return { nominal: reason ? `MONITORING DEGRADED · ${reason}` : 'ALL SYSTEMS NOMINAL',
+      elevated: `ELEVATED RISK · ${open} OPEN${also}`, critical: `CRITICAL ALERT · ${open} OPEN${also}` }[this.live.level()];
   });
   protected readonly connection = computed(() => ({
     connected: { label: 'Live', dot: 'bg-emerald-500 shadow-[0_0_8px] shadow-emerald-500' },
@@ -60,7 +87,7 @@ export class ShellComponent implements OnInit, OnDestroy {
     this.live.start();
     this.push.init();
     this.pollAi();
-    this.aiTimer = setInterval(() => this.pollAi(), 30_000);
+    this.aiTimer = setInterval(() => this.pollAi(), AI_POLL_MS);
   }
 
   ngOnDestroy(): void {
@@ -69,7 +96,11 @@ export class ShellComponent implements OnInit, OnDestroy {
   }
 
   private pollAi(): void {
-    this.api.aiStatus().subscribe({ next: (s) => this.ai.set(s), error: () => this.ai.set(null) });
+    const poll = ++this.aiPoll; // a slow older reply must not overwrite a newer one
+    this.api.aiStatus().subscribe({
+      next: (s) => { if (poll === this.aiPoll) this.ai.set(s); },
+      error: () => { if (poll === this.aiPoll) this.ai.set(null); },
+    });
   }
 
   protected async logout(): Promise<void> {

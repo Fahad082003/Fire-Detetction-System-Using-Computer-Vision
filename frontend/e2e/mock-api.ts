@@ -2,14 +2,16 @@ import { Page, Route } from '@playwright/test';
 
 /** Answers every request to the real API address inside the browser; nothing is sent to the network. */
 export type Handler = (route: Route) => Promise<void> | void;
-export interface ApiLog { handled: string[]; unmocked: string[] }
+export interface ApiLog { handled: string[]; unmocked: string[]; push: (target: string, arg: object) => void }
 
 const API = /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\]):5291\//;
 const API_SOCKET = /^wss?:\/\/(localhost|127\.0\.0\.1|\[::1\]):5291\//; // SignalR connects with ws://, not http://
 
 /** handlers: "METHOD /path" -> response. Anything else gets a 503 "not mocked" and is listed in log.unmocked. */
 export async function mockApi(page: Page, handlers: Record<string, Handler> = {}, snapshot?: object): Promise<ApiLog> {
-  const log: ApiLog = { handled: [], unmocked: [] };
+  let socket: { send: (m: string) => void } | null = null;
+  const log: ApiLog = { handled: [], unmocked: [],
+    push: (target, arg) => socket?.send(JSON.stringify({ type: 1, target, arguments: [arg] }) + '\u001e') }; // server -> dashboard event
   await page.route(API, async (route) => {
     const req = route.request();
     const key = `${req.method()} ${new URL(req.url()).pathname}`;
@@ -20,8 +22,10 @@ export async function mockApi(page: Page, handlers: Record<string, Handler> = {}
   });
   // SignalR WebSocket, fully mocked: never connected to a server.
   await page.routeWebSocket(API_SOCKET, (ws) => {
+    socket = ws;
     ws.onMessage((message) => {
-      if (!snapshot || !String(message).includes('"protocol"')) return; // pings and invocations are ignored
+      if (String(message).includes('"type":6')) { ws.send('{"type":6}\u001e'); return; } // answer keep-alive pings, or fast-forwarded clocks time out
+      if (!snapshot || !String(message).includes('"protocol"')) return; // invocations are ignored
       ws.send('{}\u001e'); // handshake accepted
       ws.send(JSON.stringify({ type: 1, target: 'snapshot', arguments: [snapshot] }) + '\u001e');
     });

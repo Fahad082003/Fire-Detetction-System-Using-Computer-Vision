@@ -48,7 +48,15 @@ public static partial class DetectionPayloadValidator
             if (d.Bbox is null || d.Bbox.Length != 4) Add($"detections[{i}].bbox", "bbox must be [x, y, width, height].");
             else if (d.Bbox.Any(v => !double.IsFinite(v)) || d.Bbox[2] < 0 || d.Bbox[3] < 0)
                 Add($"detections[{i}].bbox", "bbox values must be finite and width/height non-negative.");
-            if (d.Confidence is < 0 or > 1) Add($"detections[{i}].confidence", "Must be between 0 and 1.");
+            else
+            {
+                // A box wholly outside the frame is not a sighting, but it would still be counted as a person or a fire.
+                var (fw, fh) = payload.Normalized ? (1.0, 1.0) : (payload.FrameWidth, payload.FrameHeight);
+                if (d.Bbox[0] >= fw || d.Bbox[1] >= fh || d.Bbox[0] + d.Bbox[2] <= 0 || d.Bbox[1] + d.Bbox[3] <= 0)
+                    Add($"detections[{i}].bbox", "bbox must overlap the frame.");
+            }
+            // NaN fails every comparison, so it needs its own check ("NaN" as a JSON string reaches here).
+            if (!double.IsFinite(d.Confidence) || d.Confidence is < 0 or > 1) Add($"detections[{i}].confidence", "Must be between 0 and 1.");
             if (d.Label?.Length > 48) Add($"detections[{i}].label", "Max 48 characters.");
             if (d.TrackId?.Length > 48) Add($"detections[{i}].trackId", "Max 48 characters.");
             if (d.Explanation?.Length > 240) Add($"detections[{i}].explanation", "Max 240 characters.");
