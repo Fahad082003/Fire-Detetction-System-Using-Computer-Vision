@@ -160,10 +160,13 @@ li.task:has(input:checked) { color: var(--muted); text-decoration: line-through;
 <pre><code class="language-powershell">cd C:\Users\m_fahad\Desktop\Project
 .\start.ps1
 </code></pre>
-<p>Teen windows khulti hain: <strong>API</strong>, <strong>Dashboard</strong>, <strong>AI service</strong>. Aag ka demo bhi chahiye to <code>.\start.ps1 -Simulator</code>.</p>
+<p>Do windows khulti hain: <strong>Server</strong> (Django: dashboard aur API dono) aur <strong>AI service</strong>. Aag ka demo bhi chahiye to <code>.\start.ps1 -Simulator</code>.</p>
+<blockquote>
+<p>ℹ️ 2026-10-26 se project Django par chalta hai (<code>sentinel-django/</code>). Is guide ki tasveerein purane Angular dashboard ki hain; Django dashboard mein wahi panels hain, lekin chhota sa visual farq ho sakta hai.</p>
+</blockquote>
 <h3 id="ch2-login">Login</h3>
 <ol>
-<li>Browser: <strong>http://localhost:4200</strong></li>
+<li>Browser: <strong>http://localhost:5291</strong></li>
 <li>Email aur password daalein → <strong>Sign in</strong>.</li>
 </ol>
 <p><img alt="Login" src="images/login.png" /></p>
@@ -651,8 +654,8 @@ li.task:has(input:checked) { color: var(--muted); text-decoration: line-through;
 <pre><code class="language-powershell">.\start.ps1 -Simulator
 </code></pre>
 <p>Ya alag window mein:</p>
-<pre><code class="language-powershell">cd C:\Users\m_fahad\Desktop\Project\backend
-dotnet run --project Sentinel.Simulator -- --device-key &lt;.env ka Device__ApiKey&gt; --ignite &quot;Ground Floor - Warehouse&quot;
+<pre><code class="language-powershell">cd C:\Users\m_fahad\Desktop\Project\sentinel-django
+.\.venv\Scripts\python tools\simulator.py --device-key &lt;.env ka Device__ApiKey&gt; --ignite &quot;Ground Floor - Warehouse&quot;
 </code></pre>
 <p>Cameras par nakli insaan aur Ground Floor - Warehouse mein aag. Alarm, alerts, sprinklers aur risk heatmap sab chalte hain. Har cheez par <strong>SIM DATA</strong> likha hota hai.</p>
 <blockquote>

@@ -212,9 +212,10 @@ li.task:has(input:checked) { color: var(--muted); text-decoration: line-through;
 </blockquote>
 <hr /></section><section class="chapter" data-ch="3"><h1 id="ch3">3. Network: API Ko Doosre Devices Ke Liye Kholna</h1>
 <p>Aam taur par API sirf usi PC par chalti hai (<code>localhost:5291</code>). Camera wali AI service usi PC par ho to kuch nahi karna. Lekin <strong>ESP32 sensor/relay</strong> doosra device hai, is liye API ko network par kholna hoga.</p>
-<p><strong>1. API ko network par sunne dein</strong> (API wali window mein, <code>start.ps1</code> ki jagah):</p>
-<pre><code class="language-powershell">cd C:\Users\m_fahad\Desktop\Project\backend
-dotnet run --project Sentinel.Api --launch-profile http --urls http://0.0.0.0:5291
+<p><strong>1. Server ko network par sunne dein</strong> (Server wali window mein, <code>start.ps1</code> ki jagah). <code>SENTINEL_ALLOWED_HOSTS</code> mein is PC ka IP bhi daalein, warna Django doosre device ki request ko 400 de deta hai:</p>
+<pre><code class="language-powershell">cd C:\Users\m_fahad\Desktop\Project\sentinel-django
+$env:SENTINEL_ALLOWED_HOSTS = 'localhost,127.0.0.1,192.168.1.10'
+.\.venv\Scripts\python -m uvicorn config.asgi:application --host 0.0.0.0 --port 5291
 </code></pre>
 <p><strong>2. Windows Firewall mein port kholein</strong> (PowerShell <strong>Run as Administrator</strong>, ek dafa):</p>
 <pre><code class="language-powershell">New-NetFirewallRule -DisplayName &quot;FireVision API 5291&quot; -Direction Inbound -Protocol TCP -LocalPort 5291 -Action Allow
@@ -222,7 +223,7 @@ dotnet run --project Sentinel.Api --launch-profile http --urls http://0.0.0.0:52
 <p><strong>3. Check:</strong> doosre device ke browser se <code>http://192.168.1.10:5291/health</code> kholein. <code>{"status":"ok"}</code> aana chahiye.</p>
 <blockquote>
 <p>⚠️ Ye <strong>HTTP</strong> hai, encryption nahi. Device key network par saaf likhi jati hai. Sirf <strong>ghar ya office ke private network</strong> par istemaal karein, kabhi internet par khula na chhorein.
-ℹ️ Dashboard abhi sirf <strong>server PC ke browser</strong> (<code>localhost:4200</code>) se chalta hai. Doosre PC ke browser se kholna ho to production build aur reverse proxy chahiye; ye is guide se bahar hai.</p>
+ℹ️ Django server dashboard bhi isi port (<code>5291</code>) par deta hai, is liye upar wale qadam ke baad doosre PC ke browser se <code>http://192.168.1.10:5291</code> khul sakta hai. Ye is migration mein <strong>test nahi hua</strong>; aur HTTP par login password bhi saaf jata hai, is liye sirf private network.</p>
 </blockquote>
 <hr /></section><p class="part-label">B · Camera, sensor aur relay</p><section class="chapter" data-ch="4"><h1 id="ch4">4. CCTV / IP Camera Jorna</h1>
 <h3 id="ch4-a-camera-se-kya-chahiye">A. Camera se kya chahiye</h3>
@@ -586,10 +587,11 @@ Notifications__Email__Recipients=guard@example.com,manager@example.com
 <p><strong>Check:</strong> Emergency Dispatch karein → inbox (aur Spam folder).</p>
 <hr /></section><section class="chapter" data-ch="9"><h1 id="ch9">9. Browser Push Notifications</h1>
 <h3 id="ch9-keys-banana-ek-dafa">Keys banana (ek dafa)</h3>
-<pre><code class="language-powershell">cd C:\Users\m_fahad\Desktop\Project
-dotnet run --project backend/Sentinel.Api -- generate-vapid-keys
+<pre><code class="language-powershell">cd C:\Users\m_fahad\Desktop\Project\sentinel-django
+.\.venv\Scripts\python -m pip install pywebpush   # Django server ko push bhejne ke liye (ek dafa)
+npx web-push generate-vapid-keys                    # Node.js chahiye; koi bhi VAPID tool chalega
 </code></pre>
-<p>Ye do lines deta hai. Dono <code>.env</code> mein copy karein:</p>
+<p>Ye ek Public Key aur ek Private Key deta hai. Dono <code>.env</code> mein copy karein:</p>
 <pre><code>Notifications__WebPush__PublicKey=B....
 Notifications__WebPush__PrivateKey=....
 Notifications__WebPush__Subject=mailto:aapka.email@gmail.com
