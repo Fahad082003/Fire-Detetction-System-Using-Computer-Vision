@@ -1,5 +1,0 @@
-<Solution>
-  <Project Path="Sentinel.Api.Tests/Sentinel.Api.Tests.csproj" />
-  <Project Path="Sentinel.Api/Sentinel.Api.csproj" />
-  <Project Path="Sentinel.Simulator/Sentinel.Simulator.csproj" />
-</Solution>
