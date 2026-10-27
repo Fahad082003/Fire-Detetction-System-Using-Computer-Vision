@@ -1,5 +1,5 @@
 # Replaces the local SentinelDb with database\SentinelDb.bak (made by save.ps1 on the other PC).
-# Everything in the local database is overwritten. Stop the API first.
+# Everything in the local database is overwritten. Stop the server first.
 # Usage (PowerShell):  git pull; .\database\load.ps1
 param([string]$Server = 'localhost', [string]$Database = 'SentinelDb', [switch]$Force)
 $ErrorActionPreference = 'Stop'
@@ -41,4 +41,4 @@ ALTER DATABASE [$Database] SET MULTI_USER;
 "@
 } finally { $conn.Close(); Remove-Item $staged -Force -ErrorAction SilentlyContinue }
 
-Write-Host "Restored $Database from $source. If the code is newer than the backup, also run: dotnet ef database update --project backend\Sentinel.Api"
+Write-Host "Restored $Database from $source. The server never changes the schema: it expects sentinel-django\schema\sentinel.sql."

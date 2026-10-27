@@ -1,125 +1,126 @@
 # FireVision AI — Emergency Monitoring Command Center
 
-Real-time fire/threat monitoring. Its own AI service (or any producer that posts the same JSON) sends bounding boxes, danger zones and fire severity, and FireVision AI draws them live over CCTV and drone feeds. It also:
-- opens and escalates incidents, and sends SMS, email and web-push alerts;
-- switches on smart sprinklers automatically;
-- raises a **camera lost** alert when a camera goes silent;
-- places people seen by calibrated cameras on the floor plan, and computes an evacuation route from where they stand;
-- predicts which rooms a fire may reach next (rule-based, through doors) and shows a risk heatmap on the floor plan.
+Aag aur khatre ki real-time monitoring. Project ki apni AI service (ya koi bhi producer jo wahi JSON bheje) bounding boxes, danger zones aur fire severity bhejti hai, aur FireVision AI unhein CCTV aur drone feeds par live dikhata hai. Saath mein yeh:
+- incidents kholta aur escalate karta hai, aur SMS, email aur web-push alerts bhejta hai;
+- smart sprinklers khud chalu karta hai;
+- camera khamosh ho jaye to **camera lost** alert deta hai;
+- calibrated cameras mein dikhne wale logon ko floor plan par rakhta hai aur unki jagah se evacuation route nikalta hai;
+- andaza lagata hai ke aag agle kin kamron tak pohanch sakti hai (rule-based, darwazon ke zariye) aur floor plan par risk heatmap dikhata hai.
 
-> AI inference runs in a separate Python service, [ai-service/](ai-service/README.md), using ONNX Runtime on CPU.
-> - **Person detection** (YOLOX-Tiny, Apache-2.0) is installed and was evaluated on 2026-10-13: see [ai-service/reports](ai-service/reports/README.md).
-> - **Fire/smoke detection** (YOLOX-Tiny fine-tuned on D-Fire) is installed and was evaluated on 2026-10-15: see [ai-service/training](ai-service/training/README.md).
-> - Both model files (`ai-service/models/*.onnx`, about 20 MB each) are in the repo, so a fresh clone needs no download.
+> **2026-10-26 se project sirf Django par chalta hai.** Purana ASP.NET Core API (`backend/`) aur Angular dashboard (`frontend/`) delete kar diye gaye hain; woh sirf git history mein hain. Kya kahan gaya: [sentinel-django/MIGRATION.md](sentinel-django/MIGRATION.md). Poori audit report: [FINAL_DJANGO_MIGRATION_AUDIT.md](FINAL_DJANGO_MIGRATION_AUDIT.md).
+
+> AI inference ek alag Python service mein chalti hai, [ai-service/](ai-service/README.md), CPU par ONNX Runtime ke saath.
+> - **Person detection** (YOLOX-Tiny, Apache-2.0) installed hai; evaluation 2026-10-13: [ai-service/reports](ai-service/reports/README.md).
+> - **Fire/smoke detection** (D-Fire par fine-tuned YOLOX-Tiny) installed hai; evaluation 2026-10-15: [ai-service/training](ai-service/training/README.md).
+> - Dono model files (`ai-service/models/*.onnx`, takreeban 20 MB har ek) repo mein hain, is liye naye clone ko download ki zaroorat nahi.
 >
-> The dashboard's **AI** tab shows which models are actually loaded.
+> Dashboard ka **AI** tab dikhata hai ke kaun se models asal mein load hain.
 
 | Layer | Technology |
 |---|---|
-| Frontend | Angular 22 (standalone components, signals, RxJS), TypeScript, Tailwind CSS 4, HTML5 Canvas, hls.js |
-| Backend | ASP.NET Core 8 Web API (C#), controllers, services, interfaces, DTOs, EF Core 8 |
-| Real-time | SignalR hub at `/hubs/monitoring` |
-| Database | Microsoft SQL Server (EF Core migrations) |
-| Notifications | Twilio SMS, SMTP email (MailKit), Web Push (VAPID) |
-| IoT simulation | `Sentinel.Simulator` (.NET console): smoke/temperature sensors, sprinklers, AI frames |
+| Server (dashboard + API) | Django 5.2, Django REST Framework, `uvicorn` (ASGI), ek hi process — [sentinel-django/](sentinel-django/README.md) |
+| Pages | Django templates, plain CSS, vanilla JavaScript (koi build step nahi, run time par Node nahi) |
+| Live updates | Server-Sent Events: `GET /api/events` |
+| Database | Microsoft SQL Server (`SentinelDb`, schema `sentinel-django/schema/sentinel.sql`), `mssql-django` + ODBC Driver 18 |
+| Notifications | Twilio SMS, SMTP email, Web Push (VAPID, `pywebpush`) |
+| AI | `ai-service/` (Python, ONNX Runtime, port 8008) |
+| Simulator | `sentinel-django/tools/simulator.py`: smoke/temperature sensors, sprinklers, AI frames |
 
 ```
-AI service / IoT gateway ──(X-Device-Key)──► ASP.NET Core API ──► EF Core ──► SQL Server
-      ▲  Sentinel.Simulator                     │  AlertEngine → NotificationWorker → SMS / Email / Push
-      │                                         │  SprinklerService (auto-activation)
-      │                                         ▼
-      └───────────────────────────── SignalR /hubs/monitoring ──► Angular dashboard (JWT)
+AI service / IoT gateway ──(X-Device-Key, REST)──► Django (uvicorn, :5291) ──► Django ORM ──► SQL Server (SentinelDb)
+  ai-service/, tools/simulator.py                    │  alert engine → notification worker → SMS / Email / Push
+                                                     │  camera watchdog (camera lost, Online/Offline), sprinklers
+                                                     ▼
+                         Browser ◄── server-rendered pages + /api/events (Server-Sent Events) ── session cookie
 ```
 
-## Quick start (Windows PowerShell)
+## Jaldi shuru karna (Windows PowerShell)
 
-Prerequisites: .NET 8 SDK or newer, Node.js 20.19+ with the Angular CLI (`npm i -g @angular/cli`), SQL Server (Developer, Express or LocalDB), and `dotnet tool install --global dotnet-ef`.
+Pehle se chahiye: Python 3.13, SQL Server (Developer, Express ya LocalDB) aur **ODBC Driver 18 for SQL Server**.
 
 ```powershell
 cd C:\Users\m_fahad\Desktop\Project
-Copy-Item .env.example .env        # then set Jwt__SigningKey, Device__ApiKey, Seed__AdminPassword
+Copy-Item .env.example .env        # phir Jwt__SigningKey, Device__ApiKey, Seed__AdminPassword bharein
 
-# Backend
-cd backend
-dotnet restore
-dotnet build
-dotnet ef database update --project Sentinel.Api
-dotnet run --project Sentinel.Api --launch-profile http     # http://localhost:5291/swagger
+# Django server (ek dafa setup)
+cd sentinel-django
+py -3.13 -m venv .venv
+.\.venv\Scripts\python -m pip install -r requirements.txt
+# Sirf bilkul khali naye database ke liye: .\.venv\Scripts\python manage.py create_schema
 
-# Frontend (new terminal)
-cd C:\Users\m_fahad\Desktop\Project\frontend
-npm install
-ng serve                                                    # http://localhost:4200
-
-# AI inference service (new terminal), see ai-service/README.md
-cd C:\Users\m_fahad\Desktop\Project\ai-service
+# AI service (ek dafa setup), dekhein ai-service/README.md
+cd ..\ai-service
 py -3.13 -m venv .venv; .\.venv\Scripts\python -m pip install -r requirements.txt
-.\.venv\Scripts\python tools\download_models.py; .\.venv\Scripts\python -m sentinel_ai    # http://127.0.0.1:8008/health
+.\.venv\Scripts\python tools\download_models.py
 
-# Simulator (new terminal): fire in the warehouse
-cd C:\Users\m_fahad\Desktop\Project\backend
-dotnet run --project Sentinel.Simulator -- --device-key <Device__ApiKey> --ignite "Ground Floor - Warehouse"
+# Chalana (project folder se): Server + AI service, har ek apni window mein
+cd ..
+.\start.ps1                 # aag ka demo bhi chahiye to: .\start.ps1 -Simulator
 ```
 
-After the first setup, `.\start.ps1` opens the API, the dashboard and the AI service in their own windows (`.\start.ps1 -Simulator` adds the fire demo). It reads `Device__ApiKey` from `.env` and hands it to the AI service.
+Takreeban 30 second baad http://localhost:5291 kholein. `start.ps1` `.env` se `Device__ApiKey` parh kar AI service ko deta hai. Purani guides ka `.\start.ps1 -Django` ab bhi chalta hai.
 
-Log in with `Seed__AdminEmail` and `Seed__AdminPassword`. The admin account is created on the first API start, when the Users table is empty. In Development, demo cameras, sensors and sprinklers are seeded automatically. An Admin adds, edits and deletes the customer's own cameras on the **Devices** page. Stream passwords are masked for dashboard users and sent only to the AI service. When `SENTINEL_DEVICE_KEY` is set, the AI service reloads its camera list from the API every 60 s, so a camera added there is analysed within a minute without editing `config.json`. For a live test without an IP camera, `ai-service\tools\mjpeg_camera.py 0` serves the laptop webcam (or a video file) as MJPEG at `http://127.0.0.1:8090/video`. Add it on the Devices page with format Mjpeg. `ai-service\tools\live_test.py` runs the whole chain automatically with `samples/fire-test.avi` (D-Fire test frames, CC0): camera, floor plan, calibration, AI fire incident, danger zone, re-routed evacuation and the risk heatmap, then prints PASS/FAIL. It refuses to run while real SMS or email settings are in `.env`.
+`Seed__AdminEmail` aur `Seed__AdminPassword` se login karein. Admin account server ke pehle start par banta hai, jab Users table khali ho (password khali ho to ek random password server window mein ek dafa print hota hai).
+- Admin **Devices** page par customer ke apne cameras add, edit aur delete karta hai. Stream passwords dashboard users ko `***` dikhte hain; asli link sirf AI service ko jata hai.
+- `SENTINEL_DEVICE_KEY` set ho to AI service har 60 s server se camera list dobara parhti hai, is liye naya camera ek minute ke andar analyse hone lagta hai.
+- IP camera ke baghair live test: `ai-service\tools\mjpeg_camera.py 0` laptop webcam (ya video file) ko MJPEG bana kar `http://127.0.0.1:8090/video` par deta hai; Devices page par format Mjpeg ke saath add karein.
+- `ai-service\tools\live_test.py` poori chain khud chalata hai (`samples/fire-test.avi`, D-Fire test frames, CC0): camera, floor plan, calibration, AI fire incident, danger zone, naya evacuation route aur risk heatmap, phir PASS/FAIL. `.env` mein asli SMS ya email settings hon to yeh chalne se inkaar karta hai.
 
-## Same database on two PCs (private repo only)
+**Zaroori:** `SentinelDb` par kabhi `manage.py migrate` mat chalayein (database router waise bhi rok deta hai). Django models unmanaged hain; schema nahi badalta.
 
-The database travels through git as a backup file, `database/SentinelDb.bak`. It holds the login user and every record, so keep the repo private.
+## Do PCs par wahi database (sirf private repo)
+
+Database git ke zariye ek backup file ki shakal mein jata hai: `database/SentinelDb.bak`. Is mein login user aur har record hai, is liye repo private rakhein.
 
 ```powershell
-# PC 1: finishing work
+# PC 1: kaam khatam karte waqt
 .\database\save.ps1
 git add database\SentinelDb.bak; git commit -m "db: update"; git push
 
-# PC 2: starting work (stop the API first; this OVERWRITES the local database)
+# PC 2: kaam shuru karte waqt (pehle server band karein; yeh local database ko OVERWRITE karta hai)
 git pull
 .\database\load.ps1
 ```
 
-- The last `save` wins. Do not change data on both PCs between syncs.
-- The second PC needs SQL Server 2022 or newer, because a backup cannot be restored on an older version.
-- If PowerShell blocks the scripts, run: `powershell -ExecutionPolicy Bypass -File .\database\save.ps1`.
+- Aakhri `save` jeetta hai. Do syncs ke darmiyan dono PCs par data mat badlein.
+- Doosre PC par SQL Server 2022 ya naya chahiye, kyunke backup purane version par restore nahi hota.
+- PowerShell scripts block kare to: `powershell -ExecutionPolicy Bypass -File .\database\save.ps1`.
 
 ## Tests
 
+Saare Django tests disposable `test_*` databases par chalte hain, `.env` nahi parhte, aur kisi asli camera, relay ya notification service tak nahi pohanchte.
+
 ```powershell
-cd backend;  dotnet test                  # unit tests + API/SignalR integration tests (SQLite in-memory)
-cd frontend; ng test --watch=false        # Vitest unit tests
-cd frontend; ng build                     # production build
-cd ai-service; .\.venv\Scripts\python -m unittest discover -s tests   # AI service (mock-based)
-cd frontend; npm run e2e                  # browser tests in Edge, all API calls mocked (see below)
+cd C:\Users\m_fahad\Desktop\Project\sentinel-django
+.\.venv\Scripts\python manage.py test --noinput      # Django unit/API tests (test_SentinelDb_django, baad mein drop)
+cd e2e; npm install --offline; cd ..                 # ek dafa: browser tests ke liye playwright-core (installed Edge use karta hai)
+.\.venv\Scripts\python e2e\run.py                    # browser tests: asli server + test_SentinelDb_e2e + stub AI
+.\.venv\Scripts\python e2e\lifecycle.py              # asli AI service + models + test camera: camera lifecycle (~6 min)
+cd ..\ai-service; .\.venv\Scripts\python -m unittest discover -s tests   # AI service (mock-based)
 ```
 
-On 2026-10-21 these passed: backend 74, frontend 32, AI service 25, browser 9.
-- The browser tests (`frontend/e2e`, Playwright with the installed Edge) answer every request to `localhost:5291` inside the browser.
-- While they run, a tripwire listens on port 5291 and fails the run if anything connects. So they never touch a real API or database.
+Taaza nateeje (2026-10-26): Django **76/76**, browser **10/10**. Lifecycle ka aakhri run **18/18** tha (ek run). AI service ke tests is migration mein dobara nahi chalaye gaye (aakhri report: 25/25, 2026-10-21). Tafseel: [FINAL_DJANGO_MIGRATION_AUDIT.md](FINAL_DJANGO_MIGRATION_AUDIT.md).
 
-Model evaluation tools live in `ai-service/tools`:
-- `evaluate.py`: precision, recall, F1, AP50 and AP50:95, and latency, measured on a labelled set.
-- `degrade.py`: synthetic darkness and fog.
-- `enhance.py`: experimental contrast enhancement before the AI. It is not used by the live service.
-- `coco_to_yolo.py`: COCO labels in the format `evaluate.py` reads.
+> Tareekh: 2026-10-21 ko purane stack par yeh pass hue thay: backend 74, frontend 32, AI service 25, browser 9. Woh stack ab delete ho chuka hai.
 
-Results and the full audit are in [ai-service/reports](ai-service/reports/README.md). The project guide, chapter 27, lists every tool and its command.
+Model evaluation tools `ai-service/tools` mein hain:
+- `evaluate.py`: labelled set par precision, recall, F1, AP50, AP50:95 aur latency.
+- `degrade.py`: masnooi andhera aur dhund.
+- `enhance.py`: AI se pehle tajurbati contrast enhancement; live service isay istemal nahi karti.
+- `coco_to_yolo.py`: COCO labels ko us format mein jo `evaluate.py` parhta hai.
+
+Nateeje aur poori AI audit: [ai-service/reports](ai-service/reports/README.md).
 
 ## Documentation
 
-**[docs/FIREVISION_AI_GUIDE_ROMAN_URDU_v5.pdf](docs/FIREVISION_AI_GUIDE_ROMAN_URDU_v5.pdf)** is the full project guide in Roman Urdu. The same guide is also a browsable page, **[docs/FIREVISION_AI_GUIDE_ROMAN_URDU_v5.html](docs/FIREVISION_AI_GUIDE_ROMAN_URDU_v5.html)**, with a chapter sidebar, search and dark mode. Open it from the `docs` folder so the screenshots load. It covers:
-- The whole flow from camera to dashboard, alerts, sensors, sprinklers, floor plans and evacuation.
-- The database, security, the API and SignalR.
-- The AI models: where each model came from, the D-Fire dataset and its image counts, the 80-epoch Kaggle training, and the measured accuracy.
-- The end-to-end test, how to run everything, requirement status and the work that remains.
+- **[FINAL_DJANGO_MIGRATION_AUDIT.md](FINAL_DJANGO_MIGRATION_AUDIT.md)**: migration ki aakhri audit — kya delete hua, kya test hua, kya baqi hai.
+- **[sentinel-django/README.md](sentinel-django/README.md)**: server ka setup, configuration, API, camera lifecycle, tests aur limits.
+- **[sentinel-django/MIGRATION.md](sentinel-django/MIGRATION.md)**: purane .NET/Angular stack ki har cheez Django mein kahan gayi (historical record).
+- **[docs/FIREVISION_AI_GUIDE_ROMAN_URDU_v5.html](docs/FIREVISION_AI_GUIDE_ROMAN_URDU_v5.html)** (PDF bhi): poori project guide — camera se dashboard tak flow, alerts, sensors, sprinklers, floor plans, evacuation, database, security, API, AI models aur unki training/accuracy. Screenshots dekhne ke liye `docs` folder se kholein.
+- **[docs/FIREVISION_AI_USER_GUIDE_ROMAN_URDU.html](docs/FIREVISION_AI_USER_GUIDE_ROMAN_URDU.html)** (PDF bhi): non-technical users ke liye qadam ba qadam — install, start, login, dashboard, hands-on tests, "Safe Test Mode" aur troubleshooting.
+- **[docs/FIREVISION_AI_FEATURES_GUIDE_ROMAN_URDU.html](docs/FIREVISION_AI_FEATURES_GUIDE_ROMAN_URDU.html)**: har feature kaise istemal karein.
+- **[docs/FIREVISION_AI_HARDWARE_GUIDE_ROMAN_URDU.html](docs/FIREVISION_AI_HARDWARE_GUIDE_ROMAN_URDU.html)**: asli hardware jorna — RTSP cameras, ESP32 sensors (`/api/iot/telemetry`), sprinkler relays (`/api/iot/sprinklers`), Twilio, SMTP aur Web Push.
 
-**[docs/FIREVISION_AI_USER_GUIDE_ROMAN_URDU.pdf](docs/FIREVISION_AI_USER_GUIDE_ROMAN_URDU.pdf)** is a step-by-step guide for non-technical users. It is also a browsable page, **[docs/FIREVISION_AI_USER_GUIDE_ROMAN_URDU.html](docs/FIREVISION_AI_USER_GUIDE_ROMAN_URDU.html)**, where the test checkboxes can be ticked and the page remembers them. It covers:
-- Installing, starting and logging in.
-- What every part of the dashboard does.
-- Nine hands-on tests, each with the expected result.
-- A "Safe Test Mode" that keeps real SMS and email from being sent during tests.
-- Troubleshooting and a printable checklist.
+Guides ki tasveerein purane Angular dashboard ki hain; Django dashboard mein wahi panels hain, chhota sa visual farq ho sakta hai.
 
-**[docs/FIREVISION_AI_FEATURES_GUIDE_ROMAN_URDU.html](docs/FIREVISION_AI_FEATURES_GUIDE_ROMAN_URDU.html)** explains how to use each feature: where to click, what to fill in and what you should see. It covers adding cameras, drawing a floor plan, calibration, evacuation routes, the risk heatmap, alerts, sprinklers, dispatch, the simulator and moving the database between PCs.
-
-**[docs/FIREVISION_AI_HARDWARE_GUIDE_ROMAN_URDU.html](docs/FIREVISION_AI_HARDWARE_GUIDE_ROMAN_URDU.html)** explains how to connect real hardware: IP cameras over RTSP (with an RTSP-to-MJPEG converter for the browser), ESP32 smoke and temperature sensors through `/api/iot/telemetry`, sprinkler relays that poll `/api/iot/sprinklers`, Twilio SMS, SMTP email and Web Push keys. It covers every setting, where to get it, and how to check it.
+**Production-ready ya safety-certified nahi.** Asli RTSP CCTV, asli hardware aur notification channels abhi test nahi hue.
